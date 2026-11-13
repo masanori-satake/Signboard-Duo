@@ -113,6 +113,9 @@ body {
 .row[data-url] { cursor: pointer; }
 .cell.remark-plate { white-space: nowrap; overflow: hidden; }
 .logo.fav { background: #23232a; }
-.logo.fav img.favicon { width: 18px; height: 18px; border-radius: 4px; display: none; }
+/* Favicons are designed for light browser chrome: many are dark marks
+   on transparency and vanish on the board's dark cell. Give the icon
+   its own light tile, like a browser tab. */
+.logo.fav img.favicon { width: 20px; height: 20px; border-radius: 4px; display: none; background: #f0f0f2; padding: 2px; box-sizing: border-box; }
 .logo.fav.has-fav img.favicon { display: block; }
 .logo.fav.has-fav .fav-fallback { display: none; }
