@@ -46,6 +46,8 @@ function applyParams() {
 }
 
 let platforms = [];
+let PINNED = false;
+let SET_NEED_MS = SET_SWITCH_MS;
 let rowsBoxEl = null;
 let tickerEl = null;
 let prevByKey = new Map();
@@ -91,6 +93,7 @@ function buildSets() {
 let setsCache = [];
 function refreshSets() { setsCache = buildSets(); }
 function jumpToKey(key) {
+  if (PINNED) return;
   refreshSets();
   const idx = setsCache.findIndex((s) => s.rows.some((r) => r.key === key));
   if (idx < 0 || idx === currentSet) return;
@@ -179,6 +182,7 @@ function buildRows() {
    on the text layer (the glow clone follows via the same class), set
    the travel distance, and let the CSS keyframes hold at both ends. */
 function applyDestScroll() {
+  SET_NEED_MS = SET_SWITCH_MS;
   if (!SCROLL) return;
   textLayer.querySelectorAll('.dest').forEach((dest) => {
     const inner = dest.querySelector('.dest-in');
@@ -189,6 +193,9 @@ function applyDestScroll() {
       const dur = Math.max(6, Math.min(20, overflow / 12));
       inner.style.animationDuration = dur + 's';
       dest.classList.add('scrolling');
+      // The screen may not switch away until the longest destination
+      // has been read to its end once.
+      SET_NEED_MS = Math.max(SET_NEED_MS, dur * 1000);
     } else {
       dest.classList.remove('scrolling');
     }
@@ -235,7 +242,7 @@ setInterval(() => {
   if (document.hidden) return;
   const now = Date.now();
   refreshSets();
-  if (setsCache.length > 1 && now - lastSetChange >= SET_SWITCH_MS && now - lastEventAt >= SET_SWITCH_MS) {
+  if (!PINNED && setsCache.length > 1 && now - lastSetChange >= SET_NEED_MS && now - lastEventAt >= SET_SWITCH_MS) {
     currentSet = (currentSet + 1) % setsCache.length;
     lastSetChange = now;
     buildRows();
@@ -270,6 +277,7 @@ window.addEventListener('message', (ev) => {
     LANG_JA = String(msg.lang || '').toLowerCase().startsWith('ja');
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
+    if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
     if (tickerMode === 'loop') tickerText = defaultTicker();
     const before = prevByKey;
     platforms = msg.platforms || [];
@@ -291,8 +299,29 @@ window.addEventListener('message', (ev) => {
   } else if (msg.type === 'event' && msg.key) {
     lastEventAt = Date.now();
     jumpToKey(msg.key);
+  } else if (msg.type === 'nav') {
+    navSet(msg.dir);
+  } else if (msg.type === 'pin') {
+    PINNED = !!msg.pinned;
+    lastSetChange = Date.now();
   }
 });
+
+function navSet(dir) {
+  refreshSets();
+  if (setsCache.length <= 1) return;
+  currentSet = (currentSet + dir + setsCache.length) % setsCache.length;
+  lastSetChange = Date.now();
+  buildRows();
+}
+
+let wheelAt = 0;
+window.addEventListener('wheel', (e) => {
+  const now = Date.now();
+  if (now - wheelAt < 350) return;
+  wheelAt = now;
+  navSet(e.deltaY > 0 ? 1 : -1);
+}, { passive: true });
 
 function reportWidth() {
   if (window.__SB_AUTO) vscodeApi.postMessage({ type: 'width', width: window.innerWidth });

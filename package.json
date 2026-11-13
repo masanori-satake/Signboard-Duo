@@ -5,7 +5,11 @@
     "onCommand:signboardDuo.showFlap",
     "onCommand:signboardDuo.setToken",
     "onCommand:signboardDuo.deleteToken",
-    "onCommand:signboardDuo.refresh"
+    "onCommand:signboardDuo.refresh",
+    "onCommand:signboardDuo.prevPlatform",
+    "onCommand:signboardDuo.nextPlatform",
+    "onCommand:signboardDuo.pinPlatform",
+    "onCommand:signboardDuo.unpinPlatform"
   ],
   "categories": [
     "Other"
@@ -37,6 +41,26 @@
         "command": "signboardDuo.refresh",
         "icon": "$(refresh)",
         "title": "Signboard-Duo: Refresh Feeds Now"
+      },
+      {
+        "command": "signboardDuo.prevPlatform",
+        "icon": "$(chevron-left)",
+        "title": "Signboard-Duo: Previous Platform"
+      },
+      {
+        "command": "signboardDuo.nextPlatform",
+        "icon": "$(chevron-right)",
+        "title": "Signboard-Duo: Next Platform"
+      },
+      {
+        "command": "signboardDuo.pinPlatform",
+        "icon": "$(pin)",
+        "title": "Signboard-Duo: Pin This Platform"
+      },
+      {
+        "command": "signboardDuo.unpinPlatform",
+        "icon": "$(pinned)",
+        "title": "Signboard-Duo: Unpin Platform"
       }
     ],
     "configuration": {
@@ -170,19 +194,39 @@
     "menus": {
       "view/title": [
         {
+          "command": "signboardDuo.prevPlatform",
+          "group": "navigation@1",
+          "when": "view == signboardDuo.board"
+        },
+        {
+          "command": "signboardDuo.pinPlatform",
+          "group": "navigation@2",
+          "when": "view == signboardDuo.board && !signboardDuo.pinned"
+        },
+        {
+          "command": "signboardDuo.unpinPlatform",
+          "group": "navigation@2",
+          "when": "view == signboardDuo.board && signboardDuo.pinned"
+        },
+        {
+          "command": "signboardDuo.nextPlatform",
+          "group": "navigation@3",
+          "when": "view == signboardDuo.board"
+        },
+        {
+          "command": "signboardDuo.refresh",
+          "group": "navigation@4",
+          "when": "view == signboardDuo.board"
+        },
+        {
           "command": "signboardDuo.showLed",
-          "group": "navigation",
+          "group": "navigation@5",
           "when": "view == signboardDuo.board && !signboardDuo.isLed"
         },
         {
           "command": "signboardDuo.showFlap",
-          "group": "navigation",
+          "group": "navigation@5",
           "when": "view == signboardDuo.board && signboardDuo.isLed"
-        },
-        {
-          "command": "signboardDuo.refresh",
-          "group": "navigation",
-          "when": "view == signboardDuo.board"
         }
       ]
     },
@@ -211,5 +255,5 @@
     "package": "vsce package",
     "test": "node --test"
   },
-  "version": "0.1.1"
+  "version": "0.2.0"
 }

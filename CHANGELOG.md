@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0] - 2026-11-14
+
+- Platform navigation in the view title: previous / next platform buttons and a pin button that holds the current platform (auto-rotation and new-arrival jumps pause while pinned)
+- Page rotation now waits until the longest title on the page has been read to the end (all flap segments shown once / the LED scroll completed once)
+
+- ビュータイトルに番線の操作を追加：前／次の番線ボタンと、今の番線を固定するピンボタン（固定中は自動送りと新着ジャンプを止める）
+- ページ送りが、ページ内の一番長い見出しを最後まで読めるまで待つようになった（フラップは全区切りを一巡、LED はスクロールが一巡するまで）
+
 ## [0.1.1] - 2026-11-14
 
 - View-title commands now show icons instead of raw text labels (refresh, LED / flap toggles)

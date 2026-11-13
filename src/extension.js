@@ -284,6 +284,18 @@ class BoardProvider {
     this.tick = null;
     this.autoRenderer = 'flap';
     this.onRendererChange = null;
+    this.pinned = false;
+  }
+
+  navPlatform(dir) {
+    if (this.view) this.view.webview.postMessage({ type: 'nav', dir });
+  }
+
+  setPinned(v) {
+    this.pinned = !!v;
+    vscode.commands.executeCommand('setContext', 'signboardDuo.pinned', this.pinned);
+    if (this.view) this.view.webview.postMessage({ type: 'pin', pinned: this.pinned });
+    this.push(true);
   }
 
   resolveWebviewView(view) {
@@ -339,7 +351,7 @@ class BoardProvider {
     const platforms = this.engine.platformsPayload();
     const mode = this.configuredMode();
     const scroll = vscode.workspace.getConfiguration(CONFIG_NS).get('scrollLongText', true);
-    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt() };
+    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), pinned: this.pinned };
     const signature = JSON.stringify(payload);
     if (!force && signature === this.lastSignature) return;
     this.lastSignature = signature;
@@ -442,6 +454,10 @@ function activate(context) {
     vscode.commands.registerCommand('signboardDuo.showLed', () => setMode('led')),
     vscode.commands.registerCommand('signboardDuo.showFlap', () => setMode('flap')),
     vscode.commands.registerCommand('signboardDuo.refresh', async () => { await engine.refreshAll(); }),
+    vscode.commands.registerCommand('signboardDuo.prevPlatform', () => provider.navPlatform(-1)),
+    vscode.commands.registerCommand('signboardDuo.nextPlatform', () => provider.navPlatform(1)),
+    vscode.commands.registerCommand('signboardDuo.pinPlatform', () => provider.setPinned(true)),
+    vscode.commands.registerCommand('signboardDuo.unpinPlatform', () => provider.setPinned(false)),
     vscode.commands.registerCommand('signboardDuo.setToken', async (presetId) => {
       const rec = await pickAuthFeed(engine, presetId);
       if (!rec) return;
@@ -468,6 +484,7 @@ function activate(context) {
     { dispose: () => engine.dispose() }
   );
   syncModeContext();
+  vscode.commands.executeCommand('setContext', 'signboardDuo.pinned', false);
   engine.start();
 }
 

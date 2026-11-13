@@ -163,6 +163,8 @@ const boardEl = document.getElementById('board');
 const platformEl = document.getElementById('platform');
 let platforms = [];
 let FETCHED_AT = null;
+let PINNED = false;
+let PAGE_NEED_MS = CONFIG.pageRotateMs;
 let currentPage = 0;
 let lastPageChange = Date.now();
 let lastEventAt = 0;
@@ -249,6 +251,18 @@ function render(pageChanged) {
   } else {
     platformEl.textContent = '';
   }
+  // How long this page needs before it may rotate away: the longest
+  // title on it must get through all of its segments once.
+  PAGE_NEED_MS = CONFIG.pageRotateMs;
+  if (SCROLL) {
+    for (const r of slice) {
+      const tiles = tilesFor(r.title, tier === 'mini');
+      const len = [...String(r.title || '')].length;
+      if (len > tiles) {
+        PAGE_NEED_MS = Math.max(PAGE_NEED_MS, Math.ceil(len / tiles) * CONFIG.segmentMs);
+      }
+    }
+  }
   slice.forEach((r) => {
     const row = rowElFor(r);
     rowsEl.appendChild(row);
@@ -286,6 +300,7 @@ function render(pageChanged) {
 }
 
 function jumpToKey(key) {
+  if (PINNED) return;
   refreshPages();
   const idx = pagesCache.findIndex((pg) => pg.rows.some((r) => r.key === key));
   if (idx < 0 || idx === currentPage) return;
@@ -301,6 +316,7 @@ window.addEventListener('message', (ev) => {
     setLocale(msg.lang);
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
+    if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
     platforms = msg.platforms || [];
     render(false);
     for (const p of platforms) {
@@ -310,6 +326,16 @@ window.addEventListener('message', (ev) => {
   } else if (msg.type === 'event' && msg.key) {
     lastEventAt = Date.now();
     jumpToKey(msg.key);
+  } else if (msg.type === 'nav') {
+    refreshPages();
+    if (pagesCache.length > 1) {
+      currentPage = (currentPage + msg.dir + pagesCache.length) % pagesCache.length;
+      lastPageChange = Date.now();
+      render(true);
+    }
+  } else if (msg.type === 'pin') {
+    PINNED = !!msg.pinned;
+    lastPageChange = Date.now();
   }
 });
 
@@ -337,11 +363,11 @@ window.addEventListener('resize', () => {
 });
 
 setInterval(() => {
-  if (document.hidden) return;
+  if (document.hidden || PINNED) return;
   refreshPages();
   if (pagesCache.length <= 1) return;
   const now = Date.now();
-  if (now - lastPageChange >= CONFIG.pageRotateMs && now - lastEventAt >= CONFIG.pageRotateMs) {
+  if (now - lastPageChange >= PAGE_NEED_MS && now - lastEventAt >= CONFIG.pageRotateMs) {
     currentPage = (currentPage + 1) % pagesCache.length;
     lastPageChange = now;
     render(true);
