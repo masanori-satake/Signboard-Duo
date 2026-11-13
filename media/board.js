@@ -175,7 +175,23 @@ function setRemark(container, text, flap) {
 
 /* ---------- kind chips (replaces Solo's language logos) ---------- */
 const CHIPS = { generic: 'RSS', bamboo: 'CI', status: 'STS', jma: 'WX' };
-function chipEl(kind) {
+const faviconBad = new Set();
+function chipEl(kind, favicon) {
+  if (favicon && !faviconBad.has(favicon)) {
+    const wrap = document.createElement('span');
+    wrap.className = 'logo fav';
+    const fb = document.createElement('span');
+    fb.className = 'fav-fallback';
+    fb.textContent = CHIPS[kind] || 'RSS';
+    const img = document.createElement('img');
+    img.className = 'favicon';
+    img.alt = '';
+    img.addEventListener('load', () => wrap.classList.add('has-fav'));
+    img.addEventListener('error', () => { faviconBad.add(favicon); img.remove(); });
+    img.src = favicon;
+    wrap.append(fb, img);
+    return wrap;
+  }
   const d = document.createElement('span');
   d.className = 'logo generic';
   d.textContent = CHIPS[kind] || 'RSS';
@@ -305,7 +321,11 @@ function render(pageChanged) {
     const remarkText = displayRemark(r);
     const flapRem = pageChanged || !prev || prev.remarkText !== remarkText;
     row.className = 'row st-' + r.status + (r.isNew ? ' is-new' : '');
-    row._logo.replaceChildren(chipEl(page.platform.kind));
+    const chipKey = page.platform.kind + '|' + (page.platform.favicon || '');
+    if (row._chipKey !== chipKey) {
+      row._chipKey = chipKey;
+      row._logo.replaceChildren(chipEl(page.platform.kind, page.platform.favicon));
+    }
     const cjk = hasCjk(r.title);
     row._name.classList.toggle('cjk', cjk);
     setCells(row._name, disp, flapName, cjk ? SETS.cjk : SETS.latin);

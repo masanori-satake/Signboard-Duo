@@ -27,6 +27,35 @@ function defaultTicker() {
   return base + (LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.');
 }
 
+/* The loop ticker speaks for the line on screen: each feed is a line,
+   and the greeting / notices carry its name. */
+function loopTickerText() {
+  const s = setsCache[currentSet];
+  const p = s && s.platform;
+  if (!p || p.state === 'nofeeds') return defaultTicker();
+  const line = p.name + '線';
+  let base;
+  if (p.state === 'authError') {
+    base = LANG_JA
+      ? `本日も${line}のご利用ありがとうございます。現在、認証エラーのため運休しています。トークンを設定してください。`
+      : `Thank you for using the ${p.name} line. Service is suspended (authentication error) — please set a token.`;
+  } else if (p.state === 'configError') {
+    base = LANG_JA
+      ? `本日も${line}のご利用ありがとうございます。フィード設定を確認してください。`
+      : `Thank you for using the ${p.name} line. Please check the feed settings.`;
+  } else if (p.state === 'stale' || p.state === 'error') {
+    base = LANG_JA
+      ? `本日も${line}のご利用ありがとうございます。接続が不安定です。前回の到着情報を表示しています。`
+      : `Thank you for using the ${p.name} line. The connection is unstable; showing the previous arrivals.`;
+  } else {
+    base = LANG_JA
+      ? `本日も${line}のご利用ありがとうございます。${p.rows.length}件が到着しています。`
+      : `Thank you for using the ${p.name} line today. ${p.rows.length} topics have arrived.`;
+  }
+  if (FETCHED_AT) base += LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.';
+  return base;
+}
+
 function pad2(v) { return String(v).padStart(2, '0'); }
 function hhmm(ms) { const d = new Date(ms); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
 function clockNow() { const d = new Date(); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
@@ -246,6 +275,7 @@ setInterval(() => {
     currentSet = (currentSet + 1) % setsCache.length;
     lastSetChange = now;
     buildRows();
+    if (tickerMode === 'loop') { tickerText = loopTickerText(); renderTickerText(); }
   }
   const els = scrollEls();
   if (els.length) {
@@ -260,7 +290,7 @@ setInterval(() => {
       if (tickerOffset === null) tickerOffset = box ? box.clientWidth : 0;
       tickerOffset -= 3;
       if (w > 0 && tickerOffset < -w) {
-        tickerText = defaultTicker();
+        tickerText = loopTickerText();
         tickerMode = 'loop';
         renderTickerText();
       }
@@ -278,10 +308,10 @@ window.addEventListener('message', (ev) => {
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
-    if (tickerMode === 'loop') tickerText = defaultTicker();
     const before = prevByKey;
     platforms = msg.platforms || [];
     buildAll();
+    if (tickerMode === 'loop') { tickerText = loopTickerText(); renderTickerText(); }
     measureSetSize();
     for (const p of platforms) {
       for (const r of p.rows) {
@@ -313,6 +343,7 @@ function navSet(dir) {
   currentSet = (currentSet + dir + setsCache.length) % setsCache.length;
   lastSetChange = Date.now();
   buildRows();
+  if (tickerMode === 'loop') { tickerText = loopTickerText(); renderTickerText(); }
 }
 
 let wheelAt = 0;

@@ -26,6 +26,12 @@ function autoModeForWidth(width) {
 
 /* ---------------- fetching ---------------- */
 
+/* The site's own favicon (served from the feed's origin — no third
+   party favicon service is involved). */
+function faviconOf(url) {
+  try { return new URL(url).origin + '/favicon.ico'; } catch (e) { return ''; }
+}
+
 function fetchOnce(urlStr, headers, redirectsLeft) {
   return new Promise((resolve, reject) => {
     let url;
@@ -245,6 +251,7 @@ class FeedEngine {
           no: p.no,
           name: p.name || (rec && rec.feedTitle) || p.id,
           kind: p.kind,
+          favicon: rec ? faviconOf(rec.url) : '',
           state: rec ? platformState(rec, now, poll) : 'loading',
           lastOkAt: rec && rec.lastOkAt ? rec.lastOkAt : null,
           rows: (rec ? rec.rows : []).map((r) => ({
@@ -401,7 +408,7 @@ class BoardProvider {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="${css}">
 </head>

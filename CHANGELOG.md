@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] - 2026-11-14
+
+- Flap board: the logo cell now shows the feed site's own favicon (loaded from the feed's origin, no third-party service), falling back to the kind chip when the site has none
+- LED board: the ticker speaks for the line on screen — "Thank you for using the OO line" with that feed's arrival count and state notices
+
+- フラップ盤面：ロゴ欄に、フィードのサイト自身のファビコンを表示するようにした（取得先オリジンから読み込み、第三者サービスは使わない。無いサイトは従来の種別チップにフォールバック）
+- LED 盤面：テロップが表示中の番線の言葉で流れるようにした（「本日も○○線のご利用ありがとうございます」＋そのフィードの到着件数・状態案内）
+
 ## [0.2.3] - 2026-11-14
 
 - Flap board: long feed remarks no longer overflow the remark plate — the plate never wraps, and a long remark flips through in plate-sized segments (page rotation waits for the segments, too); the full remark is in the row tooltip
