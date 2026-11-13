@@ -162,6 +162,7 @@ const rowsEl = document.getElementById('rows');
 const boardEl = document.getElementById('board');
 const platformEl = document.getElementById('platform');
 let platforms = [];
+let FETCHED_AT = null;
 let currentPage = 0;
 let lastPageChange = Date.now();
 let lastEventAt = 0;
@@ -180,6 +181,7 @@ function rowsPerPage() {
   return Math.max(1, Math.floor(avail / rowH));
 }
 function stateNote(p) {
+  if (p.state === 'nofeeds') return LANG_JA ? 'フィード未設定' : 'NO FEEDS';
   if (p.state === 'authError') return LANG_JA ? '運休（認証エラー）' : 'SUSPENDED (AUTH)';
   if (p.state === 'configError') return LANG_JA ? '設定エラー' : 'CONFIG ERROR';
   if (p.state === 'stale') return LANG_JA ? '情報が古い場合があります' : 'STALE';
@@ -188,6 +190,7 @@ function stateNote(p) {
   return '';
 }
 function emptyTitle(p) {
+  if (p.state === 'nofeeds') return LANG_JA ? '設定にフィードを追加してください' : 'ADD FEEDS IN SETTINGS';
   if (p.state === 'authError') return LANG_JA ? 'トークンが必要です' : 'TOKEN REQUIRED';
   if (p.state === 'configError') return LANG_JA ? 'フィード設定を確認してください' : 'CHECK FEED SETTINGS';
   if (p.state === 'error') return LANG_JA ? 'フィードを取得できません' : 'FEED UNAVAILABLE';
@@ -275,6 +278,8 @@ function render(pageChanged) {
     if (pagesCache.length !== before) { render(pageChanged); return; }
   }
   document.getElementById('pageInfo').textContent = pg > 1 ? 'PAGE ' + (currentPage + 1) + ' / ' + pg : '';
+  document.getElementById('fetchInfo').textContent = FETCHED_AT
+    ? (LANG_JA ? '最終取得 ' + hhmm(FETCHED_AT) : 'FETCHED ' + hhmm(FETCHED_AT)) : '';
   const topicCount = platforms.reduce((n, p) => n + p.rows.length, 0);
   document.getElementById('flightCount').textContent = topicCount
     ? (LANG_JA ? topicCount + ' 件' : topicCount + (topicCount === 1 ? ' TOPIC' : ' TOPICS')) : '';
@@ -295,6 +300,7 @@ window.addEventListener('message', (ev) => {
   if (msg.type === 'state') {
     setLocale(msg.lang);
     SCROLL = msg.scroll !== false;
+    FETCHED_AT = msg.fetchedAt || null;
     platforms = msg.platforms || [];
     render(false);
     for (const p of platforms) {

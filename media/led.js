@@ -18,10 +18,13 @@ const TYPE_BY_KIND = {
 const TYPE_DEFAULT = TYPE_BY_KIND.generic;
 let LANG_JA = false;
 let SCROLL = true;
+let FETCHED_AT = null;
 function defaultTicker() {
-  return LANG_JA
+  const base = LANG_JA
     ? '本日も Signboard-Duo をご利用くださいまして、ありがとうございます。　この案内板は、RSS / Atom フィードの新着を表示しています。'
     : 'Thank you for using Signboard-Duo today. This board shows the latest topics from your RSS / Atom feeds.';
+  if (!FETCHED_AT) return base;
+  return base + (LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.');
 }
 
 function pad2(v) { return String(v).padStart(2, '0'); }
@@ -55,6 +58,7 @@ let tickerMode = 'loop';
 let tickerOffset = 0;
 
 function stateNote(p) {
+  if (p.state === 'nofeeds') return LANG_JA ? 'フィード未設定' : 'NO FEEDS';
   if (p.state === 'authError') return LANG_JA ? '運休（認証エラー）' : 'SUSPENDED (AUTH)';
   if (p.state === 'configError') return LANG_JA ? '設定エラー' : 'CONFIG ERROR';
   if (p.state === 'stale') return LANG_JA ? '情報が古い場合があります' : 'STALE';
@@ -63,6 +67,7 @@ function stateNote(p) {
   return '';
 }
 function emptyTitle(p) {
+  if (p.state === 'nofeeds') return LANG_JA ? '設定にフィードを追加してください' : 'ADD FEEDS IN SETTINGS';
   if (p.state === 'authError') return LANG_JA ? 'トークンが必要です' : 'TOKEN REQUIRED';
   if (p.state === 'configError') return LANG_JA ? 'フィード設定を確認してください' : 'CHECK FEED SETTINGS';
   if (p.state === 'error') return LANG_JA ? 'フィードを取得できません' : 'FEED UNAVAILABLE';
@@ -264,6 +269,7 @@ window.addEventListener('message', (ev) => {
   if (msg.type === 'state') {
     LANG_JA = String(msg.lang || '').toLowerCase().startsWith('ja');
     SCROLL = msg.scroll !== false;
+    FETCHED_AT = msg.fetchedAt || null;
     if (tickerMode === 'loop') tickerText = defaultTicker();
     const before = prevByKey;
     platforms = msg.platforms || [];

@@ -14,10 +14,15 @@
     "commands": [
       {
         "command": "signboardDuo.showLed",
+        "icon": "$(dashboard)",
         "title": "Signboard-Duo: Show LED Board"
       },
       {
         "command": "signboardDuo.showFlap",
+        "icon": {
+          "dark": "media/flight-dark.svg",
+          "light": "media/flight-light.svg"
+        },
         "title": "Signboard-Duo: Show Flap Board"
       },
       {
@@ -30,6 +35,7 @@
       },
       {
         "command": "signboardDuo.refresh",
+        "icon": "$(refresh)",
         "title": "Signboard-Duo: Refresh Feeds Now"
       }
     ],
@@ -205,5 +211,5 @@
     "package": "vsce package",
     "test": "node --test"
   },
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

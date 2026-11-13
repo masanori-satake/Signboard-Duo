@@ -237,7 +237,7 @@ class FeedEngine {
   platformsPayload() {
     const now = Date.now();
     const poll = this.pollMs();
-    return this.platforms
+    const list = this.platforms
       .filter((p) => p.no != null)
       .map((p) => {
         const rec = this.feeds.find((f) => f.id === p.id);
@@ -246,6 +246,7 @@ class FeedEngine {
           name: p.name || (rec && rec.feedTitle) || p.id,
           kind: p.kind,
           state: rec ? platformState(rec, now, poll) : 'loading',
+          lastOkAt: rec && rec.lastOkAt ? rec.lastOkAt : null,
           rows: (rec ? rec.rows : []).map((r) => ({
             key: r.key, title: r.title, timeMs: r.timeMs,
             status: r.status || 'ontime', remark: r.remark || '',
@@ -253,6 +254,20 @@ class FeedEngine {
           })),
         };
       });
+    if (!list.length) {
+      // No feeds configured: still show a platform so the board can say
+      // what is missing instead of sitting blank.
+      list.push({ no: 1, name: 'Signboard-Duo', kind: 'generic', state: 'nofeeds', lastOkAt: null, rows: [] });
+    }
+    return list;
+  }
+
+  lastFetchedAt() {
+    let latest = null;
+    for (const f of this.feeds) {
+      if (f.lastOkAt && (!latest || f.lastOkAt > latest)) latest = f.lastOkAt;
+    }
+    return latest;
   }
 
   dispose() { if (this.timer) clearInterval(this.timer); }
@@ -324,7 +339,7 @@ class BoardProvider {
     const platforms = this.engine.platformsPayload();
     const mode = this.configuredMode();
     const scroll = vscode.workspace.getConfiguration(CONFIG_NS).get('scrollLongText', true);
-    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll };
+    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt() };
     const signature = JSON.stringify(payload);
     if (!force && signature === this.lastSignature) return;
     this.lastSignature = signature;
@@ -368,7 +383,7 @@ class BoardProvider {
   <div class="platform" id="platform"></div>
   <div class="cols"><span class="c-logo"></span><span class="c-name" id="colName">便名</span><span class="c-meta"><span class="c-time" id="colTime">到着時刻</span><span class="c-rem" id="colRemark">備考</span></span><span class="c-count" id="flightCount"></span></div>
   <div id="rows"></div>
-  <div class="board-foot"><span id="pageInfo"></span></div>
+  <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span></div>
 </div>`;
     return `<!DOCTYPE html>
 <html lang="en">

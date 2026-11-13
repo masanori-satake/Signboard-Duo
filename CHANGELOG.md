@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1] - 2026-11-14
+
+- View-title commands now show icons instead of raw text labels (refresh, LED / flap toggles)
+- The board shows it is alive: last successful fetch time in the flap footer and in the LED ticker, and a guidance platform when no feeds are configured
+
+- ビュータイトルのコマンドが文字列ではなくアイコン表示になった（更新、LED／フラップ切替）
+- 盤面が取得中であることを見せるようにした：最終取得時刻をフラップのフッターと LED のテロップに表示し、フィード未設定のときは案内の番線を出す
+
 ## [0.1.0] - 2026-11-14
 
 - First working version: RSS 1.0 / RSS 2.0 / Atom feed engine with conditional fetching (ETag / Last-Modified) and per-feed auth (bearer / basic / custom header) via SecretStorage
