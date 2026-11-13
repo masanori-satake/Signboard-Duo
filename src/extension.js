@@ -10,7 +10,7 @@
 const vscode = require('vscode');
 const http = require('http');
 const https = require('https');
-const { parseFeed } = require('./feedparse');
+const { parseFeed, parseQuotes } = require('./feedparse');
 const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
 
 const CONFIG_NS = 'signboardDuo';
@@ -200,7 +200,7 @@ class FeedEngine {
         this.log(`feed ${rec.id}: HTTP ${res.status}`);
         return;
       }
-      const parsed = parseFeed(res.body);
+      const parsed = rec.kind === 'stock' ? parseQuotes(res.body) : parseFeed(res.body);
       rec.feedTitle = parsed.title || rec.feedTitle;
       if (res.headers.etag) rec.etag = res.headers.etag;
       if (res.headers['last-modified']) rec.lastModified = res.headers['last-modified'];
@@ -258,6 +258,9 @@ class FeedEngine {
             key: r.key, title: r.title, timeMs: r.timeMs,
             status: r.status || 'ontime', remark: r.remark || '',
             url: r.link || '', isNew: !!r.isNew,
+            price: r.price != null ? r.price : null,
+            change: r.change != null ? r.change : null,
+            changePct: r.changePct != null ? r.changePct : null,
           })),
         };
       });
@@ -385,9 +388,10 @@ class BoardProvider {
     const mode = this.configuredMode();
     const effectiveMode = this.effectiveMode();
     const led = effectiveMode === 'led';
+    const stock = effectiveMode === 'stock';
     if (this.onRendererChange) this.onRendererChange(effectiveMode);
-    const cssFile = led ? 'led.css' : 'board.css';
-    const jsFile = led ? 'led.js' : 'board.js';
+    const cssFile = led ? 'led.css' : stock ? 'stock.css' : 'board.css';
+    const jsFile = led ? 'led.js' : stock ? 'stock.js' : 'board.js';
     const css = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', cssFile));
     const js = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', jsFile));
     const nonce = String(Date.now()) + Math.floor(Math.random() * 1e9);
@@ -398,7 +402,18 @@ class BoardProvider {
       ? `<script nonce="${nonce}">window.__SB_LED = ${JSON.stringify({
         pitch: cfg.get('ledPitch', 3), hole: cfg.get('ledHole', 38), glow: cfg.get('ledGlow', true),
       })};</script>\n` : '';
-    const body = led
+    const body = stock
+      ? `<div class="board" id="board">
+  <div class="board-head">
+    <span class="title" id="boardTitle">QUOTES</span>
+    <span class="clock" id="clock"></span>
+  </div>
+  <div class="platform" id="platform"></div>
+  <div class="cols"><span class="c-name" id="colName">NAME</span><span class="c-price" id="colPrice">LAST</span><span class="c-chg" id="colChg">CHANGE</span><span class="c-time" id="colTime">TIME</span></div>
+  <div id="rows"></div>
+  <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span></div>
+</div>`
+      : led
       ? `<div class="board" id="board">
   <div class="layer glow" id="glowLayer" aria-hidden="true"></div>
   <div class="layer" id="textLayer"></div>
@@ -436,6 +451,8 @@ ${autoScript}${ledScript}<script nonce="${nonce}" src="${js}"></script>
 function syncModeContext(effectiveMode) {
   const mode = effectiveMode || vscode.workspace.getConfiguration(CONFIG_NS).get('mode', 'flap');
   vscode.commands.executeCommand('setContext', 'signboardDuo.isLed', mode === 'led');
+  vscode.commands.executeCommand('setContext', 'signboardDuo.isFlap', mode === 'flap');
+  vscode.commands.executeCommand('setContext', 'signboardDuo.isStock', mode === 'stock');
 }
 
 async function setMode(next) {
@@ -471,6 +488,7 @@ function activate(context) {
     }),
     vscode.commands.registerCommand('signboardDuo.showLed', () => setMode('led')),
     vscode.commands.registerCommand('signboardDuo.showFlap', () => setMode('flap')),
+    vscode.commands.registerCommand('signboardDuo.showStock', () => setMode('stock')),
     vscode.commands.registerCommand('signboardDuo.refresh', async () => { await engine.refreshAll(); }),
     vscode.commands.registerCommand('signboardDuo.prevPlatform', () => provider.navPlatform(-1)),
     vscode.commands.registerCommand('signboardDuo.nextPlatform', () => provider.navPlatform(1)),

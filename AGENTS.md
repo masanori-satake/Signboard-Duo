@@ -28,6 +28,7 @@
 - `src/feedparse.js` — 純粋モジュール：RSS 1.0 / RSS 2.0 / Atom の正規化パーサ（外部実体は解決しない）
 - `media/board.js` / `board.css` — フラップ盤面（Signboard-Solo から fork）
 - `media/led.js` / `led.css` — LED盤面（マスク方式、Signboard-Solo から fork）
+- `media/stock.js` / `stock.css` — 株価盤面（区画ごとに役割と色を分ける証券ボード方式。kind: "stock" の JSON 相場フィード用）
 - `test/` — `src/model.js` / `src/feedparse.js` の単体テスト（node:test、実フィードのフィクスチャ）
 
 ## ⚙️ 開発コマンド

@@ -10,7 +10,8 @@
     "onCommand:signboardDuo.nextPlatform",
     "onCommand:signboardDuo.pinPlatform",
     "onCommand:signboardDuo.unpinPlatform",
-    "onCommand:signboardDuo.cycleTheme"
+    "onCommand:signboardDuo.cycleTheme",
+    "onCommand:signboardDuo.showStock"
   ],
   "categories": [
     "Other"
@@ -67,6 +68,11 @@
         "command": "signboardDuo.cycleTheme",
         "title": "Signboard-Duo: Switch Colour Theme",
         "icon": "$(symbol-color)"
+      },
+      {
+        "command": "signboardDuo.showStock",
+        "title": "Signboard-Duo: Show Stock Board",
+        "icon": "$(graph-line)"
       }
     ],
     "configuration": {
@@ -123,7 +129,8 @@
                   "generic",
                   "bamboo",
                   "status",
-                  "jma"
+                  "jma",
+                  "stock"
                 ],
                 "type": "string"
               },
@@ -174,11 +181,12 @@
         },
         "signboardDuo.mode": {
           "default": "flap",
-          "description": "Board style. Auto uses LED at 540px and wider.",
+          "description": "Board style: split-flap, LED, or stock board. Auto uses flap below 540px and LED at 540px and wider.",
           "enum": [
             "auto",
             "flap",
-            "led"
+            "led",
+            "stock"
           ],
           "type": "string"
         },
@@ -201,43 +209,48 @@
       "view/title": [
         {
           "command": "signboardDuo.prevPlatform",
-          "group": "navigation@1",
-          "when": "view == signboardDuo.board"
+          "when": "view == signboardDuo.board",
+          "group": "navigation@1"
         },
         {
           "command": "signboardDuo.pinPlatform",
-          "group": "navigation@2",
-          "when": "view == signboardDuo.board && !signboardDuo.pinned"
+          "when": "view == signboardDuo.board && !signboardDuo.pinned",
+          "group": "navigation@2"
         },
         {
           "command": "signboardDuo.unpinPlatform",
-          "group": "navigation@2",
-          "when": "view == signboardDuo.board && signboardDuo.pinned"
+          "when": "view == signboardDuo.board && signboardDuo.pinned",
+          "group": "navigation@2"
         },
         {
           "command": "signboardDuo.nextPlatform",
-          "group": "navigation@3",
-          "when": "view == signboardDuo.board"
+          "when": "view == signboardDuo.board",
+          "group": "navigation@3"
         },
         {
           "command": "signboardDuo.refresh",
-          "group": "navigation@4",
-          "when": "view == signboardDuo.board"
-        },
-        {
-          "command": "signboardDuo.showLed",
-          "group": "navigation@5",
-          "when": "view == signboardDuo.board && !signboardDuo.isLed"
-        },
-        {
-          "command": "signboardDuo.showFlap",
-          "group": "navigation@5",
-          "when": "view == signboardDuo.board && signboardDuo.isLed"
+          "when": "view == signboardDuo.board",
+          "group": "navigation@4"
         },
         {
           "command": "signboardDuo.cycleTheme",
           "when": "view == signboardDuo.board",
-          "group": "navigation@7"
+          "group": "navigation@5"
+        },
+        {
+          "command": "signboardDuo.showStock",
+          "when": "view == signboardDuo.board && !signboardDuo.isStock",
+          "group": "navigation@6"
+        },
+        {
+          "command": "signboardDuo.showFlap",
+          "when": "view == signboardDuo.board && !signboardDuo.isFlap",
+          "group": "navigation@6"
+        },
+        {
+          "command": "signboardDuo.showLed",
+          "when": "view == signboardDuo.board && !signboardDuo.isLed",
+          "group": "navigation@6"
         }
       ]
     },
@@ -266,5 +279,5 @@
     "package": "vsce package",
     "test": "node --test"
   },
-  "version": "0.4.0"
+  "version": "0.5.0"
 }

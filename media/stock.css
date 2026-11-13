@@ -1,0 +1,41 @@
+/* Signboard-Duo — stock board.
+   Deep navy board, zoned rows: name (fixed, white) / price (large,
+   mono, direction-coloured) / change (arrow + value + %, direction
+   colour) / time (quiet gray). Japanese market convention: red is up,
+   green is down. */
+:root { --acc: #ffd76a; }
+body[data-theme="lime"] { --acc: #8ce99a; }
+body[data-theme="ice"] { --acc: #a8c8ff; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: #070b12;
+  color: #e8ecf2;
+  font-family: var(--vscode-font-family, "Segoe UI", sans-serif);
+  font-size: 13px;
+  padding: 6px 8px 4px;
+  user-select: none;
+}
+.board-head { display: flex; align-items: baseline; padding: 2px 2px 6px; border-bottom: 2px solid #1d2a3d; }
+.board-head .title { font-weight: 700; letter-spacing: .35em; font-size: 13px; color: var(--acc); }
+.board-head .clock { margin-left: auto; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; color: var(--acc); }
+.platform { padding: 6px 2px 2px; font-size: 12px; letter-spacing: .08em; color: #9fb4cc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 3.2em; gap: 12px; padding: 4px 2px; font-size: 10px; letter-spacing: .18em; color: #5f7189; border-bottom: 1px solid #1d2a3d; }
+.cols .c-price, .cols .c-chg { text-align: right; }
+.cols .c-time { text-align: right; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 3.2em; gap: 12px; align-items: baseline; padding: 5px 2px; border-bottom: 1px solid #131c29; }
+.row[data-url] { cursor: pointer; }
+.z-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.z-price { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 16px; font-weight: 700; text-align: right; }
+.z-price.note { font-size: 11px; font-weight: 400; color: #8fa1b8; }
+.z-price.flash { animation: price-flash 1s ease-out; }
+@keyframes price-flash { 0% { background: rgba(255, 215, 106, .35); } 100% { background: transparent; } }
+.z-chg { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; text-align: right; white-space: nowrap; }
+.z-time { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: #5f7189; text-align: right; }
+.dir-up .z-price, .dir-up .z-chg { color: #ff5252; }
+.dir-down .z-price, .dir-down .z-chg { color: #3ddc68; }
+.dir-flat .z-price { color: #e8ecf2; }
+.dir-flat .z-chg { color: #8fa1b8; }
+.row.empty .z-name { color: #8fa1b8; font-weight: 400; }
+.board-foot { display: flex; gap: 14px; padding-top: 6px; color: #5f7189; font-size: 11px; letter-spacing: .14em; min-height: 20px; }

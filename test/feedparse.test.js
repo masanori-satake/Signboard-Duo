@@ -4,9 +4,28 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { parseFeed, parseDate, decodeEntities } = require('../src/feedparse');
+const { parseFeed, parseQuotes, parseDate, decodeEntities } = require('../src/feedparse');
 
 const fixture = (name) => fs.readFileSync(path.join(__dirname, 'fixtures', name), 'utf8');
+
+test('CNBC stock quotes fixture parses prices, changes and times', () => {
+  const feed = parseQuotes(fixture('cnbc-quotes.json'));
+  assert.equal(feed.items.length, 2); // the code:1 entry is dropped
+  const nk = feed.items[0];
+  assert.equal(nk.guid, '.N225');
+  assert.equal(nk.title, 'NIKKEI');
+  assert.equal(nk.price, 61142.35);
+  assert.equal(nk.change, 322.99);
+  assert.equal(nk.changePct, 0.53);
+  assert.ok(nk.timeMs > 0);
+  const ix = feed.items[1];
+  assert.equal(ix.changePct, -0.91);
+});
+
+test('parseQuotes tolerates non-JSON and unknown shapes', () => {
+  assert.deepEqual(parseQuotes('<html>nope</html>').items, []);
+  assert.deepEqual(parseQuotes('{"other":1}').items, []);
+});
 
 test('GitHub releases Atom fixture parses as atom with dated entries', () => {
   const feed = parseFeed(fixture('github-releases.atom.xml'));

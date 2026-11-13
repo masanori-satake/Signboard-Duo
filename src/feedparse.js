@@ -202,4 +202,47 @@ function atomLink(entry) {
   return alt ? alt.attrs.href || '' : '';
 }
 
-module.exports = { parseFeed, parseDate, stripMarkup, decodeEntities, normTitle };
+/* Stock quotes (kind: "stock"): a JSON endpoint in the CNBC quote
+   shape — FormattedQuoteResult.FormattedQuote[] with symbol / last /
+   change / change_pct / last_time — or a plain array of objects with
+   the same field names. Returned in the same item shape as parseFeed,
+   with price / change / changePct attached. Entries the provider marks
+   with a non-zero code, and entries without a numeric price, are
+   dropped. */
+function parseQuotes(text) {
+  let data;
+  try { data = JSON.parse(text); } catch (e) { return { title: '', items: [] }; }
+  let list = [];
+  if (data && data.FormattedQuoteResult && Array.isArray(data.FormattedQuoteResult.FormattedQuote)) {
+    list = data.FormattedQuoteResult.FormattedQuote;
+  } else if (Array.isArray(data)) {
+    list = data;
+  }
+  const num = (v) => {
+    const n = parseFloat(String(v == null ? '' : v).replace(/[,%+]/g, ''));
+    return Number.isFinite(n) ? n : null;
+  };
+  const items = [];
+  for (const q of list) {
+    if (!q) continue;
+    if (q.code != null && Number(q.code) !== 0) continue;
+    const symbol = String(q.symbol || '').trim();
+    if (!symbol) continue;
+    const price = num(q.last);
+    if (price == null) continue;
+    const t = Date.parse(q.last_time || q.time || '');
+    items.push({
+      guid: symbol,
+      title: String(q.shortName || q.name || symbol),
+      link: '',
+      remark: symbol,
+      timeMs: Number.isFinite(t) ? t : null,
+      price,
+      change: num(q.change),
+      changePct: num(q.change_pct),
+    });
+  }
+  return { title: '', items };
+}
+
+module.exports = { parseFeed, parseQuotes, parseDate, stripMarkup, decodeEntities, normTitle };

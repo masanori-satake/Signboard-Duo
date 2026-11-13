@@ -69,15 +69,24 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
         timeMs: it.timeMs != null ? it.timeMs : now,
         firstSeenAt: now, lastSeenInFeedAt: now,
         isNew: true, updated: false,
+        price: it.price != null ? it.price : null,
+        change: it.change != null ? it.change : null,
+        changePct: it.changePct != null ? it.changePct : null,
       });
     } else {
-      const changed = old.title !== it.title || (it.timeMs != null && old.timeMs !== it.timeMs);
+      // Quote rows change by price, not by timestamp (their time moves
+      // on every poll while the market is open).
+      const changed = old.title !== it.title
+        || (it.price != null ? old.price !== it.price : (it.timeMs != null && old.timeMs !== it.timeMs));
       next.set(key, {
         ...old,
         title: it.title, link: it.link, remark: it.remark,
         timeMs: it.timeMs != null ? it.timeMs : old.timeMs,
         lastSeenInFeedAt: now,
         isNew: false, updated: changed,
+        price: it.price != null ? it.price : old.price,
+        change: it.change != null ? it.change : old.change,
+        changePct: it.changePct != null ? it.changePct : old.changePct,
       });
     }
   }
