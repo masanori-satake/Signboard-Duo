@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF
+xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+xmlns="http://purl.org/rss/1.0/"
+xmlns:dc="http://purl.org/dc/elements/1.1/" 
+xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+xml:lang="ja">
+<channel rdf:about="https://www.itmedia.co.jp/news/">
+<title>ITmedia NEWS 最新記事一覧</title>
+<link>https://www.itmedia.co.jp/news/</link>
+<description>ITmedia NEWS の最新記事一覧です。</description>
+<dc:language>ja</dc:language>
+<dc:date>2026-11-14T00:25:00+09:00</dc:date>
+<items>
+<rdf:Seq>
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003195/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003200/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003197/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003178/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003186/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003185/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003184/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003183/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003182/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003112/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003110/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003167/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003166/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003163/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003162/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/13/2000003161/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003160/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003158/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003149/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003148/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003144/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003139/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003138/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003132/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003127/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003126/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003125/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/12/2000003124/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003119/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003116/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003114/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003111/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003108/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003105/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003102/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003100/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003049/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003095/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003094/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003090/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003092/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003091/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003089/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003087/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003085/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003084/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000003083/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/11/2000002913/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/10/2000003079/" />
+<rdf:li rdf:resource="https://www.itmedia.co.jp/news/article/2611/10/2000003072/" />
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003195/">
+<title>AI×裸眼3Dディスプレイ？　2D映像をその場で3D化し、見る人の目も追う　現地で確かめた</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003195/</link>
+<description>文章作成とんでん、ソフトバンク、SBクリエイティブの3社が、裸眼で3D映像を見られるデジタルサイネージの実証実験を公開した。AIが視聴者の目の位置を追跡し、既存の2D動画をリアルタイムで3D映像に変換する。現地で体験した。</description>
+<dc:date>2026-11-13T23:34:56+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003200/">
+<title>データセンターの排熱でエビ養殖、NTT系が実験　育ったら食べられる？　担当者に聞いてみた</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003200/</link>
+<description>NTTドコモビジネスなど4社が、データセンターの排熱を使ったエビ養殖の実証に乗り出す。2027年度にはバナメイエビの飼育を始める計画だ。なぜエビを選んだのか、育てたエビをどうするのか。同社の担当者に話を聞いた。</description>
+<dc:date>2026-11-13T19:45:49+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003197/">
+<title>「お名前.com」不正アクセス、補償申請約30億円に　GMOインターネットが決算説明会で謝罪</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003197/</link>
+<description>GMOインターネットは11月13日、「お名前.com デスクトップクラウド」への不正アクセスに関わる直接費用が計30億5000万円に上る見込みだと発表した。費用総額は確定していないとして、通期の業績予想は修正していない。</description>
+<dc:date>2026-11-13T18:17:23+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003178/">
+<title>【復旧】ANA、予約システムの一部に障害、予約できない場合も……国内線タイムセール初日に</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003178/</link>
+<description>「JALも予約できない」という声も出ていた。【更新】</description>
+<dc:date>2026-11-13T14:58:17+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003186/">
+<title>「Qoo10」不正アクセス、個人情報漏えい　「住所の地理座標」や「身体的特徴」も対象の可能性</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003186/</link>
+<description>氏名や住所の他、住所の地理座標、顧客が任意で入力した身体的特徴などが含まれる可能性があるという。</description>
+<dc:date>2026-11-13T13:31:03+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003185/">
+<title>AWS、Microsoft 365障害の影響を否定　正常稼働を強調</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003185/</link>
+<description>AWSは11月12日、別サービスで発生した障害を巡り、AWSの稼働状況について不正確な報道が出ていると、公式Xアカウントに投稿した。同日に米Microsoftの「Microsoft 365」で発生している大規模障害と、別の時間帯に発生したAWS障害を関連付ける報道に反論したとみられる。</description>
+<dc:date>2026-11-13T13:02:15+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003184/">
+<title>パナHD、AIとロボ組み合わせた「フィジカルAI」研究開発強化　倉庫・物流へ展開視野</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003184/</link>
+<description>パナソニックホールディングス（HD）は11月11日、人工知能（AI）とロボットを組み合わせた「フィジカルAI」の研究開発を強化する方針を明らかにした。</description>
+<dc:date>2026-11-13T12:55:31+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003183/">
+<title>MS障害、政府共通システムにも影響　デジタル相「朝、なんで使えないんだろうと思ったら」</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003183/</link>
+<description>古川デジタル大臣は、記者からOutlookの障害について問われ、「今日朝使ってみて、『なんで使えないんだろう』と思って報道を見た」という。</description>
+<dc:date>2026-11-13T12:48:15+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003182/">
+<title>虎柄ロボットに「阪神君」と命名　首相、フィジカルAIを体験　関連企業と意見交換</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003182/</link>
+<description>高市早苗首相は11月12日、機械を人工知能（AI）で自律的に動かす「フィジカルAI」の関連企業の代表らを官邸に招き、意見交換会を開いた。</description>
+<dc:date>2026-11-13T12:38:07+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003112/">
+<title>メモリ8GBでも快適？　Windows 11最新アプデと「AIカスタム」した日本語入力環境で、旧型PCを蘇らせる</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003112/</link>
+<description>メモリ価格の高騰で、PCの買い替えはますます遠のいた。そんな中で配信されたWindows 11のアップデートは、8GBメモリの非力なマシンにも思わぬ余力を生んだ。それなら9年前のLet’s noteを、原稿執筆のサブ機として使えないか。ネックは日本語入力だ。ライブ変換が追い付かずに入力を取りこぼす問題を、今回はAIに直させてみた。</description>
+<dc:date>2026-11-13T12:27:56+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003110/">
+<title>Googleの社内専用コーディングAI「GfG」、その全容　Geminiに社内データ1兆トークン学習させ開発　所要時間半減の業務も</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003110/</link>
+<description>米Googleなどに所属する研究者らが10月に発表した論文「Customizing an LLM for Enterprise Software Engineering」は、AIに企業独自の膨大な開発データを学習させ、社内システム開発に特化したコーディングモデルを構築する手法とその実用効果をまとめた研究報告だ。</description>
+<dc:date>2026-11-13T12:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003167/">
+<title>緊急情報の音声放送システムにランサムウェア攻撃　滋賀県甲賀市、屋外拡声器など使えず</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003167/</link>
+<description>屋外拡声器などを使った緊急情報も停止しており、緊急情報は市の公式LINEやテレビ、ラジオなどで伝える。</description>
+<dc:date>2026-11-13T09:44:12+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003166/">
+<title>Google、Gemini搭載のメガネを米韓で予約開始　395ドルからで12月10日発売へ</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003166/</link>
+<description>Googleは、Samsungらと共同開発したGemini対応スマートグラス「intelligent eyewear」の予約受付を米国と韓国で開始した。カメラとマイクを内蔵し、視界の情報を基にGeminiと音声で対話できる。外向きLEDや自動顔ぼかし機能など、周囲のプライバシーにも配慮されている。</description>
+<dc:date>2026-11-13T09:30:33+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003163/">
+<title>サイバーセキュリティクラウド、GitHubから顧客情報流出か　「セキュリティ企業として重く受け止め」</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003163/</link>
+<description>従業員が業務で使っていたGitHubの認証情報1件が外部に流出したことを、外部機関からの情報提供で確認した。</description>
+<dc:date>2026-11-13T08:15:50+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003162/">
+<title>Google、高速で低価格の「Gemini 4 Hydrogen」発表　無料ユーザーも利用可能</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003162/</link>
+<description>Googleは、AIエージェントによる作業や日常的なコーディングに向けた高速・高効率の新モデル「Gemini 4 Hydrogen」を発表した。「Gemini 3.8 Flash」の約2.5倍の速さでタスクを終え、推論の深さを4段階から選べる。APIやGeminiアプリなどで同日から順次提供している。</description>
+<dc:date>2026-11-13T08:04:46+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/13/2000003161/">
+<title>Microsoft 365で大規模障害　「Outlook」でメールにアクセスできず、「Teams」など複数サービスに影響</title>
+<link>https://www.itmedia.co.jp/news/article/2611/13/2000003161/</link>
+<description>Microsoftの「Microsoft 365」で米国時間11月12日、Exchange Onlineなどに接続できない大規模障害が発生した。原因は多数のサーバが自動ヘルスチェックに失敗して応答しなくなったためで、直近の構成変更が影響した可能性がある。一部は復旧しており、同社は自動復旧の導入など対応を進めている。</description>
+<dc:date>2026-11-13T06:41:21+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003160/">
+<title>NVIDIA、“革ジャンCEO”ことフアン氏が辞任　クレスCFOが暫定CEOに</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003160/</link>
+<description>米NVIDIAは11月12日（現地時間）、1993年の共同創業以来同社を率いてきたジェンスン・フアン氏が、社長兼CEOと取締役を即日辞任したと発表した。CFOのコレット・クレス氏が暫定CEOに就任し、取締役会は社内外から正式なCEOを選ぶ。</description>
+<dc:date>2026-11-12T23:53:52+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003158/">
+<title>宝くじ公式サイト、会員の当落情報まで第三者が閲覧の可能性　リスト型攻撃か</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003158/</link>
+<description>宝くじを販売する全国の都道府県と指定都市は11月11日、公式サイトに不正ログインした第三者が、一部会員のくじの当落情報や氏名、住所などを閲覧した可能性があると発表した。同日までに、不正な購入や当せん金の受け取りは確認していないという。</description>
+<dc:date>2026-11-12T18:54:27+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003149/">
+<title>介護現場の人手不足を補う「ヒト型助手ロボット」　遠隔で利用者見守る最新テクノロジーも</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003149/</link>
+<description>高齢化が進む中、介護業界は深刻な人手不足に直面している。こうした問題を打開しようと、現場を支える新たなテクノロジーの開発と導入が進んでいる。</description>
+<dc:date>2026-11-12T17:30:48+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003148/">
+<title>セキュリティの司令塔、韓国金融保安院がハッキング攻撃受け個人情報650件流出</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003148/</link>
+<description>韓国の金融機関のサイバーセキュリティを監視する韓国金融保安院は11月10日、9日午後3時ごろに外部からハッキング攻撃を受けたと発表した。</description>
+<dc:date>2026-11-12T17:15:59+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003144/">
+<title>無印良品「21年までクレカ番号で顧客を識別していた」　“全ケタ保有＆漏えい“巡り謝罪　削除漏れなぜ発生</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003144/</link>
+<description>良品計画は11月12日、不正アクセスを巡る謝罪会見を開いた。2021年7月までクレジットカード番号で顧客を識別していたと説明。システム変更後も一部のカード情報を削除せず保管していた問題について、運用上の不備を認めた。</description>
+<dc:date>2026-11-12T17:00:22+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003139/">
+<title>AWS、AIエージェント向けに強力な隔離環境とネイティブなEC2性能を備えた軽量VM「AWS Nitro Sandboxes」提供開始</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003139/</link>
+<description>米Amazon Web Services（AWS）は、Amazon EC2インスタンス上でほぼネイティブのEC2性能で動作しつつ、Nitroシステムハードウェアレベルのきわめて強力な隔離環境を備えた軽量な仮想マシン「AWS Nitro Sandbox」の提供開始を発表しました。</description>
+<dc:date>2026-11-12T14:10:47+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003138/">
+<title>NVIDIA取締役会、フアンCEO解任の可否決定へ　2件の不倫報道で株価8％超下落</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003138/</link>
+<description>米NVIDIAの取締役会は11月11日（現地時間）夜、ジェンスン・フアンCEOの解任の可否を決める会合を開く。フアン氏を巡る2件の不倫報道が続く中、同氏に明確な後継者はいない。</description>
+<dc:date>2026-11-12T13:58:04+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003132/">
+<title>Google DeepMind、「AlphaGenome 2」発表　細胞の種類ごとにDNA変異の影響を予測するAI</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003132/</link>
+<description>Google DeepMindは、DNA配列が特定の細胞種に与える影響を予測する次世代AIモデル「AlphaGenome 2」を発表した。1億超の細胞データで学習し、細胞の種類や状態を条件指定して予測できる。疾患に関わる遺伝子変異の特定精度を前モデルから大幅に向上させており、非営利目的ならAPI経由で利用できる。</description>
+<dc:date>2026-11-12T11:29:43+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003127/">
+<title>ユナイテッド航空、外部のAIアシスタントによる航空券の予約などを禁止へ　「チェックインには人間の確認が必要」</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003127/</link>
+<description>United Airlinesは、サードパーティ製AIエージェントによる自社サービスの利用を禁止すると発表した。機密情報の漏えいや意図しないアカウント操作、航空当局の規制違反の恐れを理由としている。米国ではMetaのAIエージェント「Muse」公開以降、小売りや金融業界でも外部AIを制限する動きが相次いでいる。</description>
+<dc:date>2026-11-12T10:49:56+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003126/">
+<title>Amazon、AWSのAPIを手元で再現する「AWS Emulator」を無償公開　コードはすべてAIエージェントが記述</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003126/</link>
+<description>AWSは、クラウド環境を使わずにローカルでAWS APIを再現できるツール「AWS Emulator」を無料で公開した。すべてのコードが自律型AIエージェントによって記述されており、人間のレビューは介在していない。開発者はAWSアカウント不要で、アプリの構築やCI/CDでの統合テストなどを手元で実行できる。</description>
+<dc:date>2026-11-12T09:56:17+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003125/">
+<title>ドコモ「5G SA」また障害、原因は5日と同じ「交換機の輻輳」　約9時間で復旧</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003125/</link>
+<description>不正アクセスの形跡やサイバー攻撃を示す事象は確認していないという。</description>
+<dc:date>2026-11-12T09:53:56+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/12/2000003124/">
+<title>Appleサポートコミュニティ、11月20日に閉鎖へ　新規投稿は既に終了</title>
+<link>https://www.itmedia.co.jp/news/article/2611/12/2000003124/</link>
+<description>Appleは、「Appleサポートコミュニティ」を11月20日に閉鎖すると発表した。1998年に開設された同フォーラムは、現在すでに新規投稿の受け付けを終了し、閲覧専用となっている。Appleは戦略と顧客ニーズを慎重に評価した結果としており、今後は公式サポートサイトを利用するよう呼び掛けている。</description>
+<dc:date>2026-11-12T08:46:34+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003119/">
+<title>靖国神社に不正アクセス　約1万4500件の個人情報漏えい、パスワードが特定されるおそれも</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003119/</link>
+<description>靖国神社（東京都千代田区）は11月11日、同神社が運営する通販サイト「オンライン授与品・頒布品サイト」への不正アクセスにより、約1万4500件の個人情報が漏えいしたと発表した。</description>
+<dc:date>2026-11-11T19:11:24+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003116/">
+<title>続くドコモ通信障害　一部除き復旧も、完全解消には至らず　原因は調査中</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003116/</link>
+<description>NTTドコモは11月11日、全国で発生した5G SA契約者向けの通信障害について、一部を除き復旧したと発表した。午後4時30分時点で完全復旧には至っておらず、原因は調査中。</description>
+<dc:date>2026-11-11T18:36:04+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003114/">
+<title>メール配信のユミルリンク、不正アクセスで約4786万件漏えい　JR東海やアイスタイルに影響</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003114/</link>
+<description>ユミルリンクは11月11日、不正アクセスにより約4786万件の個人情報が流出したと発表した。10月に公表した最大約5162万件から件数を精査。被害は同社のメール配信サービスを利用するアイスタイルやJR東海などにも広がっている。</description>
+<dc:date>2026-11-11T17:35:52+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003111/">
+<title>まるで「自宅警備員」？　室内を自律飛行する防犯ドローン、Amazon傘下が発表　約4万円から</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003111/</link>
+<description>米Amazon傘下のRingは、室内を自律飛行する家庭向け防犯ドローンを発表した。AIを活用して屋内を巡回し、センサーが異常を検知すると自動で現場へ移動して撮影する。価格は約4万円。企業向けの自律走行型警備ロボットも発表した。</description>
+<dc:date>2026-11-11T15:43:42+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003108/">
+<title>前澤友作氏、Metaの“なりすまし広告”訴訟で控訴検討　東京地裁の請求棄却に「野放しでもOK？」</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003108/</link>
+<description>実業家の前澤友作氏は11月10日、自身の名前や顔写真を無断で使った「なりすまし広告」を巡る米Metaとの訴訟で東京地裁が請求を棄却したことを受け、控訴を検討するとXに投稿した。</description>
+<dc:date>2026-11-11T15:17:18+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003105/">
+<title>内閣府、メルマガ利用者のメアド6万件超漏えい　氏名なども流出の可能性　アララ不正アクセスで</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003105/</link>
+<description>アララが提供するメール配信サービスが不正アクセスを受けたことが原因。メルマガ登録時に入力された氏名や性別などの情報も、漏えいした可能性もあるという。</description>
+<dc:date>2026-11-11T14:19:36+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003102/">
+<title>業界初「水道水を使うアンテナ」モバイル端末との接続に成功　三菱電機</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003102/</link>
+<description>一般的な金属製アンテナの接続性能と差分がないことを確認したという。</description>
+<dc:date>2026-11-11T13:50:38+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003100/">
+<title>“タッチ不要”の改札、山手線など40駅に導入　28年春から　JR東</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003100/</link>
+<description>JR東日本は、Suicaをタッチせずに通過できる「ウォークスルー改札」を2028年春から本格導入する。山手線全駅など40駅から始め、31年度末までに全駅への拡大を目指す。27年4月から14駅で体験導入を実施する。</description>
+<dc:date>2026-11-11T12:35:42+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003049/">
+<title>“同じWi-Fiにいる誰か”に通信をのぞかれる？　「クライアント分離」を2秒で突破する攻撃　米大学が検証</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003049/</link>
+<description>米カリフォルニア大学リバーサイド校などに所属する研究者らが2月に発表した論文「AirSnitch: Demystifying and Breaking Client Isolation in Wi-Fi Networks」は、Wi-Fiの同じネットワーク内にいる端末同士の通信を遮断する「クライアント分離」を突破する攻撃手法を発表した研究報告だ。</description>
+<dc:date>2026-11-11T12:11:32+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003095/">
+<title>ドコモまた障害、全国で通話・データ利用しづらく　Xでは「5G SAがつながらない」の声【更新】</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003095/</link>
+<description>ドコモの「5G SA」でまた障害が起きた。【更新】</description>
+<dc:date>2026-11-11T11:52:53+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003094/">
+<title>「ブロッキング」実施検討へ向けた作業部会設置　総務省　法的整理など加速へ</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003094/</link>
+<description>総務省は11月10日、サイバー攻撃で漏えいした個人情報の拡散などの二次被害の抑止策を議論するため、作業部会を新設すると発表した。</description>
+<dc:date>2026-11-11T11:03:17+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003090/">
+<title>【復旧】「iCloud」で朝から障害　「ログインできない」ユーザー混乱、メールやカレンダーも</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003090/</link>
+<description>「iCloudアカウントおよびサインイン」「iCloudカレンダー」など6つのサービスが、一部のユーザーで「機能停止」状態だ。【追記あり】</description>
+<dc:date>2026-11-11T10:52:11+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003092/">
+<title>相次ぐ個人情報流出対策に、パスワードは紙に書いてアナログ管理　一部「伏せ文字」で</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003092/</link>
+<description>高齢者にもスマートフォン（スマホ）はすっかり浸透した。スマホのアプリは便利だが、設定したパスワードを思い出せなくなることもあれば、最近はスマホに記憶させておいたままだと不正利用の不安もある。</description>
+<dc:date>2026-11-11T10:38:56+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003091/">
+<title>エディオン、クレカ番号＋セキュリティコードも一部漏えいか　決済処理に不正プログラム、エラーログにも記録</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003091/</link>
+<description>決済処理に不正なプログラムが組み込まれていた。また、注文画面でエラーが発生した際、例外的にシステムログへカード番号やセキュリティコードが一時的に記録されていた。</description>
+<dc:date>2026-11-11T10:30:44+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003089/">
+<title>「Claude」に共同編集の「Sheets」「Whiteboards」　外部アプリもClaude内で開いて作業可能に</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003089/</link>
+<description>Anthropicは、「Claude」に共同編集可能な「Claude Sheets」と「Claude Whiteboards」をβ版として追加した。また「Claude Dashboards」を「Claude Data」に改称し、一般提供を開始。さらに外部アプリをClaude内で直接操作できる「インタラクティブコネクタ」の拡張も発表した。</description>
+<dc:date>2026-11-11T09:33:03+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003087/">
+<title>GMOあおぞらネット銀、「不正な通信」検知でAPI一時停止　「予防的な措置」</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003087/</link>
+<description>11月10日夜から11日朝にかけ、銀行APIサービスを2度にわたり一時停止した。「安全確保のための予防的な措置」という。</description>
+<dc:date>2026-11-11T09:18:27+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003085/">
+<title>Anthropic、IPOの仮条件を1株70?78ドルに　調達額は最大約644億ドル、GoogleとNVIDIAは各100億ドルを別途出資</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003085/</link>
+<description>Anthropicは、IPOに向けた修正版登録届出書を提出し、仮条件を1株70?78ドルに設定した。公開株数は8億2500万株で、調達額は最大約644億ドルとなる。Googleなど7社が260億ドル分を別途引き受ける。時価総額は最大約1兆4000億ドルに上る見込みで、11月19日に取引を開始すると報じられている。</description>
+<dc:date>2026-11-11T08:02:05+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003084/">
+<title>簿記などの受験者情報最大98万人分漏えいか　合否や得点も　日商ネット試験に不正アクセス</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003084/</link>
+<description>氏名、フリガナ、性別、生年月日、合否結果、試験得点と、任意で入力したメールアドレス、電話番号、住所が漏えいした可能性がある。</description>
+<dc:date>2026-11-11T07:49:32+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000003083/">
+<title>Google、「Gemini 4 Carbon」一般提供開始　Geminiアプリでは最上位「AI Ultra」限定</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000003083/</link>
+<description>Googleは、最上位AIモデル「Gemini 4 Carbon」の提供を開始した。一般ユーザーは月額1万4500円の「Google AI Ultra」契約で利用可能となる。複雑な推論や高度なコーディングに特化しており、開発者向けAPIや新機能「/swarm」のプレビュー提供も始まった。</description>
+<dc:date>2026-11-11T07:03:30+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/11/2000002913/">
+<title>「盗撮」→「法律で規制」が話題のAI眼鏡　海外では大ヒットなのに、日本での普及は限定的　ビジネスでの活用事例を探る</title>
+<link>https://www.itmedia.co.jp/news/article/2611/11/2000002913/</link>
+<description>海外で規制する動きが出ている「AI眼鏡（スマートグラス）」。負の側面が注目されがちだが、ビジネスや医療の現場で活用される事例も出始めている。</description>
+<dc:date>2026-11-11T05:00:00+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/10/2000003079/">
+<title>ソフトバンクG、マスク氏の「債務不履行」投稿に「全くの事実無根」　7～9月期決算は1兆円超の赤字</title>
+<link>https://www.itmedia.co.jp/news/article/2611/10/2000003079/</link>
+<description>ソフトバンクグループの後藤芳光CFOは11月10日の決算説明会で、米SpaceXのイーロン・マスクCEOがXに投稿した「債務不履行」の指摘を「全くの事実無根」と否定した。米中間選挙での民主党勝利については、データセンター事業が遅れる可能性も「シナリオの一つ」とした。</description>
+<dc:date>2026-11-10T20:01:53+09:00</dc:date>
+</item>
+<item rdf:about="https://www.itmedia.co.jp/news/article/2611/10/2000003072/">
+<title>スキマバイト「シェアフル」に不正アクセス　最大750万アカウント漏えいか　給与振込用の口座情報なども</title>
+<link>https://www.itmedia.co.jp/news/article/2611/10/2000003072/</link>
+<description>スキマバイトアプリ「シェアフル」を運営するシェアフル（東京都港区）は11月9日、社内管理システムへの不正アクセスにより、最大約750万件のユーザーアカウントに関する個人情報が流出した可能性があると発表した。</description>
+<dc:date>2026-11-10T18:50:02+09:00</dc:date>
+</item>
+</rdf:RDF>
