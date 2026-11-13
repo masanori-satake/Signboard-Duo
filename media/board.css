@@ -119,3 +119,12 @@ body {
 .logo.fav img.favicon { width: 20px; height: 20px; border-radius: 4px; display: none; background: #f0f0f2; padding: 2px; box-sizing: border-box; }
 .logo.fav.has-fav img.favicon { display: block; }
 .logo.fav.has-fav .fav-fallback { display: none; }
+/* Colour themes (body[data-theme], switched by the title-bar button):
+   the 7-segment clock and the banner accent carry the theme. */
+:root { --clock-on: #ff6a33; --clock-glow: rgba(255, 106, 51, .75); --clock-off: #2b130e; --acc: #ffd76a; }
+body[data-theme="lime"] { --clock-on: #3ddc68; --clock-glow: rgba(61, 220, 104, .7); --clock-off: #0d2317; --acc: #8ce99a; }
+body[data-theme="ice"] { --clock-on: #a8d8ff; --clock-glow: rgba(168, 216, 255, .7); --clock-off: #121e2a; --acc: #a8c8ff; }
+.seg { background: var(--clock-off); }
+.seg.on { background: var(--clock-on); box-shadow: 0 0 7px var(--clock-glow); }
+.cdot.on { background: var(--clock-on); box-shadow: 0 0 7px var(--clock-glow); }
+.platform { color: var(--acc); }

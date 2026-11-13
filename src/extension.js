@@ -292,6 +292,17 @@ class BoardProvider {
     this.autoRenderer = 'flap';
     this.onRendererChange = null;
     this.pinned = false;
+    this.theme = context.globalState.get('duoTheme', 'duo');
+  }
+
+  cycleTheme() {
+    const order = ['duo', 'lime', 'ice'];
+    const labels = { duo: 'Duo Green', lime: 'Lime', ice: 'Ice' };
+    const next = order[(order.indexOf(this.theme) + 1) % order.length];
+    this.theme = next;
+    this.context.globalState.update('duoTheme', next);
+    vscode.window.setStatusBarMessage(`Signboard-Duo theme: ${labels[next]}`, 2500);
+    this.push(true);
   }
 
   navPlatform(dir) {
@@ -358,7 +369,7 @@ class BoardProvider {
     const platforms = this.engine.platformsPayload();
     const mode = this.configuredMode();
     const scroll = vscode.workspace.getConfiguration(CONFIG_NS).get('scrollLongText', true);
-    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), pinned: this.pinned };
+    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), pinned: this.pinned, theme: this.theme };
     const signature = JSON.stringify(payload);
     if (!force && signature === this.lastSignature) return;
     this.lastSignature = signature;
@@ -463,6 +474,7 @@ function activate(context) {
     vscode.commands.registerCommand('signboardDuo.refresh', async () => { await engine.refreshAll(); }),
     vscode.commands.registerCommand('signboardDuo.prevPlatform', () => provider.navPlatform(-1)),
     vscode.commands.registerCommand('signboardDuo.nextPlatform', () => provider.navPlatform(1)),
+    vscode.commands.registerCommand('signboardDuo.cycleTheme', () => provider.cycleTheme()),
     vscode.commands.registerCommand('signboardDuo.pinPlatform', () => provider.setPinned(true)),
     vscode.commands.registerCommand('signboardDuo.unpinPlatform', () => provider.setPinned(false)),
     vscode.commands.registerCommand('signboardDuo.setToken', async (presetId) => {

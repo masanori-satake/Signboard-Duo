@@ -305,6 +305,7 @@ window.addEventListener('message', (ev) => {
   if (!msg) return;
   if (msg.type === 'state') {
     LANG_JA = String(msg.lang || '').toLowerCase().startsWith('ja');
+    document.body.dataset.theme = msg.theme || 'duo';
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;

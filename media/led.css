@@ -81,3 +81,14 @@ body {
    scroll the same way again — a back-and-forth (alternate) pass makes
    the second half read against the reading direction. */
 @keyframes dest-scroll { 0%, 15% { transform: translateX(0); } 80%, 100% { transform: translateX(var(--dx, -40px)); } }
+/* Colour themes (body[data-theme], switched by the title-bar button):
+   LED has more freedom — destination, header, ticker and page dots all
+   take the theme colours. */
+:root { --dest: #ffb000; --acc: #ffd76a; --tick: #33ff99; --dot: #ffb03a; }
+body[data-theme="lime"] { --dest: #7dff8a; --acc: #b6ffb0; --tick: #ffb000; --dot: #3ddc68; }
+body[data-theme="ice"] { --dest: #a8d8ff; --acc: #cfe6ff; --tick: #a8ffb0; --dot: #a8d8ff; }
+.row .dest { color: var(--dest); }
+.head .ttl { color: var(--dest); }
+.platform-row { color: var(--acc); }
+.ticker { color: var(--tick); }
+.pages i.on { background: var(--dot); }

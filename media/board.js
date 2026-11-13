@@ -363,6 +363,7 @@ window.addEventListener('message', (ev) => {
   if (!msg) return;
   if (msg.type === 'state') {
     setLocale(msg.lang);
+    document.body.dataset.theme = msg.theme || 'duo';
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
