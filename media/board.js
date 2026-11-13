@@ -48,6 +48,31 @@ function displayName(title, tiles) {
 }
 function hhmm(ms) { const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
 
+/* The remark plate is word-sized (112px wide / 82px narrow). A feed
+   remark is a sentence, so — like a long title — it flips through in
+   segments sized to the plate instead of overflowing it. Status words
+   are short and stay put. */
+function remarkSegChars(text) {
+  const cjk = hasCjk(text);
+  return tier === 'wide' ? (cjk ? 8 : 13) : (cjk ? 5 : 9);
+}
+function displayRemark(r) {
+  const full = STATUS_WORDS[r.status] || r.remark || '';
+  if (STATUS_WORDS[r.status] || !full) return full;
+  const chars = [...full];
+  const seg = remarkSegChars(full);
+  if (chars.length <= seg) return full;
+  const segs = [];
+  for (let i = 0; i < chars.length; i += seg) segs.push(chars.slice(i, i + seg).join(''));
+  return segs[segTick % segs.length];
+}
+function remarkSegCount(r) {
+  if (STATUS_WORDS[r.status] || !r.remark) return 1;
+  const len = [...r.remark].length;
+  const seg = remarkSegChars(r.remark);
+  return len > seg ? Math.ceil(len / seg) : 1;
+}
+
 /* ---------- flap engine: one ticker for every tile (from Solo) ---------- */
 const SETS = {
   latin: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-#@',
@@ -261,19 +286,23 @@ function render(pageChanged) {
       if (len > tiles) {
         PAGE_NEED_MS = Math.max(PAGE_NEED_MS, Math.ceil(len / tiles) * CONFIG.segmentMs);
       }
+      const rSegs = remarkSegCount(r);
+      if (rSegs > 1) {
+        PAGE_NEED_MS = Math.max(PAGE_NEED_MS, rSegs * CONFIG.segmentMs);
+      }
     }
   }
   slice.forEach((r) => {
     const row = rowElFor(r);
     rowsEl.appendChild(row);
     row.dataset.url = r.url || '';
-    row.title = r.title || '';
+    row.title = (r.title || '') + (r.remark ? '\n' + r.remark : '');
     const prev = prevByKey.get(r.key);
     const tiles = tilesFor(r.title, tier === 'mini');
     const disp = displayName(r.title, tiles);
     const flapName = pageChanged || !prev || prev.disp !== disp;
     const flapTime = pageChanged || !prev || prev.timeMs !== r.timeMs;
-    const remarkText = STATUS_WORDS[r.status] || (r.remark ? [...r.remark].slice(0, 14).join('') : '');
+    const remarkText = displayRemark(r);
     const flapRem = pageChanged || !prev || prev.remarkText !== remarkText;
     row.className = 'row st-' + r.status + (r.isNew ? ' is-new' : '');
     row._logo.replaceChildren(chipEl(page.platform.kind));

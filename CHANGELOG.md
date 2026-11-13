@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.3] - 2026-11-14
+
+- Flap board: long feed remarks no longer overflow the remark plate — the plate never wraps, and a long remark flips through in plate-sized segments (page rotation waits for the segments, too); the full remark is in the row tooltip
+
+- フラップ盤面：長い備考がプレートからはみ出さないようにした（プレートは折り返し禁止にし、長い備考はプレート幅の区切りでめくって表示。ページ送りも区切り分待つ）。備考の全文は行のツールチップで読める
+
 ## [0.2.2] - 2026-11-14
 
 - LED board: long destinations now scroll one way, snap back to the start, and scroll the same way again, instead of bouncing back and forth
