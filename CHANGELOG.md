@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1] - 2026-11-14
+
+- LED board: the status column is only reserved when a row on the screen actually has a status, so destinations get the full width otherwise
+
+- LED 盤面：状態列は、その画面の行に状態があるときだけ幅を取るようにした（通常は行先が幅いっぱいに使える）
+
 ## [0.2.0] - 2026-11-14
 
 - Platform navigation in the view title: previous / next platform buttons and a pin button that holds the current platform (auto-rotation and new-arrival jumps pause while pinned)

@@ -70,6 +70,10 @@ body {
 /* Signboard-Duo additions */
 .platform-row { font-size: .62em; color: #ffd76a; letter-spacing: .1em; padding: .1em 0 .2em; white-space: nowrap; overflow: hidden; }
 .row[data-url] { cursor: pointer; }
+/* The status column exists only when a row actually has a status:
+   most feed topics have none, and an always-reserved empty column
+   steals width from the destination. */
+.row .st:empty { display: none; }
 .dest { overflow: hidden; white-space: nowrap; }
 .dest .dest-in { display: inline-block; white-space: nowrap; }
 .dest.scrolling .dest-in { animation: dest-scroll 9s ease-in-out infinite alternate; }
