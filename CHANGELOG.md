@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2] - 2026-11-14
+
+- LED board: long destinations now scroll one way, snap back to the start, and scroll the same way again, instead of bouncing back and forth
+
+- LED 盤面：長い行先のスクロールを往復から一方向に変更（最後まで流れたら先頭に戻り、同じ向きに流れ直す）
+
 ## [0.2.1] - 2026-11-14
 
 - LED board: the status column is only reserved when a row on the screen actually has a status, so destinations get the full width otherwise
