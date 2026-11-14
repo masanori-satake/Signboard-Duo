@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.10] - 2026-11-14
+
+- Show the README screenshots at half width so the listing stays compact and the text is reached sooner (the image files themselves are unchanged)
+
+- README のスクリーンショットを半分の幅で表示し、掲載ページが間延びしないようにした（画像ファイル自体は無加工）
+
 ## [1.0.9] - 2026-11-14
 
 - Added screenshots of the three boards (LED, split-flap, stock) to the README, so the Marketplace listing shows what the boards look like

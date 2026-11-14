@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.0.9-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.0.10-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.0.9**
+Current version: **v1.0.10**
 
 ---
 
@@ -27,15 +27,15 @@ Current version: **v1.0.9**
 
 **LED board** — a station departure board behind a dot mask. Long headlines scroll so they can be read to the end, and the announcement line at the bottom highlights the line name, the arrival count and the last fetched time.
 
-![LED board](images/led-board.png)
+<img src="images/led-board.png" alt="LED board" width="388">
 
 **Split-flap board** — airport arrivals, one flap tile per character, flipping over to the next page when a platform has more topics than fit.
 
-![Split-flap board](images/flap-board.png)
+<img src="images/flap-board.png" alt="Split-flap board" width="388">
 
 **Stock board** — quotes as securities panels: the current price is large, the change is coloured (up is red, down is green) and the day's open / high / low ride underneath.
 
-![Stock board](images/stock-board.png)
+<img src="images/stock-board.png" alt="Stock board" width="388">
 
 ---
 
@@ -114,7 +114,7 @@ For VSCodium, Gitpod, Eclipse Theia, or environments configured with Open VSX:
 #### Method 3: Install from VSIX Package File (Offline / Manual)
 
 1. Go to the [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) page.
-2. Download the `.vsix` file (e.g., `signboard-duo-1.0.9.vsix`) under Assets.
+2. Download the `.vsix` file (e.g., `signboard-duo-1.0.10.vsix`) under Assets.
 3. In VS Code Extensions view (`Ctrl+Shift+X`), click the **"..." (Views and More Actions)** icon at the top right, select **Install from VSIX...**, and choose the downloaded file.
 
 ---
@@ -296,7 +296,7 @@ npm run check-version
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.0.9**
+現在のバージョン: **v1.0.10**
 
 ---
 
@@ -305,15 +305,15 @@ npm run check-version
 
 **LED ボード** ─ 駅の発車標をドットマスク越しに。長い見出しは最後まで読めるように流れ、最下行の案内では線名・到着件数・最終取得時刻が色を変えて点滅します。
 
-![LED ボード](images/led-board.png)
+<img src="images/led-board.png" alt="LED ボード" width="388">
 
 **フラップボード** ─ 空港の到着盤。1文字1枚のタイルで、番線の件数が入りきらないときはページがめくれます。
 
-![フラップボード](images/flap-board.png)
+<img src="images/flap-board.png" alt="フラップボード" width="388">
 
 **株価ボード** ─ 証券ボード式のパネル。現在値を大きく、前日比は色で（上昇＝赤、下落＝緑）、下段に始値・高値・安値を並べます。
 
-![株価ボード](images/stock-board.png)
+<img src="images/stock-board.png" alt="株価ボード" width="388">
 
 ---
 
@@ -392,7 +392,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 #### 方法 3: VSIX パッケージファイルからのインストール（オフライン環境等）
 
 1. [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) ページを開きます。
-2. Assets の `.vsix` ファイル（例: `signboard-duo-1.0.9.vsix`）をダウンロードします。
+2. Assets の `.vsix` ファイル（例: `signboard-duo-1.0.10.vsix`）をダウンロードします。
 3. VS Code の拡張機能ビュー（`Ctrl+Shift+X`）右上の **「...」（ビューとその他のアクション）** から **VSIX からのインストール...** を選び、ダウンロードしたファイルを指定します。
 
 ---
