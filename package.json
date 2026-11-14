@@ -190,8 +190,8 @@
             ],
             "type": "object"
           },
-          "markdownDescription": "RSS / Atom feeds shown as platforms (max 5). Array order is the platform number.",
-          "maxItems": 5,
+          "markdownDescription": "RSS / Atom feeds shown as platforms (max 10). Array order is the platform number.",
+          "maxItems": 10,
           "type": "array",
           "description": "%config.feeds.description%"
         },
@@ -326,5 +326,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.0.2"
+  "version": "1.0.3"
 }

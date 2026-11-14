@@ -17,7 +17,7 @@
   "command.cycleModeFlap.title": "盤面スタイルを切り替え",
   "command.cycleModeLed.title": "盤面スタイルを切り替え",
   "command.cycleModeStock.title": "盤面スタイルを切り替え",
-  "config.feeds.description": "盤面に番線として表示するフィード（RSS/Atom、株価ボード用は相場 JSON）。最大5件。",
+  "config.feeds.description": "盤面に番線として表示するフィード（RSS/Atom、株価ボード用は相場 JSON）。最大10件。",
   "config.feeds.id.description": "フィードの安定した ID。トークンの保存キーにもなります。",
   "config.feeds.name.description": "盤面に表示する番線名。省略時はフィードのタイトルを使います。",
   "config.feeds.url.description": "フィードの URL（http/https）。",

@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.0.2-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.0.3-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake.signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.0.2**
+Current version: **v1.0.3**
 
 ---
 
@@ -50,7 +50,7 @@ Current version: **v1.0.2**
    - The stock board carries a small **"No trading"** badge, so nobody at the office mistakes it for real trading — the flap and LED boards need no such note: their motifs give the joke away at a glance.
 
 2. **Feeds as Platforms**
-   - Up to **5 feeds** (RSS 1.0 / RSS 2.0 / Atom), one platform per page, polled with conditional requests (ETag / Last-Modified).
+   - Up to **10 feeds** (RSS 1.0 / RSS 2.0 / Atom), one platform per page, polled with conditional requests (ETag / Last-Modified).
    - Topics arrive with the board's animation; a topic that leaves the feed stays on the board for `keepHours`, then departs. Click a row to open its link.
    - The flap board's logo cell shows each site's own **favicon**; the LED board's announcement line greets you in the name of the platform on screen.
    - Bamboo build-result feeds (`"kind": "bamboo"`) show failed builds as cancelled.
@@ -96,7 +96,7 @@ For VSCodium, Gitpod, Eclipse Theia, or environments configured with Open VSX:
 #### Method 3: Install from VSIX Package File (Offline / Manual)
 
 1. Go to the [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) page.
-2. Download the `.vsix` file (e.g., `signboard-duo-1.0.2.vsix`) under Assets.
+2. Download the `.vsix` file (e.g., `signboard-duo-1.0.3.vsix`) under Assets.
 3. In VS Code Extensions view (`Ctrl+Shift+X`), click the **"..." (Views and More Actions)** icon at the top right, select **Install from VSIX...**, and choose the downloaded file.
 
 ---
@@ -195,7 +195,7 @@ Many sites publish RSS/Atom feeds without making a fuss about them. A few ways t
 
 | Setting | Default | Description |
 | :--- | :--- | :--- |
-| `signboardDuo.feeds` | `[]` | Feeds shown as platforms (up to 5). Each feed: `id`, `name`, `url`, `kind` (`generic` / `bamboo` / `status` / `jma` / `stock`), `enabled`, `maxItems`, `keepHours`, `auth` (type only) |
+| `signboardDuo.feeds` | `[]` | Feeds shown as platforms (up to 10). Each feed: `id`, `name`, `url`, `kind` (`generic` / `bamboo` / `status` / `jma` / `stock`), `enabled`, `maxItems`, `keepHours`, `auth` (type only) |
 | `signboardDuo.pollMinutes` | `15` | Feed polling interval in minutes (minimum 5) |
 | `signboardDuo.mode` | `flap` | Board style: `flap` / `led` / `stock`, or `auto` (flap below 540px, LED at 540px and wider) |
 | `signboardDuo.scrollLongText` | `true` | Scroll (LED) or flip through (flap) long titles instead of truncating them |
@@ -278,7 +278,7 @@ npm run check-version
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.0.2**
+現在のバージョン: **v1.0.3**
 
 ---
 
@@ -310,7 +310,7 @@ npm run check-version
    - 株価ボードには小さな **「売買できません」** バッジが付きます。仕事中に同僚が見ても株の売買と誤解されないためです。フラップと LED は見た瞬間にモチーフが分かるので、注釈は不要です。
 
 2. **フィード＝番線**
-   - 最大 **5件** のフィード（RSS 1.0 / RSS 2.0 / Atom）を、1フィード＝1ページで表示します。取得は条件付きリクエスト（ETag / Last-Modified）です。
+   - 最大 **10件** のフィード（RSS 1.0 / RSS 2.0 / Atom）を、1フィード＝1ページで表示します。取得は条件付きリクエスト（ETag / Last-Modified）です。
    - トピックは盤面のアニメーションで到着し、フィードから消えても `keepHours` の間は盤面に残ってから発ちます。行をクリックするとリンクが開きます。
    - フラップのロゴ欄には各サイト自身の **ファビコン**、LED のテロップは表示中の番線の名前で挨拶します。
    - Bamboo のビルド結果フィード（`"kind": "bamboo"`）では、失敗したビルドが運休として表示されます。
@@ -356,7 +356,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 #### 方法 3: VSIX パッケージファイルからのインストール（オフライン環境等）
 
 1. [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) ページを開きます。
-2. Assets の `.vsix` ファイル（例: `signboard-duo-1.0.2.vsix`）をダウンロードします。
+2. Assets の `.vsix` ファイル（例: `signboard-duo-1.0.3.vsix`）をダウンロードします。
 3. VS Code の拡張機能ビュー（`Ctrl+Shift+X`）右上の **「...」（ビューとその他のアクション）** から **VSIX からのインストール...** を選び、ダウンロードしたファイルを指定します。
 
 ---
@@ -455,7 +455,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 
 | 設定 | 既定値 | 説明 |
 | :--- | :--- | :--- |
-| `signboardDuo.feeds` | `[]` | 番線として表示するフィード（最大5件）。各フィードの項目は `id`、`name`、`url`、`kind`（`generic` / `bamboo` / `status` / `jma` / `stock`）、`enabled`、`maxItems`、`keepHours`、`auth`（方式のみ） |
+| `signboardDuo.feeds` | `[]` | 番線として表示するフィード（最大10件）。各フィードの項目は `id`、`name`、`url`、`kind`（`generic` / `bamboo` / `status` / `jma` / `stock`）、`enabled`、`maxItems`、`keepHours`、`auth`（方式のみ） |
 | `signboardDuo.pollMinutes` | `15` | フィードの取得間隔（分、最小5） |
 | `signboardDuo.mode` | `flap` | 盤面スタイル：`flap` / `led` / `stock`、または `auto`（540px 未満はフラップ、540px 以上は LED） |
 | `signboardDuo.scrollLongText` | `true` | 長いタイトルを切り捨てず、LED ではスクロール、フラップでは区切りめくりで表示する |

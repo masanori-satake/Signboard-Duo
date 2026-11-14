@@ -99,8 +99,8 @@ class FeedEngine {
     const raw = cfg.get('feeds', []) || [];
     const seen = new Set();
     const records = [];
-    raw.slice(0, 5).forEach((f, idx) => {
-      if (raw.length > 5 && idx === 4) this.log('feeds: more than 5 configured; only the first 5 are used');
+    raw.slice(0, 10).forEach((f, idx) => {
+      if (raw.length > 10 && idx === 9) this.log('feeds: more than 10 configured; only the first 10 are used');
       const rec = {
         id: f && f.id, url: f && f.url, name: (f && f.name) || '',
         kind: (f && f.kind) || 'generic',

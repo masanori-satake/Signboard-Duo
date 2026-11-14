@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.3] - 2026-11-14
+
+- Raised the feed limit from 5 to 10 (signboardDuo.feeds).
+
+- フィードの上限を 5 本から 10 本に引き上げ（signboardDuo.feeds）
+
 ## [1.0.2] - 2026-11-14
 
 - README restructured to the Signboard-Solo format: the full document is collected per language (English first, then Japanese), with the same section skeleton in both — header badges and language switcher, table of contents, key features, installation, how to use, starter feeds, finding feeds, commands, settings, requirements, privacy, security, roadmap, developer documentation, licence. Also added the `repository` field to package.json that vsce asked for
