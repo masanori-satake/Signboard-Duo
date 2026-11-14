@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.3.4-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.3.5-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.3.4**
+Current version: **v1.3.5**
 
 ---
 
@@ -115,7 +115,7 @@ For VSCodium, Gitpod, Eclipse Theia, or environments configured with Open VSX:
 #### Method 3: Install from VSIX Package File (Offline / Manual)
 
 1. Go to the [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) page.
-2. Download the `.vsix` file (e.g., `signboard-duo-1.3.4.vsix`) under Assets.
+2. Download the `.vsix` file (e.g., `signboard-duo-1.3.5.vsix`) under Assets.
 3. In VS Code Extensions view (`Ctrl+Shift+X`), click the **"..." (Views and More Actions)** icon at the top right, select **Install from VSIX...**, and choose the downloaded file.
 
 ---
@@ -391,7 +391,7 @@ The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, 
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.3.4**
+現在のバージョン: **v1.3.5**
 
 ---
 
@@ -488,7 +488,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 #### 方法 3: VSIX パッケージファイルからのインストール（オフライン環境等）
 
 1. [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) ページを開きます。
-2. Assets の `.vsix` ファイル（例: `signboard-duo-1.3.4.vsix`）をダウンロードします。
+2. Assets の `.vsix` ファイル（例: `signboard-duo-1.3.5.vsix`）をダウンロードします。
 3. VS Code の拡張機能ビュー（`Ctrl+Shift+X`）右上の **「...」（ビューとその他のアクション）** から **VSIX からのインストール...** を選び、ダウンロードしたファイルを指定します。
 
 ---
@@ -684,8 +684,6 @@ npm test             # 単体テスト（node --test）
 npm run package      # VSIX を生成
 npm run check-version
 ```
-
----
 
 ---
 

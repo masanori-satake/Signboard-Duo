@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.5] - 2026-11-15
+
+- Docs: removed a duplicated horizontal rule before the Japanese troubleshooting section in the README (a leftover from moving the licence section to the end), and audited every other separator in the file
+
+- ドキュメント：README の日本語トラブルシュート直前に重複していた水平線を取り除いた（ライセンス節を末尾へ移した際の残り）。あわせてファイル内の他の区切りもすべて点検した
+
 ## [1.3.4] - 2026-11-15
 
 - Fixed a crash when fetching an HTTPS feed whose host is an IP address through a proxy: the tunnel's TLS options passed the IP as the SNI servername, which current Node rejects with a TypeError (previously only a deprecation warning). IP targets now omit SNI (verification uses the IP SAN), and a synchronous throw in the CONNECT handler rejects the fetch instead of escaping
