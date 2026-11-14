@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] - 2026-11-15
+
+- README: the License section is once again the last section of each language half — Troubleshooting now sits before it (and the tables of contents match)
+
+- README：ライセンスを各言語の最後に戻した。トラブルシュートはその前に置き、目次の並びも合わせた
+
 ## [1.3.0] - 2026-11-14
 
 - Proxy support: feeds are fetched through the proxy from VS Code's own `http.proxy` / `http.noProxy` / `http.proxyStrictSSL` settings (environment variables as fallback), with CONNECT tunnelling for HTTPS and per-URL NO_PROXY bypass. PAC files are not evaluated
