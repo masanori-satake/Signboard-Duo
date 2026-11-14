@@ -96,7 +96,7 @@ function makeProxy({ requireAuth = false } = {}) {
   return proxy;
 }
 
-test('fetchOnce reaches an HTTP origin through a proxy (absolute form)', async () => {
+test('fetchOnce reaches an HTTP origin through a proxy (absolute form)', { timeout: 20000 }, async () => {
   const origin = http.createServer((req, res) => { res.writeHead(200, { 'Content-Type': 'text/xml' }); res.end('<rss/>'); });
   const proxy = makeProxy();
   const [oPort, pPort] = [await listen(origin), await listen(proxy)];
@@ -111,37 +111,58 @@ test('fetchOnce reaches an HTTP origin through a proxy (absolute form)', async (
   } finally { origin.closeAllConnections(); proxy.closeAllConnections(); origin.close(); proxy.close(); }
 });
 
-test('fetchOnce tunnels HTTPS through CONNECT and survives a 407', async (t) => {
-  let key, cert;
+function selfSigned(t) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'duo-net-'));
   try {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'duo-net-'));
     execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-keyout', path.join(dir, 'k.pem'),
       '-out', path.join(dir, 'c.pem'), '-days', '1', '-nodes', '-subj', '/CN=localhost'], { stdio: 'ignore' });
-    key = fs.readFileSync(path.join(dir, 'k.pem'));
-    cert = fs.readFileSync(path.join(dir, 'c.pem'));
-  } catch (e) { t.skip('openssl unavailable'); return; }
-  const origin = https.createServer({ key, cert }, (req, res) => { res.writeHead(200); res.end('<feed/>'); });
+    return { key: fs.readFileSync(path.join(dir, 'k.pem')), cert: fs.readFileSync(path.join(dir, 'c.pem')) };
+  } catch (e) { t.skip('openssl unavailable'); return null; }
+}
+
+async function tunnelSetup(t) {
+  const material = selfSigned(t);
+  if (!material) return null;
+  const origin = https.createServer(material, (req, res) => { res.writeHead(200); res.end('<feed/>'); });
   const proxy = makeProxy();
   const authProxy = makeProxy({ requireAuth: true });
   const [oPort, pPort, aPort] = [await listen(origin), await listen(proxy), await listen(authProxy)];
-  try {
-    const res = await fetchOnce(`https://127.0.0.1:${oPort}/feed.xml`, {}, [], 0, DEADLINE(),
-      { proxy: `http://127.0.0.1:${pPort}`, noProxy: [], strictSSL: false });
-    assert.equal(res.status, 200);
-    assert.equal(res.body, '<feed/>');
-    // strict SSL must reject the self-signed origin even via the tunnel:
-    await assert.rejects(
-      fetchOnce(`https://127.0.0.1:${oPort}/feed.xml`, {}, [], 0, DEADLINE(),
-        { proxy: `http://127.0.0.1:${pPort}`, noProxy: [], strictSSL: true }),
-      (e) => classifyError(e, true) === 'tls');
-    // 407 from the proxy is its own symptom:
-    await assert.rejects(
-      fetchOnce(`https://127.0.0.1:${oPort}/feed.xml`, {}, [], 0, DEADLINE(),
-        { proxy: `http://127.0.0.1:${aPort}`, noProxy: [], strictSSL: false }),
-      (e) => e.symptom === 'proxy-auth');
-    // ... and the right credentials pass:
-    const ok = await fetchOnce(`https://127.0.0.1:${oPort}/feed.xml`, {}, [], 0, DEADLINE(),
-      { proxy: `http://u:p@127.0.0.1:${aPort}`, noProxy: [], strictSSL: false });
-    assert.equal(ok.status, 200);
-  } finally { origin.closeAllConnections(); proxy.closeAllConnections(); authProxy.closeAllConnections(); origin.close(); proxy.close(); authProxy.close(); }
+  t.after(() => {
+    origin.closeAllConnections(); proxy.closeAllConnections(); authProxy.closeAllConnections();
+    origin.close(); proxy.close(); authProxy.close();
+  });
+  return { oPort, pPort, aPort };
+}
+
+/* Each leg is its own test with a hard timeout: if an environment
+   ever stalls one leg, the log names that leg instead of the job
+   sitting silent until the workflow timeout. */
+test('CONNECT tunnel carries HTTPS to the origin', { timeout: 20000 }, async (t) => {
+  const s = await tunnelSetup(t);
+  if (!s) return;
+  const res = await fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
+    { proxy: `http://127.0.0.1:${s.pPort}`, noProxy: [], strictSSL: false });
+  assert.equal(res.status, 200);
+  assert.equal(res.body, '<feed/>');
+});
+
+test('strict SSL rejects a self-signed origin through the tunnel', { timeout: 20000 }, async (t) => {
+  const s = await tunnelSetup(t);
+  if (!s) return;
+  await assert.rejects(
+    fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
+      { proxy: `http://127.0.0.1:${s.pPort}`, noProxy: [], strictSSL: true }),
+    (e) => classifyError(e, true) === 'tls');
+});
+
+test('a proxy 407 is its own symptom, and credentials pass', { timeout: 20000 }, async (t) => {
+  const s = await tunnelSetup(t);
+  if (!s) return;
+  await assert.rejects(
+    fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
+      { proxy: `http://127.0.0.1:${s.aPort}`, noProxy: [], strictSSL: false }),
+    (e) => e.symptom === 'proxy-auth');
+  const ok = await fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
+    { proxy: `http://u:p@127.0.0.1:${s.aPort}`, noProxy: [], strictSSL: false });
+  assert.equal(ok.status, 200);
 });

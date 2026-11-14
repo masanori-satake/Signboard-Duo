@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.2] - 2026-11-15
+
+- Hardening: the TLS handshake over a proxy tunnel now has the same absolute deadline as every other fetch leg (a tunnel that opens but never speaks TLS could previously hold a fetch open), and the proxy integration tests are split into named legs with hard timeouts so a stalled environment fails loudly instead of hanging the release workflow
+
+- 堅牢化：プロキシトンネル上の TLS ハンドシェイクにも取得全体と同じ絶対期限を適用した（トンネルが開いたまま TLS を始めない相手に待ち続けることがあった）。あわせてプロキシ統合テストを脚ごとに分割し、ハードタイムアウトを付けて、環境側の停滞がリリースワークフローを黙って止めないようにした
+
 ## [1.3.1] - 2026-11-15
 
 - README: the License section is once again the last section of each language half — Troubleshooting now sits before it (and the tables of contents match)

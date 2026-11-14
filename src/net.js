@@ -192,7 +192,15 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
           socket, servername: targetHost,
           rejectUnauthorized: !proxyCfg || proxyCfg.strictSSL !== false,
         });
-        tlsSock.once('error', (e) => reject(e));
+        /* The handshake gets the same absolute deadline as every
+           other leg: a tunnel that opens but never speaks TLS must
+           not hold the fetch (and the serial poll behind it) open. */
+        const hsKiller = setTimeout(() => {
+          tlsSock.destroy();
+          reject(new Error('fetch deadline exceeded'));
+        }, Math.max(1, deadline - Date.now()));
+        tlsSock.once('secureConnect', () => clearTimeout(hsKiller));
+        tlsSock.once('error', (e) => { clearTimeout(hsKiller); reject(e); });
         tlsSock.once('secureConnect', () => {
           /* Hand the secured socket to https.request through an agent
              whose createConnection returns it as-is. Passing it as the
