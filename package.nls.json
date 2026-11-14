@@ -23,7 +23,7 @@
   "config.feeds.url.description": "Feed URL (http/https).",
   "config.feeds.kind.description": "How items are interpreted on the board.",
   "config.feeds.kind.generic": "Generic RSS/Atom feed",
-  "config.feeds.kind.bamboo": "Bamboo build results (failed builds show as cancelled)",
+  "config.feeds.kind.ci": "CI build results — Jenkins, Bamboo, TeamCity and similar (failed builds show as cancelled)",
   "config.feeds.kind.status": "Status page feed",
   "config.feeds.kind.jma": "Japan Meteorological Agency feed",
   "config.feeds.kind.stock": "Quote JSON feed (stock board)",

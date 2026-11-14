@@ -259,4 +259,30 @@ function parseQuotes(text) {
   return { title: '', items };
 }
 
-module.exports = { parseFeed, parseQuotes, parseDate, stripMarkup, decodeEntities, normTitle };
+/* CI build-result titles are formulaic across servers — a job name,
+   a build number, and a result word. Read the verdict off the title
+   and hand back the title with the result words removed: the board's
+   failed styling carries the result, while the build number stays
+   (it is the run's identity). failed is true / false / null (no
+   verdict found); the title is only rewritten when a verdict was. */
+function ciVerdict(rawTitle) {
+  const title = String(rawTitle || '');
+  let m;
+  // Jenkins: "Job #123 (SUCCESS|FAILURE|UNSTABLE|ABORTED|NOT_BUILT)"
+  if ((m = title.match(/^(.*?)\s*\((SUCCESS|FAILURE|UNSTABLE|ABORTED|NOT_BUILT)\)\s*$/i))) {
+    return { failed: /FAILURE|UNSTABLE|ABORTED/i.test(m[2]), title: m[1].trim() };
+  }
+  // Bamboo and friends: "Plan #45 was successful" / "Plan #45 has failed"
+  if ((m = title.match(/^(.*?)\s+(?:was|has)\s+(successful|success|failed|failure)\s*$/i))) {
+    return { failed: /fail/i.test(m[2]), title: m[1].trim() };
+  }
+  if ((m = title.match(/^(.*?)\s+(successful|success)\s*$/i))) {
+    return { failed: false, title: m[1].trim() };
+  }
+  /* Generic fallback (the old bamboo rule): a failure word anywhere
+     marks the run failed; the title stays as it is. */
+  if (/\b(failed|failure|error)\b/i.test(title)) return { failed: true, title };
+  return { failed: null, title };
+}
+
+module.exports = { parseFeed, parseQuotes, parseDate, stripMarkup, decodeEntities, normTitle, ciVerdict };

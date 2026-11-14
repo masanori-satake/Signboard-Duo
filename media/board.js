@@ -166,7 +166,7 @@ function setRemark(container, text, flap) {
 }
 
 /* ---------- kind chips (replaces Solo's language logos) ---------- */
-const CHIPS = { generic: 'RSS', bamboo: 'CI', status: 'STS', jma: 'WX' };
+const CHIPS = { generic: 'RSS', ci: 'CI', status: 'STS', jma: 'WX' };
 const faviconBad = new Set();
 function chipEl(kind, favicon) {
   if (favicon && !faviconBad.has(favicon)) {

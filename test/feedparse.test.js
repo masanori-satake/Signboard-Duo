@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { parseFeed, parseQuotes, parseDate, decodeEntities } = require('../src/feedparse');
+const { parseFeed, parseQuotes, parseDate, decodeEntities, ciVerdict } = require('../src/feedparse');
 
 const fixture = (name) => fs.readFileSync(path.join(__dirname, 'fixtures', name), 'utf8');
 
@@ -91,4 +91,22 @@ test('parseDate handles ISO offsets and RFC 822 zones', () => {
 
 test('unsupported root throws', () => {
   assert.throws(() => parseFeed('<html><body>x</body></html>'), /unsupported/);
+});
+
+test('ciVerdict reads Jenkins-style parenthesised results', () => {
+  assert.deepEqual(ciVerdict('my-job #123 (SUCCESS)'), { failed: false, title: 'my-job #123' });
+  assert.deepEqual(ciVerdict('my-job #124 (FAILURE)'), { failed: true, title: 'my-job #124' });
+  assert.deepEqual(ciVerdict('my-job #125 (UNSTABLE)'), { failed: true, title: 'my-job #125' });
+  assert.deepEqual(ciVerdict('folder » main #9 (ABORTED)'), { failed: true, title: 'folder » main #9' });
+});
+
+test('ciVerdict reads Bamboo-style trailing phrases', () => {
+  assert.deepEqual(ciVerdict('PROJ - Plan #45 was successful'), { failed: false, title: 'PROJ - Plan #45' });
+  assert.deepEqual(ciVerdict('PROJ - Plan #46 has failed'), { failed: true, title: 'PROJ - Plan #46' });
+  assert.deepEqual(ciVerdict('PROJ - Plan #47 successful'), { failed: false, title: 'PROJ - Plan #47' });
+});
+
+test('ciVerdict falls back to failure words, else no verdict', () => {
+  assert.deepEqual(ciVerdict('Nightly build error on agent-3'), { failed: true, title: 'Nightly build error on agent-3' });
+  assert.deepEqual(ciVerdict('Weekly report published'), { failed: null, title: 'Weekly report published' });
 });

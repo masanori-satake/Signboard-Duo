@@ -11,7 +11,7 @@ const SET_SWITCH_MS = 8000;
 
 const TYPE_BY_KIND = {
   generic: ['各停', 'ALL-STOPS', 'c-blue'],
-  bamboo: ['快速', 'RAPID', 'c-orange'],
+  ci: ['快速', 'RAPID', 'c-orange'],
   status: ['特急', 'LTD EXP', 'c-red'],
   jma: ['普通', 'LOCAL', 'c-green'],
 };

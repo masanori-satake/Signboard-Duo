@@ -10,7 +10,7 @@
 const vscode = require('vscode');
 const http = require('http');
 const https = require('https');
-const { parseFeed, parseQuotes } = require('./feedparse');
+const { parseFeed, parseQuotes, ciVerdict } = require('./feedparse');
 const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
 
 const CONFIG_NS = 'signboardDuo';
@@ -129,7 +129,7 @@ class FeedEngine {
       if (raw.length > 20 && idx === 19) this.log('feeds: more than 20 configured; only the first 20 are used');
       const rec = {
         id: f && f.id, url: f && f.url, name: (f && f.name) || '',
-        kind: (f && f.kind) || 'generic',
+        kind: f && f.kind === 'bamboo' ? 'ci' : (f && f.kind) || 'generic', // bamboo was absorbed into ci (1.2.0)
         enabled: !f || f.enabled !== false,
         maxItems: f && f.maxItems ? f.maxItems : 4,
         keepHours: f && f.keepHours ? f.keepHours : 24,
@@ -247,6 +247,13 @@ class FeedEngine {
         return;
       }
       const parsed = rec.kind === 'stock' ? parseQuotes(res.body) : parseFeed(res.body);
+      if (rec.kind === 'ci') {
+        for (const it of parsed.items) {
+          const v = ciVerdict(it.title);
+          it.title = v.title;
+          it.ciFailed = v.failed;
+        }
+      }
       rec.feedTitle = parsed.title || rec.feedTitle;
       if (res.headers.etag) rec.etag = res.headers.etag;
       if (res.headers['last-modified']) rec.lastModified = res.headers['last-modified'];
@@ -264,11 +271,10 @@ class FeedEngine {
     }
   }
 
-  /* bamboo kind: success/failure is read from the item title until the
-     real workplace feed format is confirmed (post 2026-11-16); anything
-     unrecognised falls back to the generic arrival treatment. */
+  /* ci kind: the verdict was read off the title at ingest (see
+     ciVerdict in feedparse.js); failed runs show as cancelled. */
   rowStatus(rec, row) {
-    if (rec.kind === 'bamboo' && /\b(failed|failure|error)\b/i.test(row.title)) return 'failed';
+    if (rec.kind === 'ci' && row.ciFailed) return 'failed';
     if (row.updated) return 'updated';
     if (row.isNew) return 'arrived';
     return 'ontime';

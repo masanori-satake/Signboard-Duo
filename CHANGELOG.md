@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0] - 2026-11-14
+
+- The `bamboo` feed kind is absorbed into a new generic `ci` kind and removed (existing `"bamboo"` settings are treated as `"ci"`). CI titles are read for their verdict: Jenkins-style `Job #123 (SUCCESS)` and Bamboo-style `Plan #45 was successful` lose their result words on the board — the build number stays — and failed, unstable or aborted runs show as cancelled; titles without a recognised pattern keep the previous failure-word fallback
+
+- フィード種別 `bamboo` を汎用の `ci` に吸収し、廃止した（既存の `"bamboo"` 設定は `"ci"` として扱われる）。CI のタイトルから成否を読む：Jenkins 形式 `Job #123 (SUCCESS)` や Bamboo 形式 `Plan #45 was successful` の結果語は盤面で取り除かれ（ビルド番号は残る）、失敗・不安定・中断の実行は運休表示になる。パターンに合わないタイトルは従来の失敗語フォールバックのまま
+
 ## [1.1.2] - 2026-11-14
 
 - Fixed the flap board's header labels drifting left of their columns on wide panels: the arrival count now sits before the time/remark label block, so the labels end at the same right edge as the rows below

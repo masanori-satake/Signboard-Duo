@@ -154,7 +154,7 @@
                 "description": "%config.feeds.kind.description%",
                 "enum": [
                   "generic",
-                  "bamboo",
+                  "ci",
                   "status",
                   "jma",
                   "stock"
@@ -162,7 +162,7 @@
                 "type": "string",
                 "enumDescriptions": [
                   "%config.feeds.kind.generic%",
-                  "%config.feeds.kind.bamboo%",
+                  "%config.feeds.kind.ci%",
                   "%config.feeds.kind.status%",
                   "%config.feeds.kind.jma%",
                   "%config.feeds.kind.stock%"
@@ -326,5 +326,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.1.2"
+  "version": "1.2.0"
 }

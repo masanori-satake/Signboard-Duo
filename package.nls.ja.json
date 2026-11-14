@@ -23,7 +23,7 @@
   "config.feeds.url.description": "フィードの URL（http/https）。",
   "config.feeds.kind.description": "アイテムの解釈方法（盤面での扱い）。",
   "config.feeds.kind.generic": "通常の RSS/Atom フィード",
-  "config.feeds.kind.bamboo": "Bamboo のビルド結果（失敗は運休表示）",
+  "config.feeds.kind.ci": "CI のビルド結果 — Jenkins、Bamboo、TeamCity など（失敗は運休表示）",
   "config.feeds.kind.status": "ステータスページのフィード",
   "config.feeds.kind.jma": "気象庁のフィード",
   "config.feeds.kind.stock": "相場 JSON フィード（株価ボード用）",
