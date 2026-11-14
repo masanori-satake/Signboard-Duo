@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.9] - 2026-11-14
+
+- Added screenshots of the three boards (LED, split-flap, stock) to the README, so the Marketplace listing shows what the boards look like
+
+- README に3つの盤面（LED・フラップ・株価）のスクリーンショットを追加し、Marketplace の掲載ページで見た目が分かるようにした
+
 ## [1.0.8] - 2026-11-14
 
 - Fixed the LED ticker going blank when the platform changed: the board rebuild recreates the ticker's scroll element, but the 1.0.7 render cache skipped writing into it whenever the text was unchanged. The cache is now invalidated on rebuilds
