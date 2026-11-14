@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2] - 2026-11-14
+
+- Fixed the flap board's header labels drifting left of their columns on wide panels: the arrival count now sits before the time/remark label block, so the labels end at the same right edge as the rows below
+
+- 広いパネルでフラップ盤面の列ラベル（到着時刻・備考）が列より左にずれる問題を直した：件数表示をラベルブロックの前へ移し、ラベルが下の行と同じ右端で揃うようにした
+
 ## [1.1.1] - 2026-11-14
 
 - Hardening pass (no behaviour changes): the poll interval is validated and refresh cycles can no longer overlap; feed credentials are no longer forwarded to other hosts on redirects, and fetches have an absolute deadline so a slow feed cannot stall the others; an out-of-range numeric character reference can no longer fail a whole feed; restored state is shape-checked so corrupt data cannot break activation; the snapshot is persisted once per cycle instead of once per feed and is size-bounded; the LED ticker no longer forces a layout measurement 20 times a second; dead code removed

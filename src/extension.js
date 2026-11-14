@@ -484,7 +484,7 @@ class BoardProvider {
     <span class="clock" id="clock"></span>
   </div>
   <div class="platform" id="platform"></div>
-  <div class="cols"><span class="c-logo"></span><span class="c-name" id="colName">便名</span><span class="c-meta"><span class="c-time" id="colTime">到着時刻</span><span class="c-rem" id="colRemark">備考</span></span><span class="c-count" id="flightCount"></span></div>
+  <div class="cols"><span class="c-logo"></span><span class="c-name" id="colName">便名</span><span class="c-count" id="flightCount"></span><span class="c-meta"><span class="c-time" id="colTime">到着時刻</span><span class="c-rem" id="colRemark">備考</span></span></div>
   <div id="rows"></div>
   <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span></div>
 </div>`;
