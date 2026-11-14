@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.1] - 2026-11-14
+
+- Repository infrastructure: added the missing package-lock.json and scripts/check-version.js (ported from Signboard-Solo). Without the lockfile, the shared base CI's `npm ci` step and the security scan's `npm audit` step failed on every push. No behaviour changes
+
+- リポジトリ基盤：欠けていた package-lock.json と scripts/check-version.js（Signboard-Solo から移植）を追加。lockfile が無いため、共通 base CI の `npm ci` とセキュリティスキャンの `npm audit` が push のたびに失敗していた。動作の変更はなし
+
 ## [1.0.0] - 2026-11-14
 
 - First stable release. The flap board's platform label is now "GATE n" (gate sign) instead of "Runway n / n番滑走路"

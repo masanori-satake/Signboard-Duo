@@ -104,4 +104,4 @@ Feed content is treated as untrusted text and can never turn into code:
 
 ## Version
 
-1.0.0 — first stable release: the flap platform label is "GATE n", and the extension is fully localised in English and Japanese (manifest strings via package.nls, boards and host messages follow VS Code's display language).
+1.0.1 — repository infrastructure only (package-lock.json and the version-check script the shared CI needs); no behaviour changes. 1.0.0 was the first stable release: the flap platform label is "GATE n", and the extension is fully localised in English and Japanese (manifest strings via package.nls, boards and host messages follow VS Code's display language).
