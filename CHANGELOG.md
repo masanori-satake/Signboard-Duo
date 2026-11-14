@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.6] - 2026-11-15
+
+- New icon: a deep blue board with a coral signal badge, so the extension reads at a glance as the one that connects outside — unlike the local-only Solo series (teal). The badge is the Duo series mark for external connections of any kind, not only feeds; the design guide and SVG masters live in the common-design repository
+
+- アイコンを変更：深い青の盤面にコーラルの電波バッジを付け、ローカル処理のみの Solo シリーズ（ティール）と並んでも「外部とつながる側」だと一目で分かるようにした。バッジはフィードに限らない外部接続全般を表す Duo シリーズの印。デザインガイドと SVG マスターは common-design リポジトリに置く
+
 ## [1.3.5] - 2026-11-15
 
 - Docs: removed a duplicated horizontal rule before the Japanese troubleshooting section in the README (a leftover from moving the licence section to the end), and audited every other separator in the file
