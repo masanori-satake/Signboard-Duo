@@ -78,6 +78,30 @@ For feeds with `auth`, run **Signboard-Duo: Set Feed Token** to store the secret
 
 認証が必要なフィードは、設定に方式だけを書き、コマンド **Signboard-Duo: Set Feed Token** でトークンを SecretStorage に保存します。Bamboo build-result feeds use `"kind": "bamboo"` (failed builds show as cancelled).
 
+## Finding feeds / フィードの探し方
+
+Many sites publish RSS/Atom feeds without making a fuss about them. A few ways to find one for a site you like:
+
+1. **Look for the icon or a link** — an orange RSS icon, or a "RSS / Atom / Feed" link in the site's footer or sidebar.
+2. **Try the usual addresses** — add `/feed/` to the site's URL (WordPress sites), or try `/rss`, `/rss.xml`, `/atom.xml`, `/index.xml`. The starter lists above are all examples of these patterns.
+3. **GitHub is all feeds** — append `.atom` to a repository's releases or commits page (`https://github.com/<owner>/<repo>/releases.atom`). Issues and pull requests have feeds too.
+4. **Peek at the page source** — open the site's top page, view its HTML source (right-click → "View page source"), and search for `application/rss+xml`. The `href` next to it is the feed URL the site itself declares.
+5. **Microsoft 365** — the Microsoft 365 Roadmap offers RSS: filter the roadmap view to the products you care about, then use the RSS icon above the filters to get that view's feed URL. Official Microsoft blogs publish feeds as well. SharePoint lists can also emit RSS (List Settings → RSS Settings), but they sit behind Microsoft 365 sign-in, which Duo's token types cannot perform — so SharePoint feeds are not usable here in practice.
+6. **Check before you paste** — open the candidate URL in a browser. A feed shows as raw XML text; if you see a normal web page, it is not a feed. If Duo shows a fetch error for a feed, the URL is usually a page rather than a feed.
+
+探し方のコツは日本語サイトでも同じです。サイトのフッターやサイドバーにある RSS アイコンや「RSS／フィード」のリンクを探す、URL の末尾に `/feed/` や `/rss` を付けて試す、ページのソースを表示して `application/rss+xml` を検索する、といった方法で大抵は見つかります。候補の URL は、まずブラウザで開いて確認してください。XML のテキストが表示されればフィードです。Microsoft 365 では、ロードマップ（Microsoft 365 Roadmap）が RSS に対応しています（表示を絞り込んでから RSS アイコンで取得）。SharePoint のリストも RSS を出せますが、Microsoft 365 のサインインが必要で Duo の認証方式では通せないため、実質的には使えません。
+
+## Security / セキュリティ
+
+Feed content is treated as untrusted text and can never turn into code:
+
+- The parser is hand-rolled and resolves no external entities (no XXE, no entity-expansion attacks); entity decoding is a single pass into plain text, and descriptions have their markup stripped before display.
+- Every renderer inserts feed text as text, never as HTML, and the webview runs under a strict Content Security Policy (`default-src 'none'`, nonce-only scripts, images over https only) — even a crafted headline stays inert text on the board.
+- Clicking a row opens only `http://` / `https://` links. Fetches go only to the URLs you configured, with a 10-second timeout, a 1 MB body cap and at most 5 redirects.
+- What remains: a feed you choose can still show misleading headlines as plain text — pick feeds you trust. The board also loads each feed's favicon from that feed's own origin as an image.
+
+フィードの内容は「信用できないテキスト」として扱い、コードには決してなりません。パーサは自前実装で外部実体を解決せず（XXE 等は不成立）、表示はすべてテキストとして挿入し、Webview には厳格な CSP を掛けています。行クリックで開くのは http/https のリンクだけ、取得は設定した URL へのみ（タイムアウト10秒・本文上限1MB・リダイレクト最大5回）。残るのは「選んだフィードが嘘の見出しを文字として表示すること」だけです。信頼できるフィードを選んでください。
+
 ## Version
 
-0.7.2 — the stock board's badge is just "No trading"; the joke badge is stock-board-only, the stock header is STOCK BOARD only, and the stock footer wraps instead of clipping at narrow widths.
+0.7.8 — README gains a "Finding feeds" guide and a "Security" section. Since 0.7.2: the flap page oscillation is fixed, the flap remark plate shows status words only and hides entirely when it would clip, plain rows fill the stock board's page height, and the stock badge is just "No trading".

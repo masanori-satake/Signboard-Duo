@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.8] - 2026-11-14
+
+- README: added a "Finding feeds" guide (where feed URLs hide: icons, /feed/ patterns, GitHub .atom, the page-source trick, Microsoft 365 Roadmap RSS, and why SharePoint list feeds cannot pass Duo's auth) and a "Security" section documenting how feed content is kept inert (hand-rolled parser with no external entities, text-only rendering, strict CSP, http/https-only links, bounded fetches)
+
+- README：「フィードの探し方」（アイコン、/feed/ の型、GitHub の .atom、ページソースで探す方法、Microsoft 365 ロードマップの RSS、SharePoint リストのフィードが Duo の認証では通せない理由）と「セキュリティ」の節を追加し、フィード内容を無力なテキストに留める対策（外部実体を解決しない自前パーサ、テキストのみの描画、厳格な CSP、http/https のみのリンク、取得の上限）を明記した
+
 ## [0.7.7] - 2026-11-14
 
 - Flap board: the remark plate now hides entirely when the panel is too narrow for it to fit, instead of staying half-clipped at the right edge. The board measures the plate's right edge against the rows area on every render and hides it the moment it would cross. Same fix as Signboard-Solo 1.9.2
