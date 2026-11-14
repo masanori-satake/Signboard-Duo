@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2] - 2026-11-14
+
+- README: the stock (`kind: "stock"`) settings examples are now written as indented, one-field-per-line JSON instead of a crammed one-liner
+
+- README：株価（`kind: "stock"`）の設定例を、詰め込んだ一行形式から、1フィールド1行のインデント付き JSON に書き直した
+
 ## [1.2.1] - 2026-11-14
 
 - README: the Settings section now documents every per-feed field (defaults and ranges, including the `auth` values) and adds a feed-kinds table explaining how each `kind` is treated on the board
