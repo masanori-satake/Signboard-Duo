@@ -193,9 +193,7 @@ window.addEventListener('message', (ev) => {
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
     platforms = msg.platforms || [];
     if (!focusDone) { focusDone = true; pendingFocusNo = msg.platformNo != null ? msg.platformNo : null; }
-    document.getElementById('jokeBadge').textContent = LANG_JA
-      ? '眺める専用のジョークです（売買はできません）'
-      : 'A just-for-looking joke board (no trading)';
+    document.getElementById('jokeBadge').textContent = LANG_JA ? '売買できません' : 'No trading';
     render();
   } else if (msg.type === 'nav') {
     const pages = buildPages();

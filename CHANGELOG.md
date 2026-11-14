@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.2] - 2026-11-14
+
+- Stock board: the badge is now just "No trading" — that is the whole point, and it fits any width
+
+- 株価ボード：バッジを「売買できません」だけに短縮（それが要点であり、どの幅でも収まる）
+
 ## [0.7.1] - 2026-11-14
 
 - The "just for looking" joke badge is now stock-board-only: the flap and LED boards give the joke away by their motifs, so their badge / ticker note from 0.7.0 are reverted. The stock board keeps it — that is the one that could be mistaken for real trading at work
