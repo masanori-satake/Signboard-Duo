@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1] - 2026-11-14
+
+- README: the Settings section now documents every per-feed field (defaults and ranges, including the `auth` values) and adds a feed-kinds table explaining how each `kind` is treated on the board
+
+- README：設定の節にフィード各フィールドの説明（既定値と範囲、`auth` の値を含む）と、種別ごとに盤面での扱いを説明するフィード種別表を追加した
+
 ## [1.2.0] - 2026-11-14
 
 - The `bamboo` feed kind is absorbed into a new generic `ci` kind and removed (existing `"bamboo"` settings are treated as `"ci"`). CI titles are read for their verdict: Jenkins-style `Job #123 (SUCCESS)` and Bamboo-style `Plan #45 was successful` lose their result words on the board — the build number stays — and failed, unstable or aborted runs show as cancelled; titles without a recognised pattern keep the previous failure-word fallback

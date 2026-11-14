@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.2.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.2.1-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.2.0**
+Current version: **v1.2.1**
 
 ---
 
@@ -114,7 +114,7 @@ For VSCodium, Gitpod, Eclipse Theia, or environments configured with Open VSX:
 #### Method 3: Install from VSIX Package File (Offline / Manual)
 
 1. Go to the [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) page.
-2. Download the `.vsix` file (e.g., `signboard-duo-1.2.0.vsix`) under Assets.
+2. Download the `.vsix` file (e.g., `signboard-duo-1.2.1.vsix`) under Assets.
 3. In VS Code Extensions view (`Ctrl+Shift+X`), click the **"..." (Views and More Actions)** icon at the top right, select **Install from VSIX...**, and choose the downloaded file.
 
 ---
@@ -223,6 +223,30 @@ Many sites publish RSS/Atom feeds without making a fuss about them. A few ways t
 
 Settings can be changed via VS Code Settings (`Ctrl+,` / `Cmd+,`).
 
+Each entry in `signboardDuo.feeds` accepts these fields:
+
+| Field | Default | Description |
+| :--- | :--- | :--- |
+| `id` | (auto) | Stable feed id; also keys the stored token |
+| `name` | feed title | Platform name shown on the board |
+| `url` | — | Feed URL (`http` / `https`) |
+| `kind` | `generic` | How items are interpreted — see the kinds table below |
+| `enabled` | `true` | Disabled feeds get no platform number |
+| `maxItems` | `4` | Rows kept per platform (1–20) |
+| `keepHours` | `24` | Hours a row stays on the board after leaving the feed (1–168) |
+| `auth` | `none` | `none` / `bearer` / `basic` / `header` — the type only; the secret itself is stored via the Set Feed Token command |
+
+Feed kinds:
+
+| `kind` | Intended for | How the board treats it |
+| :--- | :--- | :--- |
+| `generic` | Any RSS/Atom feed | Items as-is; the item's category (or a shortened summary) becomes the remark |
+| `ci` | CI build results (Jenkins, Bamboo, TeamCity and similar) | The verdict is read from the title and the result words are trimmed (the build number stays); failed, unstable or aborted runs show as cancelled |
+| `status` | Status pages | Presentation only: a `STS` chip on the flap board, a limited-express type on the LED board; items are interpreted like `generic` |
+| `jma` | Japan Meteorological Agency feeds | Presentation only: a `WX` chip on the flap board, a local type on the LED board; items are interpreted like `generic` |
+| `stock` | Quote JSON in the CNBC shape | The platform renders as securities-style panels on the stock board instead of flap/LED rows |
+
+
 #### Authenticated feeds
 
 For feeds with `auth`, run **Signboard-Duo: Set Feed Token** to store the secret in SecretStorage; only the auth type lives in settings. CI build-result feeds use `"kind": "ci"` (the former `"bamboo"` kind is treated as `"ci"`).
@@ -296,7 +320,7 @@ npm run check-version
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.2.0**
+現在のバージョン: **v1.2.1**
 
 ---
 
@@ -392,7 +416,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 #### 方法 3: VSIX パッケージファイルからのインストール（オフライン環境等）
 
 1. [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) ページを開きます。
-2. Assets の `.vsix` ファイル（例: `signboard-duo-1.2.0.vsix`）をダウンロードします。
+2. Assets の `.vsix` ファイル（例: `signboard-duo-1.2.1.vsix`）をダウンロードします。
 3. VS Code の拡張機能ビュー（`Ctrl+Shift+X`）右上の **「...」（ビューとその他のアクション）** から **VSIX からのインストール...** を選び、ダウンロードしたファイルを指定します。
 
 ---
@@ -500,6 +524,30 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 | `signboardDuo.ledGlow` | `true` | LED の文字の後ろに柔らかなグロー（にじみ）を付ける |
 
 設定は VS Code の設定画面（`Ctrl+,` / `Cmd+,`）から変更できます。
+
+`signboardDuo.feeds` の各要素には、次のフィールドが書けます。
+
+| フィールド | 既定値 | 説明 |
+| :--- | :--- | :--- |
+| `id` | （自動） | フィードの安定した ID。保存するトークンのキーにもなる |
+| `name` | フィードのタイトル | 盤面に出る番線名 |
+| `url` | — | フィードの URL（`http` / `https`） |
+| `kind` | `generic` | 項目の解釈の仕方 — 下の種別表を参照 |
+| `enabled` | `true` | 無効にしたフィードには番線番号が付かない |
+| `maxItems` | `4` | 1番線に保持する行数（1–20） |
+| `keepHours` | `24` | フィードから消えた行を盤面に残す時間（1–168） |
+| `auth` | `none` | `none` / `bearer` / `basic` / `header` — 方式のみ。秘密情報そのものは「フィードのトークンを設定」コマンドで保存する |
+
+フィード種別：
+
+| `kind` | 向いているもの | 盤面での扱い |
+| :--- | :--- | :--- |
+| `generic` | 任意の RSS/Atom フィード | 項目をそのまま表示。備考はカテゴリ（なければ概要の短縮） |
+| `ci` | CI のビルド結果（Jenkins、Bamboo、TeamCity など） | タイトルから成否を読み、結果語を取り除く（ビルド番号は残る）。失敗・不安定・中断は運休表示 |
+| `status` | ステータスページ | 表示のみ：フラップ盤面では `STS` チップ、LED 盤面では特急タイプ。項目の解釈は `generic` と同じ |
+| `jma` | 気象庁のフィード | 表示のみ：フラップ盤面では `WX` チップ、LED 盤面では普通タイプ。項目の解釈は `generic` と同じ |
+| `stock` | CNBC 形式の相場 JSON | フラップ/LED の行ではなく、株価ボードの証券風パネルとして表示される |
+
 
 #### 認証フィード
 
