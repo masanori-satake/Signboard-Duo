@@ -8,6 +8,7 @@
 const http = require('http');
 const https = require('https');
 const tls = require('tls');
+const net = require('net');
 
 const FETCH_TIMEOUT_MS = 10000;
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -188,10 +189,24 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
           reject(taggedError('proxy', 'proxy CONNECT refused with ' + res.statusCode));
           return;
         }
-        const tlsSock = tls.connect({
-          socket, servername: targetHost,
+        /* SNI takes a DNS name only: passing an IP literal as the
+           servername is a hard TypeError on current Node (it was a
+           deprecation warning before), so IP targets omit it and
+           verification falls back to the IP SAN. A synchronous throw
+           anywhere in this handler must reject, never escape. */
+        const tlsOptions = {
+          socket,
           rejectUnauthorized: !proxyCfg || proxyCfg.strictSSL !== false,
-        });
+        };
+        if (!net.isIP(targetHost)) tlsOptions.servername = targetHost;
+        let tlsSock;
+        try {
+          tlsSock = tls.connect(tlsOptions);
+        } catch (e) {
+          socket.destroy();
+          reject(e);
+          return;
+        }
         /* The handshake gets the same absolute deadline as every
            other leg: a tunnel that opens but never speaks TLS must
            not hold the fetch (and the serial poll behind it) open. */

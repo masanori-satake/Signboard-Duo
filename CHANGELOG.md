@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.4] - 2026-11-15
+
+- Fixed a crash when fetching an HTTPS feed whose host is an IP address through a proxy: the tunnel's TLS options passed the IP as the SNI servername, which current Node rejects with a TypeError (previously only a deprecation warning). IP targets now omit SNI (verification uses the IP SAN), and a synchronous throw in the CONNECT handler rejects the fetch instead of escaping
+
+- プロキシ経由で、ホストが IP アドレスの HTTPS フィードを取得すると落ちる問題を直した：トンネルの TLS 設定が IP を SNI の servername に渡していて、現在の Node では TypeError になる（以前は非推奨警告のみ）。IP の宛先では SNI を付けず（検証は IP の SAN で行う）、CONNECT ハンドラ内の同期例外は外へ逃げず取得の失敗として扱う
+
 ## [1.3.3] - 2026-11-15
 
 - Tests only: the proxy tunnel tests now use a committed self-signed fixture certificate instead of generating one with the system openssl at test time (an uncontrolled variable across CI runners), and a failing leg prints its underlying error code inline in the test log
