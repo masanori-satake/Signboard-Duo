@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4] - 2026-11-14
+
+- Raised the per-feed maxItems limit from 10 to 20.
+
+- フィードごとの maxItems の上限を 10 から 20 に引き上げ
+
 ## [1.0.3] - 2026-11-14
 
 - Raised the feed limit from 5 to 10 (signboardDuo.feeds).
