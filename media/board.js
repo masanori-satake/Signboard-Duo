@@ -294,7 +294,7 @@ function render(pageChanged) {
   if (page) {
     const p = page.platform;
     const note = stateNote(p);
-    platformEl.textContent = (LANG_JA ? p.no + '番滑走路　' : 'RUNWAY ' + p.no + '  ') + p.name + (note ? '　— ' + note : '');
+    platformEl.textContent = 'GATE ' + p.no + (LANG_JA ? '　' : '  ') + p.name + (note ? '　— ' + note : '');
     if (p.no !== lastPostedPlatform) {
       lastPostedPlatform = p.no;
       vscodeApi.postMessage({ type: 'platform', no: p.no });

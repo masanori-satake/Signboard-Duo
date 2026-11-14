@@ -25,7 +25,7 @@
       {
         "command": "signboardDuo.showLed",
         "icon": "$(dashboard)",
-        "title": "Signboard-Duo: Show LED Board"
+        "title": "%command.showLed.title%"
       },
       {
         "command": "signboardDuo.showFlap",
@@ -33,59 +33,59 @@
           "dark": "media/flight-dark.svg",
           "light": "media/flight-light.svg"
         },
-        "title": "Signboard-Duo: Show Flap Board"
+        "title": "%command.showFlap.title%"
       },
       {
         "command": "signboardDuo.setToken",
-        "title": "Signboard-Duo: Set Feed Token"
+        "title": "%command.setToken.title%"
       },
       {
         "command": "signboardDuo.deleteToken",
-        "title": "Signboard-Duo: Delete Feed Token"
+        "title": "%command.deleteToken.title%"
       },
       {
         "command": "signboardDuo.refresh",
         "icon": "$(refresh)",
-        "title": "Signboard-Duo: Refresh Feeds Now"
+        "title": "%command.refresh.title%"
       },
       {
         "command": "signboardDuo.prevPlatform",
         "icon": "$(chevron-left)",
-        "title": "Signboard-Duo: Previous Platform"
+        "title": "%command.prevPlatform.title%"
       },
       {
         "command": "signboardDuo.nextPlatform",
         "icon": "$(chevron-right)",
-        "title": "Signboard-Duo: Next Platform"
+        "title": "%command.nextPlatform.title%"
       },
       {
         "command": "signboardDuo.pinPlatform",
         "icon": "$(pin)",
-        "title": "Signboard-Duo: Pin This Platform"
+        "title": "%command.pinPlatform.title%"
       },
       {
         "command": "signboardDuo.unpinPlatform",
         "icon": "$(pinned)",
-        "title": "Signboard-Duo: Unpin Platform"
+        "title": "%command.unpinPlatform.title%"
       },
       {
         "command": "signboardDuo.cycleTheme",
-        "title": "Signboard-Duo: Switch Colour Theme",
+        "title": "%command.cycleTheme.title%",
         "icon": "$(symbol-color)"
       },
       {
         "command": "signboardDuo.showStock",
-        "title": "Signboard-Duo: Show Stock Board",
+        "title": "%command.showStock.title%",
         "icon": "$(graph-line)"
       },
       {
         "command": "signboardDuo.cycleMode",
-        "title": "Signboard-Duo: Switch Board Style",
+        "title": "%command.cycleMode.title%",
         "icon": "$(layout)"
       },
       {
         "command": "signboardDuo.cycleModeFlap",
-        "title": "Signboard-Duo: Switch Board Style",
+        "title": "%command.cycleModeFlap.title%",
         "icon": {
           "dark": "media/flight-dark.svg",
           "light": "media/flight-light.svg"
@@ -93,12 +93,12 @@
       },
       {
         "command": "signboardDuo.cycleModeLed",
-        "title": "Signboard-Duo: Switch Board Style",
+        "title": "%command.cycleModeLed.title%",
         "icon": "$(dashboard)"
       },
       {
         "command": "signboardDuo.cycleModeStock",
-        "title": "Signboard-Duo: Switch Board Style",
+        "title": "%command.cycleModeStock.title%",
         "icon": "$(graph-line)"
       }
     ],
@@ -109,7 +109,7 @@
           "items": {
             "properties": {
               "auth": {
-                "description": "Auth method only — the secret itself is stored via the Set Feed Token command, never in settings.",
+                "description": "%config.feeds.auth.description%",
                 "properties": {
                   "headerName": {
                     "description": "Header name for header auth (e.g. X-API-Key).",
@@ -134,24 +134,24 @@
               },
               "enabled": {
                 "default": true,
-                "description": "Disabled feeds get no platform number.",
+                "description": "%config.feeds.enabled.description%",
                 "type": "boolean"
               },
               "id": {
-                "description": "Stable feed id. Also keys the stored token.",
+                "description": "%config.feeds.id.description%",
                 "pattern": "^[a-z0-9-]+$",
                 "type": "string"
               },
               "keepHours": {
                 "default": 24,
-                "description": "Hours a topic stays after it leaves the feed.",
+                "description": "%config.feeds.keepHours.description%",
                 "maximum": 168,
                 "minimum": 1,
                 "type": "number"
               },
               "kind": {
                 "default": "generic",
-                "description": "How items are interpreted on the board.",
+                "description": "%config.feeds.kind.description%",
                 "enum": [
                   "generic",
                   "bamboo",
@@ -159,21 +159,28 @@
                   "jma",
                   "stock"
                 ],
-                "type": "string"
+                "type": "string",
+                "enumDescriptions": [
+                  "%config.feeds.kind.generic%",
+                  "%config.feeds.kind.bamboo%",
+                  "%config.feeds.kind.status%",
+                  "%config.feeds.kind.jma%",
+                  "%config.feeds.kind.stock%"
+                ]
               },
               "maxItems": {
                 "default": 4,
-                "description": "Max topics shown for this platform.",
+                "description": "%config.feeds.maxItems.description%",
                 "maximum": 10,
                 "minimum": 1,
                 "type": "number"
               },
               "name": {
-                "description": "Platform name on the board. Defaults to the feed title.",
+                "description": "%config.feeds.name.description%",
                 "type": "string"
               },
               "url": {
-                "description": "Feed URL (http/https).",
+                "description": "%config.feeds.url.description%",
                 "type": "string"
               }
             },
@@ -185,52 +192,59 @@
           },
           "markdownDescription": "RSS / Atom feeds shown as platforms (max 5). Array order is the platform number.",
           "maxItems": 5,
-          "type": "array"
+          "type": "array",
+          "description": "%config.feeds.description%"
         },
         "signboardDuo.ledGlow": {
           "default": true,
-          "description": "LED glow (blurred copy under the mask).",
+          "description": "%config.ledGlow.description%",
           "type": "boolean"
         },
         "signboardDuo.ledHole": {
           "default": 38,
-          "description": "LED hole size in percent.",
+          "description": "%config.ledHole.description%",
           "maximum": 70,
           "minimum": 10,
           "type": "number"
         },
         "signboardDuo.ledPitch": {
           "default": 3,
-          "description": "LED dot pitch in px.",
+          "description": "%config.ledPitch.description%",
           "maximum": 8,
           "minimum": 2,
           "type": "number"
         },
         "signboardDuo.mode": {
           "default": "flap",
-          "description": "Board style: split-flap, LED, or stock board. Auto uses flap below 540px and LED at 540px and wider.",
+          "description": "%config.mode.description%",
           "enum": [
             "auto",
             "flap",
             "led",
             "stock"
           ],
-          "type": "string"
+          "type": "string",
+          "enumDescriptions": [
+            "%config.mode.auto%",
+            "%config.mode.flap%",
+            "%config.mode.led%",
+            "%config.mode.stock%"
+          ]
         },
         "signboardDuo.pollMinutes": {
           "default": 15,
-          "description": "Feed polling interval in minutes.",
+          "description": "%config.pollMinutes.description%",
           "maximum": 180,
           "minimum": 5,
           "type": "number"
         },
         "signboardDuo.scrollLongText": {
           "default": true,
-          "description": "Scroll (LED) or flip through (flap) long titles instead of truncating them.",
+          "description": "%config.scrollLongText.description%",
           "type": "boolean"
         }
       },
-      "title": "Signboard-Duo"
+      "title": "%config.title%"
     },
     "menus": {
       "view/title": [
@@ -285,13 +299,13 @@
       "explorer": [
         {
           "id": "signboardDuo.board",
-          "name": "Signboard-Duo",
+          "name": "%view.name%",
           "type": "webview"
         }
       ]
     }
   },
-  "description": "A split-flap / LED board for your RSS & Atom feeds and CI results — topics arrive like trains and planes.",
+  "description": "%extension.description%",
   "displayName": "Signboard-Duo",
   "engines": {
     "vscode": "^1.90.0"
@@ -306,5 +320,5 @@
     "package": "vsce package",
     "test": "node --test"
   },
-  "version": "0.7.8"
+  "version": "1.0.0"
 }

@@ -14,6 +14,7 @@ const { parseFeed, parseQuotes } = require('./feedparse');
 const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
 
 const CONFIG_NS = 'signboardDuo';
+const JA = (vscode.env.language || '').toLowerCase().startsWith('ja');
 const STATE_KEY = 'signboardDuo.state.v1';
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT_MS = 10000;
@@ -232,11 +233,12 @@ class FeedEngine {
     if (this.authPrompted.has(rec.id)) return;
     if (!rec.auth || !rec.auth.type || rec.auth.type === 'none') return;
     this.authPrompted.add(rec.id);
+    const setLabel = JA ? 'トークンを設定' : 'Set Token';
     vscode.window.showInformationMessage(
-      `Signboard-Duo: feed "${rec.id}" needs a token.`,
-      'Set Token'
+      JA ? `Signboard-Duo: フィード "${rec.id}" にはトークンが必要です。` : `Signboard-Duo: feed "${rec.id}" needs a token.`,
+      setLabel
     ).then((pick) => {
-      if (pick === 'Set Token') vscode.commands.executeCommand('signboardDuo.setToken', rec.id);
+      if (pick === setLabel) vscode.commands.executeCommand('signboardDuo.setToken', rec.id);
     });
   }
 
@@ -479,12 +481,14 @@ async function pickAuthFeed(engine, presetId) {
   if (presetId) return engine.feeds.find((f) => f.id === presetId) || null;
   const candidates = engine.feeds.filter((f) => f.auth && f.auth.type && f.auth.type !== 'none');
   if (!candidates.length) {
-    vscode.window.showInformationMessage('Signboard-Duo: no feed has an auth type configured. Set "auth" in the signboardDuo.feeds setting first.');
+    vscode.window.showInformationMessage(JA
+      ? 'Signboard-Duo: 認証方式が設定されたフィードがありません。先に signboardDuo.feeds 設定で "auth" を設定してください。'
+      : 'Signboard-Duo: no feed has an auth type configured. Set "auth" in the signboardDuo.feeds setting first.');
     return null;
   }
   const pick = await vscode.window.showQuickPick(
     candidates.map((f) => ({ label: f.id, description: f.auth.type })),
-    { placeHolder: 'Feed to set a token for' }
+    { placeHolder: JA ? 'トークンを操作するフィード' : 'Feed to manage the token for' }
   );
   return pick ? candidates.find((f) => f.id === pick.label) : null;
 }
@@ -515,7 +519,9 @@ function activate(context) {
       const rec = await pickAuthFeed(engine, presetId);
       if (!rec) return;
       const value = await vscode.window.showInputBox({
-        prompt: `Token for feed "${rec.id}" (stored in SecretStorage, never in settings)`,
+        prompt: JA
+          ? `フィード "${rec.id}" のトークン（SecretStorage に保存され、設定には残りません）`
+          : `Token for feed "${rec.id}" (stored in SecretStorage, never in settings)`,
         password: true, ignoreFocusOut: true,
       });
       if (value) {
@@ -529,7 +535,9 @@ function activate(context) {
       const rec = await pickAuthFeed(engine, null);
       if (!rec) return;
       await context.secrets.delete(`feed-token:${rec.id}`);
-      vscode.window.showInformationMessage(`Signboard-Duo: token for "${rec.id}" deleted.`);
+      vscode.window.showInformationMessage(JA
+        ? `Signboard-Duo: フィード "${rec.id}" のトークンを削除しました。`
+        : `Signboard-Duo: token for "${rec.id}" deleted.`);
     }),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration(`${CONFIG_NS}.mode`)) syncModeContext();

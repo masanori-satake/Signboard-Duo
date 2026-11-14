@@ -2,7 +2,7 @@
 
 A split-flap / LED / stock board for your RSS & Atom feeds — each feed is a platform, and every topic arrives like a train or a plane.
 
-RSS / Atom フィードを空港のフラップ盤／駅の LED 盤／証券の株価ボードで眺める VS Code 拡張です。フィードが「番線／滑走路」、届いたトピックが「電車／飛行機」になります。
+RSS / Atom フィードを空港のフラップ盤／駅の LED 盤／証券の株価ボードで眺める VS Code 拡張です。フィードが「番線／ゲート」、届いたトピックが「電車／飛行機」になります。
 
 ## Features / 機能
 
@@ -104,4 +104,4 @@ Feed content is treated as untrusted text and can never turn into code:
 
 ## Version
 
-0.7.8 — README gains a "Finding feeds" guide and a "Security" section. Since 0.7.2: the flap page oscillation is fixed, the flap remark plate shows status words only and hides entirely when it would clip, plain rows fill the stock board's page height, and the stock badge is just "No trading".
+1.0.0 — first stable release: the flap platform label is "GATE n", and the extension is fully localised in English and Japanese (manifest strings via package.nls, boards and host messages follow VS Code's display language).

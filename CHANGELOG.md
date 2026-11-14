@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0] - 2026-11-14
+
+- First stable release. The flap board's platform label is now "GATE n" (gate sign) instead of "Runway n / n番滑走路"
+- Full English/Japanese localisation, matching the Solo series: package.nls.json / package.nls.ja.json cover the description, view name, every command title and every setting description, the webview boards were already bilingual, and the host-side token messages (needs-token prompt, token input, deletion notice) now follow VS Code's display language too
+
+- 初の安定版リリース。フラップ盤面の番線表示を「N番滑走路／RUNWAY N」から「GATE N」（ゲートの案内板）に変更
+- 英語／日本語の両対応を Solo シリーズと同じ形で完備：package.nls.json / package.nls.ja.json で説明文・ビュー名・全コマンド名・全設定説明を切り替え、盤面側は従来どおり両対応、ホスト側のトークン関連メッセージ（要トークンの通知、入力欄、削除通知）も VS Code の表示言語に追従するようにした
+
 ## [0.7.8] - 2026-11-14
 
 - README: added a "Finding feeds" guide (where feed URLs hide: icons, /feed/ patterns, GitHub .atom, the page-source trick, Microsoft 365 Roadmap RSS, and why SharePoint list feeds cannot pass Duo's auth) and a "Security" section documenting how feed content is kept inert (hand-rolled parser with no external entities, text-only rendering, strict CSP, http/https-only links, bounded fetches)
