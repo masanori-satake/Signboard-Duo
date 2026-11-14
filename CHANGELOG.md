@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1] - 2026-11-14
+
+- Hardening pass (no behaviour changes): the poll interval is validated and refresh cycles can no longer overlap; feed credentials are no longer forwarded to other hosts on redirects, and fetches have an absolute deadline so a slow feed cannot stall the others; an out-of-range numeric character reference can no longer fail a whole feed; restored state is shape-checked so corrupt data cannot break activation; the snapshot is persisted once per cycle instead of once per feed and is size-bounded; the LED ticker no longer forces a layout measurement 20 times a second; dead code removed
+
+- 堅牢化（挙動の変更なし）：取得間隔の設定値を検証し、取得周期が重ならないようにした。リダイレクト先の別ホストへ認証情報を転送しないようにし、取得に絶対期限を設けて遅いフィードが他を止めないようにした。範囲外の数値文字参照でフィード全体が失敗しないようにし、復元する保存状態の形状チェックで壊れたデータが有効化を止めないようにした。保存はフィード毎ではなく周期に1回にまとめ、上限も設けた。LED テロップの幅測定を毎秒20回から必要時のみに減らし、死んだコードを削除した
+
 ## [1.1.0] - 2026-11-14
 
 - The flap board now uses wide panels: the name field gains a tile for every spare cell pitch of panel width (up to 24 CJK / 40 Latin tiles), so long headlines show more per segment, and the time + remark block is pinned to the right edge so the columns align at the right however wide the name field grows

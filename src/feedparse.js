@@ -16,7 +16,7 @@ function decodeEntities(s) {
     if (body[0] === '#') {
       const hex = body[1] === 'x' || body[1] === 'X';
       const code = parseInt(body.slice(hex ? 2 : 1), hex ? 16 : 10);
-      return Number.isFinite(code) ? String.fromCodePoint(code) : m;
+      return Number.isFinite(code) && code <= 0x10FFFF ? String.fromCodePoint(code) : m;
     }
     switch (body) {
       case 'amp': return '&';
@@ -107,12 +107,19 @@ function deepText(node) {
   return out;
 }
 
+/* Cap by code points, not UTF-16 units — a plain slice can split a
+   surrogate pair and bake a lone surrogate into the stored title. */
+function capCp(s, n) {
+  const a = [...String(s)];
+  return a.length > n ? a.slice(0, n).join('') : String(s);
+}
+
 function stripMarkup(s) {
   return decodeEntities(String(s).replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
 }
 
 function normTitle(s) {
-  return String(s || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+  return capCp(String(s || '').replace(/\s+/g, ' ').trim(), 200);
 }
 
 /* RFC 822 and ISO 8601 both go through Date.parse; returns ms or null. */
@@ -125,10 +132,14 @@ function parseDate(s) {
 function remarkFrom(itemNode, descName) {
   const cat = child(itemNode, 'category');
   const catText = cat ? (cat.attrs.term || textOf(cat)) : '';
-  if (catText) return normTitle(catText).slice(0, 80);
+  if (catText) return capCp(normTitle(catText), 80);
   const desc = child(itemNode, descName);
+  /* deepText decodes, then stripMarkup strips the (now literal) tags
+     and decodes once more: publishers escape their HTML, so &lt;p&gt;
+     is markup to remove, not text to show. The second decode is what
+     makes that work — do not "fix" it away. */
   const text = desc ? stripMarkup(deepText(desc)) : '';
-  return text.slice(0, 80);
+  return capCp(text, 80);
 }
 
 function toItem(raw) {
@@ -233,7 +244,7 @@ function parseQuotes(text) {
     const t = Date.parse(q.last_time || q.time || '');
     items.push({
       guid: symbol,
-      title: String(q.shortName || q.name || symbol),
+      title: normTitle(q.shortName || q.name || symbol),
       link: '',
       remark: symbol,
       timeMs: Number.isFinite(t) ? t : null,

@@ -38,6 +38,7 @@ function tilesFor(title, mini) {
   return Math.max(CONFIG.nameTilesLatin, Math.min(40, Math.floor(avail / 17)));
 }
 let segTick = 0;
+let anySegmented = false;
 /* Display text for the fixed tile field. Short titles pad out; long
    titles are cut into tile-sized segments that flip through in turn
    (segment index advances on a timer) when scrolling is enabled, and
@@ -313,11 +314,13 @@ function render(pageChanged) {
   // How long this page needs before it may rotate away: the longest
   // title on it must get through all of its segments once.
   PAGE_NEED_MS = CONFIG.pageRotateMs;
+  anySegmented = false;
   if (SCROLL) {
     for (const r of slice) {
       const tiles = tilesFor(r.title, tier === 'mini');
       const len = [...String(r.title || '')].length;
       if (len > tiles) {
+        anySegmented = true;
         PAGE_NEED_MS = Math.max(PAGE_NEED_MS, Math.ceil(len / tiles) * CONFIG.segmentMs);
       }
     }
@@ -401,9 +404,6 @@ window.addEventListener('message', (ev) => {
       const fresh = p.rows.find((r) => r.isNew && !seenBefore.has(r.key));
       if (fresh) { lastEventAt = Date.now(); jumpToKey(fresh.key); break; }
     }
-  } else if (msg.type === 'event' && msg.key) {
-    lastEventAt = Date.now();
-    jumpToKey(msg.key);
   } else if (msg.type === 'nav') {
     refreshPages();
     if (pagesCache.length > 1) {
@@ -420,8 +420,9 @@ window.addEventListener('message', (ev) => {
 let wheelAt = 0;
 window.addEventListener('wheel', (e) => {
   const now = Date.now();
+  if (now - wheelAt < 350) return;
   refreshPages();
-  if (now - wheelAt < 350 || pagesCache.length <= 1) return;
+  if (pagesCache.length <= 1) return;
   wheelAt = now;
   currentPage = (currentPage + (e.deltaY > 0 ? 1 : -1) + pagesCache.length) % pagesCache.length;
   lastPageChange = now;
@@ -442,20 +443,19 @@ window.addEventListener('resize', () => {
 
 setInterval(() => {
   if (document.hidden || PINNED) return;
+  const now = Date.now();
+  if (now - lastPageChange < PAGE_NEED_MS || now - lastEventAt < CONFIG.pageRotateMs) return;
   refreshPages();
   if (pagesCache.length <= 1) return;
-  const now = Date.now();
-  if (now - lastPageChange >= PAGE_NEED_MS && now - lastEventAt >= CONFIG.pageRotateMs) {
-    currentPage = (currentPage + 1) % pagesCache.length;
-    lastPageChange = now;
-    render(true);
-  }
+  currentPage = (currentPage + 1) % pagesCache.length;
+  lastPageChange = now;
+  render(true);
 }, 1000);
 
 /* Long titles advance one segment per interval, but only the visible
    page's name cells re-flip (render diffs against the last display). */
 setInterval(() => {
-  if (document.hidden || !SCROLL) return;
+  if (document.hidden || !SCROLL || !anySegmented) return;
   segTick++;
   render(false);
 }, CONFIG.segmentMs);
@@ -482,20 +482,22 @@ for (let i = 0; i < 8; i++) {
     clockDigits.push(dig);
   }
 }
+const clockSegs = clockDigits.map((dig) => [...dig.querySelectorAll('.seg')]);
+const clockDots = [...clockEl.querySelectorAll('.cdot')];
 function tickClock() {
   const d = new Date();
   const parts = [d.getHours(), d.getMinutes(), d.getSeconds()].map((v) => String(v).padStart(2, '0')).join('');
   [...parts].forEach((ch, i) => {
     const on = SEG_MAP[ch];
-    clockDigits[i].querySelectorAll('.seg').forEach((seg) => {
+    clockSegs[i].forEach((seg) => {
       const name = [...seg.classList].find((c) => c.startsWith('seg-')).slice(4);
       seg.classList.toggle('on', on.includes(name));
     });
   });
   const blink = d.getSeconds() % 2 === 0;
-  clockEl.querySelectorAll('.cdot').forEach((c) => c.classList.toggle('on', blink));
+  clockDots.forEach((c) => c.classList.toggle('on', blink));
 }
-setInterval(tickClock, 1000);
+setInterval(() => { if (!document.hidden) tickClock(); }, 1000);
 tickClock();
 
 computeTier();

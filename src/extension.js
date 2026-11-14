@@ -18,8 +18,9 @@ const JA = (vscode.env.language || '').toLowerCase().startsWith('ja');
 const STATE_KEY = 'signboardDuo.state.v1';
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT_MS = 10000;
+const FETCH_DEADLINE_MS = 30000;
 const MAX_BODY_BYTES = 1024 * 1024;
-const USER_AGENT = 'Signboard-Duo/0.1 (+https://marketplace.visualstudio.com/)';
+let USER_AGENT = 'Signboard-Duo (+https://marketplace.visualstudio.com/)';
 
 function autoModeForWidth(width) {
   return Number.isFinite(width) && width >= 520 ? 'led' : 'flap';
@@ -29,20 +30,39 @@ function autoModeForWidth(width) {
 
 /* The site's own favicon (served from the feed's origin — no third
    party favicon service is involved). */
+const faviconCache = new Map();
 function faviconOf(url) {
-  try { return new URL(url).origin + '/favicon.ico'; } catch (e) { return ''; }
+  if (faviconCache.has(url)) return faviconCache.get(url);
+  let out = '';
+  try { out = new URL(url).origin + '/favicon.ico'; } catch (e) { /* keep '' */ }
+  faviconCache.set(url, out);
+  return out;
 }
 
-function fetchOnce(urlStr, headers, redirectsLeft) {
+function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline) {
   return new Promise((resolve, reject) => {
     let url;
     try { url = new URL(urlStr); } catch (e) { reject(e); return; }
+    const remain = deadline - Date.now();
+    if (remain <= 0) { reject(new Error('fetch deadline exceeded')); return; }
     const lib = url.protocol === 'http:' ? http : https;
-    const req = lib.get(url, { headers, timeout: FETCH_TIMEOUT_MS }, (res) => {
+    const req = lib.get(url, { headers, timeout: Math.min(FETCH_TIMEOUT_MS, remain) }, (res) => {
       const status = res.statusCode || 0;
       if (status >= 300 && status < 400 && res.headers.location && redirectsLeft > 0) {
         res.resume();
-        resolve(fetchOnce(new URL(res.headers.location, url).toString(), headers, redirectsLeft - 1));
+        const next = new URL(res.headers.location, url);
+        /* Credentials belong to the feed's own origin: a redirect to
+           another host must not carry them along. */
+        let nextHeaders = headers;
+        if (next.origin !== url.origin) {
+          nextHeaders = {};
+          for (const [k, v] of Object.entries(headers)) {
+            if (/^(authorization|cookie)$/i.test(k)) continue;
+            if ((credNames || []).includes(k)) continue;
+            nextHeaders[k] = v;
+          }
+        }
+        resolve(fetchOnce(next.toString(), nextHeaders, credNames, redirectsLeft - 1, deadline));
         return;
       }
       if (status === 304) { res.resume(); resolve({ status, body: null, headers: res.headers }); return; }
@@ -56,6 +76,11 @@ function fetchOnce(urlStr, headers, redirectsLeft) {
       res.on('error', reject);
     });
     req.on('timeout', () => req.destroy(new Error('fetch timeout')));
+    /* The socket timeout only catches silence; a server that trickles
+       bytes could otherwise hold the fetch (and the serial poll behind
+       it) open forever, so an absolute deadline ends the request. */
+    const killer = setTimeout(() => req.destroy(new Error('fetch deadline exceeded')), remain);
+    req.on('close', () => clearTimeout(killer));
     req.on('error', reject);
   });
 }
@@ -77,7 +102,7 @@ class FeedEngine {
 
   restore() {
     const saved = this.context.globalState.get(STATE_KEY, {});
-    this.saved = saved && saved.feeds ? saved.feeds : {};
+    this.saved = saved && saved.feeds && typeof saved.feeds === 'object' ? saved.feeds : {};
   }
 
   async persist() {
@@ -91,6 +116,7 @@ class FeedEngine {
         rows: [...f.snapshot.values()].map((r) => ({ ...r, isNew: false, updated: false })),
       };
     }
+    this.saved = feeds;
     await this.context.globalState.update(STATE_KEY, { feeds });
   }
 
@@ -117,10 +143,15 @@ class FeedEngine {
       else if (!/^https?:\/\//.test(rec.url)) rec.configError = true;
       seen.add(rec.id);
       const sv = this.saved[rec.id];
-      if (sv) {
-        rec.etag = sv.etag; rec.lastModified = sv.lastModified;
-        rec.feedTitle = sv.feedTitle || ''; rec.lastOkAt = sv.lastOkAt || null;
-        rec.snapshot = new Map((sv.rows || []).map((r) => [r.key, r]));
+      if (sv && typeof sv === 'object') {
+        rec.etag = typeof sv.etag === 'string' ? sv.etag : null;
+        rec.lastModified = typeof sv.lastModified === 'string' ? sv.lastModified : null;
+        rec.feedTitle = typeof sv.feedTitle === 'string' ? sv.feedTitle : '';
+        rec.lastOkAt = Number.isFinite(sv.lastOkAt) ? sv.lastOkAt : null;
+        const rows = Array.isArray(sv.rows)
+          ? sv.rows.filter((r) => r && typeof r.key === 'string' && Number.isFinite(r.timeMs) && Number.isFinite(r.firstSeenAt))
+          : [];
+        rec.snapshot = new Map(rows.map((r) => [r.key, r]));
         rec.rows = [...rec.snapshot.values()].sort((a, b) => b.timeMs - a.timeMs).slice(0, rec.maxItems);
       }
       records.push(rec);
@@ -130,8 +161,11 @@ class FeedEngine {
   }
 
   pollMs() {
-    const m = vscode.workspace.getConfiguration(CONFIG_NS).get('pollMinutes', 15);
-    return Math.max(5, m) * 60 * 1000;
+    /* The schema range is advisory only — a hand-edited settings.json
+       can deliver anything, and NaN would collapse setInterval to ~0. */
+    const m = Number(vscode.workspace.getConfiguration(CONFIG_NS).get('pollMinutes', 15));
+    const minutes = Number.isFinite(m) ? Math.min(180, Math.max(5, m)) : 15;
+    return minutes * 60 * 1000;
   }
 
   start() {
@@ -170,10 +204,21 @@ class FeedEngine {
   }
 
   async refreshAll() {
-    for (const rec of this.feeds) {
-      if (rec.enabled && !rec.configError) await this.refreshOne(rec);
+    /* Cycles never overlap: a trigger that arrives mid-cycle folds
+       into a single follow-up run instead of racing the shared
+       records and the persisted snapshot. */
+    if (this.refreshing) { this.refreshQueued = true; return; }
+    this.refreshing = true;
+    try {
+      for (const rec of this.feeds) {
+        if (rec.enabled && !rec.configError) await this.refreshOne(rec);
+      }
+      if (this.dirty) { this.dirty = false; await this.persist(); }
+      this.onChange();
+    } finally {
+      this.refreshing = false;
+      if (this.refreshQueued) { this.refreshQueued = false; this.refreshAll(); }
     }
-    this.onChange();
   }
 
   async refreshOne(rec) {
@@ -188,7 +233,7 @@ class FeedEngine {
       const headers = { 'User-Agent': USER_AGENT, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml', ...authH };
       if (rec.etag) headers['If-None-Match'] = rec.etag;
       if (rec.lastModified) headers['If-Modified-Since'] = rec.lastModified;
-      const res = await fetchOnce(rec.url, headers, MAX_REDIRECTS);
+      const res = await fetchOnce(rec.url, headers, Object.keys(authH), MAX_REDIRECTS, Date.now() + FETCH_DEADLINE_MS);
       rec.lastStatus = res.status;
       if (res.status === 304) { rec.lastOkAt = now; return; }
       if (res.status === 401 || res.status === 403) {
@@ -211,7 +256,7 @@ class FeedEngine {
       rec.snapshot = merged.snapshot;
       rec.rows = merged.rows.map((r) => ({ ...r, status: this.rowStatus(rec, r) }));
       rec.lastOkAt = now;
-      await this.persist();
+      this.dirty = true;
     } catch (err) {
       rec.lastErrorAt = now;
       rec.lastStatus = rec.lastStatus || 0;
@@ -246,9 +291,9 @@ class FeedEngine {
     const now = Date.now();
     const poll = this.pollMs();
     const list = this.platforms
-      .filter((p) => p.no != null)
-      .map((p) => {
-        const rec = this.feeds.find((f) => f.id === p.id);
+      .map((p, i) => ({ p, rec: this.feeds[i] }))
+      .filter(({ p }) => p.no != null)
+      .map(({ p, rec }) => {
         return {
           no: p.no,
           name: p.name || (rec && rec.feedTitle) || p.id,
@@ -349,17 +394,21 @@ class BoardProvider {
         vscode.env.openExternal(vscode.Uri.parse(msg.url));
       }
     });
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration(CONFIG_NS) && this.view) {
-        this.autoRenderer = 'flap';
-        this.view.webview.html = this.html(this.view.webview);
-        this.lastSignature = '';
-        this.push(true);
-      }
+    const configSub = vscode.workspace.onDidChangeConfiguration((e) => {
+      if (!this.view) return;
+      /* Only mode and the LED parameters are baked into the HTML;
+         every other setting reaches the board through state pushes,
+         so rebuilding the page for them would just reset it. */
+      const htmlKeys = ['mode', 'ledPitch', 'ledHole', 'ledGlow'];
+      if (!htmlKeys.some((k) => e.affectsConfiguration(`${CONFIG_NS}.${k}`))) return;
+      this.autoRenderer = 'flap';
+      this.view.webview.html = this.html(this.view.webview);
+      this.lastSignature = '';
+      this.push(true);
     });
     view.onDidChangeVisibility(() => { if (view.visible) this.push(true); });
     this.tick = setInterval(() => this.push(false), 1000);
-    view.onDidDispose(() => { if (this.tick) clearInterval(this.tick); });
+    view.onDidDispose(() => { if (this.tick) clearInterval(this.tick); configSub.dispose(); });
     this.push(true);
   }
 
@@ -392,11 +441,6 @@ class BoardProvider {
     if (!force && signature === this.lastSignature) return;
     this.lastSignature = signature;
     this.view.webview.postMessage(payload);
-  }
-
-  notifyEvent(key) {
-    if (this.view) this.view.webview.postMessage({ type: 'event', key });
-    this.push(true);
   }
 
   html(webview) {
@@ -494,6 +538,7 @@ async function pickAuthFeed(engine, presetId) {
 }
 
 function activate(context) {
+  USER_AGENT = `Signboard-Duo/${context.extension.packageJSON.version} (+https://marketplace.visualstudio.com/)`;
   let provider;
   const engine = new FeedEngine(context, () => { if (provider) provider.push(true); });
   provider = new BoardProvider(context, engine);

@@ -4,34 +4,10 @@
    unit-tested with node --test. Platforms are feeds; rows are topics. */
 
 const CONFIG = {
-  pageRotateMs: 18000,      // inherited from Signboard-Solo
   staleAfterPolls: 2,       // platform goes stale after this many missed polls
   maxItemAgeMs: 30 * 24 * 60 * 60 * 1000, // ignore items older than 30 days at ingest
+  snapshotCap: 200,         // history bound per feed; display is capped far below this
 };
-
-function hasCjk(text) {
-  return /[\u3040-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(text);
-}
-
-/* Middle truncation, inherited from Signboard-Solo's model: the head and
-   tail carry the identity of a headline. */
-function truncMid(text, max) {
-  const chars = [...String(text)];
-  if (chars.length <= max) return text;
-  const head = Math.ceil((max - 1) * 0.55);
-  const tail = Math.floor((max - 1) * 0.45);
-  return chars.slice(0, head).join('') + '…' + chars.slice(chars.length - tail).join('');
-}
-
-function hhmm(ms) {
-  const d = new Date(ms);
-  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-}
-
-function chunkPages(count, perPage) {
-  if (count <= 0 || perPage <= 0) return 1;
-  return Math.max(1, Math.ceil(count / perPage));
-}
 
 /* Assign platform numbers 1..N to enabled feeds only, in settings order.
    Disabled feeds get no number and never reach the board. */
@@ -105,6 +81,18 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
     }
   }
 
+  /* The snapshot is history, not display — what is shown is capped by
+     maxItems — so an unbounded map only serves a pathological feed.
+     Bound it, dropping the longest-absent rows first; rows in the
+     current feed are never dropped here. */
+  if (next.size > CONFIG.snapshotCap) {
+    const byAge = [...next.entries()].sort((a, b) => a[1].firstSeenAt - b[1].firstSeenAt);
+    for (const [key] of byAge) {
+      if (next.size <= CONFIG.snapshotCap) break;
+      if (!inFeed.has(key)) next.delete(key);
+    }
+  }
+
   const rows = [...next.values()].sort((a, b) => b.timeMs - a.timeMs).slice(0, maxItems);
   return { rows, snapshot: next };
 }
@@ -122,4 +110,4 @@ function platformState(feed, now, pollMs) {
   return 'ok';
 }
 
-module.exports = { CONFIG, hasCjk, truncMid, hhmm, chunkPages, numberPlatforms, mergeFeedRows, platformState };
+module.exports = { CONFIG, numberPlatforms, mergeFeedRows, platformState };

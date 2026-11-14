@@ -99,6 +99,9 @@ function quotePanel(r) {
 
   const main = el('div', 'p-main');
   const price = el('span', 'p-price', fmtPrice(r.price));
+  /* Symbols from real feeds are few and stable; the cap only guards
+     against an endpoint inventing new symbols forever. */
+  if (!prevPrice.has(r.key) && prevPrice.size >= 512) prevPrice.delete(prevPrice.keys().next().value);
   const before = prevPrice.get(r.key);
   if (before != null && before !== r.price) price.classList.add('flash');
   prevPrice.set(r.key, r.price);
@@ -186,10 +189,9 @@ function gotoPage(idx, pages) {
 setInterval(() => {
   if (document.hidden) return;
   clockEl.textContent = clockNow();
+  if (PINNED || Date.now() - lastPageChange < ROTATE_MS) return;
   const pages = buildPages();
-  if (!PINNED && pages.length > 1 && Date.now() - lastPageChange >= ROTATE_MS) {
-    gotoPage(currentPage + 1, pages);
-  }
+  if (pages.length > 1) gotoPage(currentPage + 1, pages);
 }, 500);
 
 let wheelAt = 0;

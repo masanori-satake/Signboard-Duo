@@ -93,6 +93,7 @@ let tickerSegs = defaultTickerSegs();
 let lastTickerSig = '';
 let lastTickerKey = '';
 let lastScrollAt = null;
+let tickerW = 0, tickerWKey = '';
 let tickerMode = 'loop';
 let tickerOffset = 0;
 
@@ -321,7 +322,15 @@ setInterval(() => {
   const els = scrollEls();
   if (els.length) {
     const main = textLayer.querySelector('.ticker .scroll');
-    const w = main ? main.scrollWidth : 0;
+    /* scrollWidth forces a layout; the width only changes with the
+       ticker content (lastTickerSig) or the panel size, so measure
+       on those changes instead of on every 50 ms tick. */
+    let w = 0;
+    if (main) {
+      const key = board.clientWidth + '|' + lastTickerSig;
+      if (key !== tickerWKey) { tickerW = main.scrollWidth; tickerWKey = key; }
+      w = tickerW;
+    }
     const box = tickerEl;
     const dt = lastScrollAt == null ? 50 : Math.min(250, Math.max(0, now - lastScrollAt));
     lastScrollAt = now;
@@ -376,9 +385,6 @@ window.addEventListener('message', (ev) => {
     }
     prevByKey = new Map();
     for (const p of platforms) for (const r of p.rows) prevByKey.set(r.key, r);
-  } else if (msg.type === 'event' && msg.key) {
-    lastEventAt = Date.now();
-    jumpToKey(msg.key);
   } else if (msg.type === 'nav') {
     navSet(msg.dir);
   } else if (msg.type === 'pin') {
