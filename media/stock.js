@@ -8,8 +8,19 @@
    (no price) fall back to a slim dark row. */
 const vscodeApi = acquireVsCodeApi();
 
-const PER_PAGE = 4;
+const PER_PAGE = 4; // quote panels are tall blocks: 4 per page
 const ROTATE_MS = 12000;
+
+/* Plain (non-quote) rows are slim, so their pages hold as many as
+   the board height fits instead of the quote panels' 4. The row
+   height is learned once from the first rendered plain row and then
+   frozen (re-measuring per page made page counts flicker before). */
+let plainRowH = 0;
+function plainPerPage() {
+  const rowH = plainRowH || 31;
+  const avail = Math.max(rowH, window.innerHeight - 150);
+  return Math.max(PER_PAGE, Math.min(12, Math.floor(avail / rowH)));
+}
 
 let platforms = [];
 let FETCHED_AT = null;
@@ -59,8 +70,9 @@ function buildPages() {
       key: p.no + ':empty', title: LANG_JA ? 'データがありません' : 'No data', timeMs: null,
       price: null, change: null, changePct: null, remark: '', url: '', empty: true,
     }];
-    for (let i = 0; i < rows.length; i += PER_PAGE) {
-      pages.push({ platform: p, rows: rows.slice(i, i + PER_PAGE) });
+    const per = rows[0] && rows[0].price != null ? PER_PAGE : plainPerPage();
+    for (let i = 0; i < rows.length; i += per) {
+      pages.push({ platform: p, rows: rows.slice(i, i + per) });
     }
   }
   return pages;
@@ -153,6 +165,13 @@ function render() {
     frag.appendChild(r.price != null ? quotePanel(r) : plainRow(r));
   }
   rowsEl.replaceChildren(frag);
+  if (!plainRowH) {
+    const pr = rowsEl.querySelector('.row.plain');
+    if (pr && pr.offsetHeight > 0) {
+      plainRowH = pr.offsetHeight;
+      if (buildPages().length !== pages.length) { render(); return; }
+    }
+  }
   pageInfoEl.textContent = pages.length > 1 ? `PAGE ${currentPage + 1} / ${pages.length}` : '';
   fetchInfoEl.textContent = FETCHED_AT
     ? (LANG_JA ? '最終取得 ' : 'Fetched ') + hhmm(FETCHED_AT) : '';

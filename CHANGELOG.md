@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.6] - 2026-11-14
+
+- Stock board: plain (non-quote) rows no longer inherit the quote panels' 4-per-page — their pages now hold as many slim rows as the board height fits (up to 12), so a news platform no longer splits across pages with most of the board empty. Quote panels keep 4 per page. The plain row height is learned once from the first rendered row and frozen
+
+- 株価ボード：通常行（株価でない行）が、株価パネルの「1ページ4件」を引き継いでいたのを修正。背の低い通常行は、盤面の高さに収まる件数（最大12件）まで1ページに載せるようにし、ニュースの番線が盤面の大半を空けたままページ分割されなくなった。株価パネルは4件のまま。通常行の高さは最初の1行から一度だけ学んで固定する
+
 ## [0.7.5] - 2026-11-14
 
 - Flap board: at mini panel width the 7-segment header clock now hides entirely instead of clipping its left digits (title + clock no longer fit side by side there). The footer items (page info, fetched-at) now wrap as whole units and never split mid-token across lines. Same fix as Signboard-Solo 1.9.1
