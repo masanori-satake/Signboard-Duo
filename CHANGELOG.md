@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.2] - 2026-11-14
+
+- README restructured to the Signboard-Solo format: the full document is collected per language (English first, then Japanese), with the same section skeleton in both — header badges and language switcher, table of contents, key features, installation, how to use, starter feeds, finding feeds, commands, settings, requirements, privacy, security, roadmap, developer documentation, licence. Also added the `repository` field to package.json that vsce asked for
+
+- README を Signboard-Solo と同じ形式に再構成：言語ごとに情報を集め（英語→日本語の順）、両言語で同じ節構成にした——ヘッダのバッジと言語切替、目次、主な機能、インストール、使い方、スターターフィード、フィードの探し方、コマンド、設定、動作要件、プライバシー、セキュリティ、ロードマップ、開発者向けドキュメント、ライセンス。あわせて、vsce に指摘されていた package.json の `repository` フィールドを追加した
+
 ## [1.0.1] - 2026-11-14
 
 - Repository infrastructure: added the missing package-lock.json and scripts/check-version.js (ported from Signboard-Solo). Without the lockfile, the shared base CI's `npm ci` step and the security scan's `npm audit` step failed on every push. No behaviour changes
