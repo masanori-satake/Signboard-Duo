@@ -299,6 +299,7 @@ class BoardProvider {
     this.onRendererChange = null;
     this.pinned = false;
     this.theme = context.globalState.get('duoTheme', 'duo');
+    this.currentPlatformNo = 1;
   }
 
   cycleMode() {
@@ -340,6 +341,7 @@ class BoardProvider {
     view.webview.onDidReceiveMessage((msg) => {
       if (!msg) return;
       if (msg.type === 'ready') this.push(true);
+      if (msg.type === 'platform' && Number.isFinite(msg.no)) this.currentPlatformNo = msg.no;
       if (msg.type === 'width') this.handleWidth(msg.width);
       if (msg.type === 'open' && msg.url && /^https?:\/\//.test(msg.url)) {
         vscode.env.openExternal(vscode.Uri.parse(msg.url));
@@ -383,7 +385,7 @@ class BoardProvider {
     const platforms = this.engine.platformsPayload();
     const mode = this.configuredMode();
     const scroll = vscode.workspace.getConfiguration(CONFIG_NS).get('scrollLongText', true);
-    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), pinned: this.pinned, theme: this.theme };
+    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), pinned: this.pinned, theme: this.theme, platformNo: this.currentPlatformNo };
     const signature = JSON.stringify(payload);
     if (!force && signature === this.lastSignature) return;
     this.lastSignature = signature;
@@ -416,12 +418,12 @@ class BoardProvider {
     const body = stock
       ? `<div class="board" id="board">
   <div class="board-head">
-    <span class="title" id="boardTitle">QUOTES</span>
+    <span class="title" id="boardTitle">STOCK BOARD</span><span class="title-sub" id="boardSub">株価ボード</span>
     <span class="clock" id="clock"></span>
   </div>
   <div class="platform" id="platform"></div>
   <div id="rows"></div>
-  <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span></div>
+  <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span><span id="jokeBadge"></span></div>
 </div>`
       : led
       ? `<div class="board" id="board">
@@ -438,7 +440,7 @@ class BoardProvider {
   <div class="platform" id="platform"></div>
   <div class="cols"><span class="c-logo"></span><span class="c-name" id="colName">便名</span><span class="c-meta"><span class="c-time" id="colTime">到着時刻</span><span class="c-rem" id="colRemark">備考</span></span><span class="c-count" id="flightCount"></span></div>
   <div id="rows"></div>
-  <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span></div>
+  <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span><span id="jokeBadge"></span></div>
 </div>`;
     return `<!DOCTYPE html>
 <html lang="en">
@@ -504,6 +506,9 @@ function activate(context) {
     vscode.commands.registerCommand('signboardDuo.nextPlatform', () => provider.navPlatform(1)),
     vscode.commands.registerCommand('signboardDuo.cycleTheme', () => provider.cycleTheme()),
     vscode.commands.registerCommand('signboardDuo.cycleMode', () => provider.cycleMode()),
+    vscode.commands.registerCommand('signboardDuo.cycleModeFlap', () => provider.cycleMode()),
+    vscode.commands.registerCommand('signboardDuo.cycleModeLed', () => provider.cycleMode()),
+    vscode.commands.registerCommand('signboardDuo.cycleModeStock', () => provider.cycleMode()),
     vscode.commands.registerCommand('signboardDuo.pinPlatform', () => provider.setPinned(true)),
     vscode.commands.registerCommand('signboardDuo.unpinPlatform', () => provider.setPinned(false)),
     vscode.commands.registerCommand('signboardDuo.setToken', async (presetId) => {

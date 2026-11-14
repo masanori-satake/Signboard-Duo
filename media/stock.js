@@ -17,6 +17,9 @@ let PINNED = false;
 let LANG_JA = false;
 let currentPage = 0;
 let lastPageChange = Date.now();
+let pendingFocusNo = null;
+let focusDone = false;
+let lastPostedPlatform = null;
 const prevPrice = new Map();
 
 const platformEl = document.getElementById('platform');
@@ -130,10 +133,19 @@ function plainRow(r) {
 
 function render() {
   const pages = buildPages();
+  if (pendingFocusNo != null) {
+    const idx = pages.findIndex((pg) => pg.platform.no === pendingFocusNo);
+    if (idx >= 0) currentPage = idx;
+    pendingFocusNo = null;
+  }
   if (currentPage >= pages.length) currentPage = 0;
   const page = pages[currentPage];
   if (!page) { platformEl.textContent = ''; rowsEl.replaceChildren(); return; }
   const p = page.platform;
+  if (p.no !== lastPostedPlatform) {
+    lastPostedPlatform = p.no;
+    vscodeApi.postMessage({ type: 'platform', no: p.no });
+  }
   platformEl.textContent = (LANG_JA ? `${p.no}番市場　${p.name}` : `MARKET ${p.no}  ${p.name}`) + stateNote(p);
 
   const frag = document.createDocumentFragment();
@@ -180,7 +192,12 @@ window.addEventListener('message', (ev) => {
     FETCHED_AT = msg.fetchedAt || null;
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
     platforms = msg.platforms || [];
-    document.getElementById('boardTitle').textContent = LANG_JA ? '株価' : 'QUOTES';
+    if (!focusDone) { focusDone = true; pendingFocusNo = msg.platformNo != null ? msg.platformNo : null; }
+    document.getElementById('boardTitle').textContent = LANG_JA ? '株価ボード' : 'STOCK BOARD';
+    document.getElementById('boardSub').textContent = LANG_JA ? 'STOCK BOARD' : '株価ボード';
+    document.getElementById('jokeBadge').textContent = LANG_JA
+      ? '眺める専用のジョークです（売買はできません）'
+      : 'A just-for-looking joke board (no trading)';
     render();
   } else if (msg.type === 'nav') {
     const pages = buildPages();

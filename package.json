@@ -12,7 +12,10 @@
     "onCommand:signboardDuo.unpinPlatform",
     "onCommand:signboardDuo.cycleTheme",
     "onCommand:signboardDuo.showStock",
-    "onCommand:signboardDuo.cycleMode"
+    "onCommand:signboardDuo.cycleMode",
+    "onCommand:signboardDuo.cycleModeFlap",
+    "onCommand:signboardDuo.cycleModeLed",
+    "onCommand:signboardDuo.cycleModeStock"
   ],
   "categories": [
     "Other"
@@ -79,6 +82,24 @@
         "command": "signboardDuo.cycleMode",
         "title": "Signboard-Duo: Switch Board Style",
         "icon": "$(layout)"
+      },
+      {
+        "command": "signboardDuo.cycleModeFlap",
+        "title": "Signboard-Duo: Switch Board Style",
+        "icon": {
+          "dark": "media/flight-dark.svg",
+          "light": "media/flight-light.svg"
+        }
+      },
+      {
+        "command": "signboardDuo.cycleModeLed",
+        "title": "Signboard-Duo: Switch Board Style",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "signboardDuo.cycleModeStock",
+        "title": "Signboard-Duo: Switch Board Style",
+        "icon": "$(graph-line)"
       }
     ],
     "configuration": {
@@ -244,8 +265,18 @@
           "group": "navigation@5"
         },
         {
-          "command": "signboardDuo.cycleMode",
-          "when": "view == signboardDuo.board",
+          "command": "signboardDuo.cycleModeFlap",
+          "when": "view == signboardDuo.board && signboardDuo.isFlap",
+          "group": "navigation@6"
+        },
+        {
+          "command": "signboardDuo.cycleModeLed",
+          "when": "view == signboardDuo.board && signboardDuo.isLed",
+          "group": "navigation@6"
+        },
+        {
+          "command": "signboardDuo.cycleModeStock",
+          "when": "view == signboardDuo.board && signboardDuo.isStock",
           "group": "navigation@6"
         }
       ]
@@ -275,5 +306,5 @@
     "package": "vsce package",
     "test": "node --test"
   },
-  "version": "0.6.0"
+  "version": "0.7.0"
 }

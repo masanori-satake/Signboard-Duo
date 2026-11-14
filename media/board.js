@@ -19,6 +19,8 @@ function setLocale(lang) {
   document.getElementById('colName').textContent = LANG_JA ? '便名' : 'FLIGHT NAME';
   document.getElementById('colTime').textContent = LANG_JA ? '到着時刻' : 'ARRIVAL';
   document.getElementById('colRemark').textContent = LANG_JA ? '備考' : 'REMARKS';
+  const jb = document.getElementById('jokeBadge');
+  if (jb) jb.textContent = LANG_JA ? '眺める専用のジョークです' : 'A just-for-looking joke board';
 }
 setLocale('ja');
 
@@ -255,6 +257,9 @@ function buildPages() {
 }
 let pagesCache = [];
 function refreshPages() { pagesCache = buildPages(); }
+let pendingFocusNo = null;
+let focusDone = false;
+let lastPostedPlatform = null;
 
 function rowElFor(r) {
   let row = rowsEl.querySelector('.row[data-key="' + CSS.escape(r.key) + '"]');
@@ -277,6 +282,11 @@ function rowElFor(r) {
 }
 
 function render(pageChanged) {
+  if (pendingFocusNo != null) {
+    const idx = pagesCache.findIndex((pg) => pg.platform.no === pendingFocusNo);
+    if (idx >= 0) currentPage = idx;
+    pendingFocusNo = null;
+  }
   computeTier();
   refreshPages();
   const pg = Math.max(1, pagesCache.length);
@@ -289,6 +299,10 @@ function render(pageChanged) {
     const p = page.platform;
     const note = stateNote(p);
     platformEl.textContent = (LANG_JA ? p.no + '番滑走路　' : 'RUNWAY ' + p.no + '  ') + p.name + (note ? '　— ' + note : '');
+    if (p.no !== lastPostedPlatform) {
+      lastPostedPlatform = p.no;
+      vscodeApi.postMessage({ type: 'platform', no: p.no });
+    }
   } else {
     platformEl.textContent = '';
   }
@@ -364,6 +378,7 @@ window.addEventListener('message', (ev) => {
   if (msg.type === 'state') {
     setLocale(msg.lang);
     document.body.dataset.theme = msg.theme || 'duo';
+    if (!focusDone) { focusDone = true; pendingFocusNo = msg.platformNo != null ? msg.platformNo : null; }
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;

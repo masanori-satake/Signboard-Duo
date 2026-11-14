@@ -21,8 +21,8 @@ let SCROLL = true;
 let FETCHED_AT = null;
 function defaultTicker() {
   const base = LANG_JA
-    ? '本日も Signboard-Duo をご利用くださいまして、ありがとうございます。　この案内板は、RSS / Atom フィードの新着を表示しています。'
-    : 'Thank you for using Signboard-Duo today. This board shows the latest topics from your RSS / Atom feeds.';
+    ? '本日も Signboard-Duo をご利用くださいまして、ありがとうございます。　この案内板は、RSS / Atom フィードの新着を表示しています。　※眺める専用のジョークです。'
+    : 'Thank you for using Signboard-Duo today. This board shows the latest topics from your RSS / Atom feeds. (A just-for-looking joke board.)';
   if (!FETCHED_AT) return base;
   return base + (LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.');
 }
@@ -52,6 +52,7 @@ function loopTickerText() {
       ? `本日も${line}のご利用ありがとうございます。${p.rows.length}件が到着しています。`
       : `Thank you for using the ${p.name} line today. ${p.rows.length} topics have arrived.`;
   }
+  base += LANG_JA ? '　※眺める専用のジョークです。' : ' (A just-for-looking joke board.)';
   if (FETCHED_AT) base += LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.';
   return base;
 }
@@ -165,6 +166,8 @@ function buildAll() {
   renderTickerText();
 }
 
+let lastPostedPlatform = null;
+let focusDone = false;
 function buildRows() {
   const rowsBox = rowsBoxEl;
   if (!rowsBox) return;
@@ -173,6 +176,10 @@ function buildRows() {
   rowsBox.replaceChildren();
   const set = setsCache[currentSet];
   if (set) {
+    if (set.platform.no !== lastPostedPlatform) {
+      lastPostedPlatform = set.platform.no;
+      vscodeApi.postMessage({ type: 'platform', no: set.platform.no });
+    }
     const p = set.platform;
     const note = stateNote(p);
     const banner = el('div', 'platform-row',
@@ -313,6 +320,11 @@ window.addEventListener('message', (ev) => {
     platforms = msg.platforms || [];
     buildAll();
     if (tickerMode === 'loop') { tickerText = loopTickerText(); renderTickerText(); }
+    if (!focusDone) {
+      focusDone = true;
+      const idx = setsCache.findIndex((s) => s.platform.no === msg.platformNo);
+      if (idx > 0) { currentSet = idx; lastSetChange = Date.now(); buildRows(); }
+    }
     measureSetSize();
     for (const p of platforms) {
       for (const r of p.rows) {
