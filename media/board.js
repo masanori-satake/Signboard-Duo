@@ -27,7 +27,15 @@ function hasCjk(t) { return /[\u3040-\u30ff\u3400-\u9fff\uff00-\uffef]/.test(t);
 function tilesFor(title, mini) {
   const cjk = hasCjk(title);
   if (mini) return cjk ? CONFIG.nameTilesCjkMini : CONFIG.nameTilesLatinMini;
-  return cjk ? CONFIG.nameTilesCjk : CONFIG.nameTilesLatin;
+  /* Wider panels earn more name tiles: the fixed columns (board
+     padding, logo, time, remark and the gaps) take about 300px, and
+     every remaining cell pitch becomes another tile, so a long title
+     shows more of itself per segment instead of leaving the extra
+     width empty. At the wide threshold this still yields the classic
+     16 / 10, so nothing changes until the panel grows past it. */
+  const avail = Math.max(0, window.innerWidth - 300);
+  if (cjk) return Math.max(CONFIG.nameTilesCjk, Math.min(24, Math.floor(avail / 25)));
+  return Math.max(CONFIG.nameTilesLatin, Math.min(40, Math.floor(avail / 17)));
 }
 let segTick = 0;
 /* Display text for the fixed tile field. Short titles pad out; long

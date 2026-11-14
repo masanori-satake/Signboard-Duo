@@ -21,12 +21,14 @@ body {
 .cols .c-name { flex: 1; }
 .cols .c-meta { display: flex; gap: 10px; }
 .cols .c-time { width: 76px; }
-/* Wide tier: the header must share the rows' fixed name field, or the
-   UPDATED / REMARKS labels drift away from the columns below when the
-   panel is wider than the row content. CJK names (10 x 25px) fit inside
-   the 270px Latin field, so every row's meta starts at the same x. */
-.board[data-tier="wide"] .cols .c-name { flex: none; width: 270px; }
-.board[data-tier="wide"] .cells.name { width: 270px; }
+/* Wide tier: the name field grows with the panel (tilesFor adds a
+   tile per spare cell pitch), and the time + remark block is pinned
+   to the right edge, so the columns align at the right however wide
+   each row's name field ends up — the header does the same. Any
+   width still left over sits in one designed gap between the name
+   and the time instead of trailing off the right side. */
+.board[data-tier="wide"] .cols .c-name { flex: 1; }
+.board[data-tier="wide"] .row .meta { margin-left: auto; }
 .cols .c-rem { width: 112px; }
 /* Two-line tiers: the rows no longer sit under the column labels, so
    all three labels hide (the flight count stays, at the right end). */

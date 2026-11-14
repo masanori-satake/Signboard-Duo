@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0] - 2026-11-14
+
+- The flap board now uses wide panels: the name field gains a tile for every spare cell pitch of panel width (up to 24 CJK / 40 Latin tiles), so long headlines show more per segment, and the time + remark block is pinned to the right edge so the columns align at the right however wide the name field grows
+
+- フラップボードが広いパネルを使い切るようにした：パネル幅の余り1タイル分ごとに名前タイルが増え（和24／英40まで）、長い見出しが1区切りで多く読める。あわせて時刻＋備考を右端に寄せ、名前欄が伸びても列が右端で揃うようにした
+
 ## [1.0.10] - 2026-11-14
 
 - Show the README screenshots at half width so the listing stays compact and the text is reached sooner (the image files themselves are unchanged)
