@@ -8,18 +8,15 @@
    Feed tokens live in SecretStorage, never in settings. */
 
 const vscode = require('vscode');
-const http = require('http');
-const https = require('https');
 const { parseFeed, parseQuotes, ciVerdict } = require('./feedparse');
+const { fetchOnce, classifyError, proxyForUrl } = require('./net');
 const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
 
 const CONFIG_NS = 'signboardDuo';
 const JA = (vscode.env.language || '').toLowerCase().startsWith('ja');
 const STATE_KEY = 'signboardDuo.state.v1';
 const MAX_REDIRECTS = 5;
-const FETCH_TIMEOUT_MS = 10000;
 const FETCH_DEADLINE_MS = 30000;
-const MAX_BODY_BYTES = 1024 * 1024;
 let USER_AGENT = 'Signboard-Duo (+https://marketplace.visualstudio.com/)';
 
 function autoModeForWidth(width) {
@@ -39,50 +36,32 @@ function faviconOf(url) {
   return out;
 }
 
-function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline) {
-  return new Promise((resolve, reject) => {
-    let url;
-    try { url = new URL(urlStr); } catch (e) { reject(e); return; }
-    const remain = deadline - Date.now();
-    if (remain <= 0) { reject(new Error('fetch deadline exceeded')); return; }
-    const lib = url.protocol === 'http:' ? http : https;
-    const req = lib.get(url, { headers, timeout: Math.min(FETCH_TIMEOUT_MS, remain) }, (res) => {
-      const status = res.statusCode || 0;
-      if (status >= 300 && status < 400 && res.headers.location && redirectsLeft > 0) {
-        res.resume();
-        const next = new URL(res.headers.location, url);
-        /* Credentials belong to the feed's own origin: a redirect to
-           another host must not carry them along. */
-        let nextHeaders = headers;
-        if (next.origin !== url.origin) {
-          nextHeaders = {};
-          for (const [k, v] of Object.entries(headers)) {
-            if (/^(authorization|cookie)$/i.test(k)) continue;
-            if ((credNames || []).includes(k)) continue;
-            nextHeaders[k] = v;
-          }
-        }
-        resolve(fetchOnce(next.toString(), nextHeaders, credNames, redirectsLeft - 1, deadline));
-        return;
-      }
-      if (status === 304) { res.resume(); resolve({ status, body: null, headers: res.headers }); return; }
-      const chunks = [];
-      let size = 0;
-      res.on('data', (c) => {
-        size += c.length;
-        if (size <= MAX_BODY_BYTES) chunks.push(c);
-      });
-      res.on('end', () => resolve({ status, body: Buffer.concat(chunks).toString('utf8'), headers: res.headers }));
-      res.on('error', reject);
-    });
-    req.on('timeout', () => req.destroy(new Error('fetch timeout')));
-    /* The socket timeout only catches silence; a server that trickles
-       bytes could otherwise hold the fetch (and the serial poll behind
-       it) open forever, so an absolute deadline ends the request. */
-    const killer = setTimeout(() => req.destroy(new Error('fetch deadline exceeded')), remain);
-    req.on('close', () => clearTimeout(killer));
-    req.on('error', reject);
-  });
+/* ---------------- error diagnosis ----------------
+   A failed platform explains itself on the board as a small article —
+   what happened and the likely cause — and clicking it opens the
+   matching troubleshooting anchor in the README (per language and
+   symptom). The strings live here so all three renderers share them. */
+const README_URL = 'https://github.com/masanori-satake/Signboard-Duo/blob/main/README.md';
+const DIAG = {
+  dns: { ja: ['サーバーが見つかりません', '名前解決に失敗しました。URL と DNS を確認してください'], en: ['SERVER NOT FOUND', 'DNS lookup failed. Check the URL and your DNS settings'] },
+  connect: { ja: ['サーバーに接続できません', '接続が拒否されました。サーバーの稼働とファイアウォールを確認してください'], en: ['CANNOT CONNECT TO THE SERVER', 'The connection was refused. Check the server and the firewall'] },
+  timeout: { ja: ['応答がありません', 'タイムアウトしました。ネットワークとプロキシを確認してください'], en: ['NO RESPONSE', 'The request timed out. Check the network and any proxy'] },
+  tls: { ja: ['証明書エラーです', 'サーバーの証明書を検証できませんでした'], en: ['CERTIFICATE ERROR', 'The server certificate could not be verified'] },
+  proxy: { ja: ['プロキシに接続できません', 'http.proxy のプロキシへ届きません。設定とプロキシの稼働を確認してください'], en: ['CANNOT REACH THE PROXY', 'The proxy in http.proxy did not answer. Check the setting and the proxy'] },
+  'proxy-auth': { ja: ['プロキシ認証が必要です', 'プロキシが認証を要求しました（407）。http.proxy の資格情報を確認してください'], en: ['PROXY AUTHENTICATION REQUIRED', 'The proxy asked for credentials (407). Check http.proxy'] },
+  http: { ja: ['サーバーエラーが返りました', 'フィードの URL とサーバーの状態を確認してください'], en: ['THE SERVER REPLIED WITH AN ERROR', 'Check the feed URL and the server'] },
+  'feed-auth': { ja: ['認証が必要です', 'フィードが認証を要求しました。トークンの設定を確認してください'], en: ['AUTHENTICATION REQUIRED', 'The feed asked for credentials. Check the feed token'] },
+  format: { ja: ['フィードを読めませんでした', 'RSS / Atom / JSON として解釈できませんでした'], en: ['UNREADABLE FEED', 'The response was not a readable RSS / Atom / JSON feed'] },
+  config: { ja: ['設定エラーです', 'フィード設定（id と URL）を確認してください'], en: ['SETTINGS ERROR', 'Check the feed entry (id and URL)'] },
+};
+function diagFor(symptom, detail) {
+  const d = DIAG[symptom] || DIAG.connect;
+  const pair = JA ? d.ja : d.en;
+  return {
+    url: README_URL + (JA ? '#troubleshooting-ja-' : '#troubleshooting-') + symptom,
+    title: pair[0],
+    cause: symptom === 'http' && detail ? 'HTTP ' + detail + ' — ' + pair[1] : pair[1],
+  };
 }
 
 /* ---------------- feed engine ---------------- */
@@ -134,7 +113,7 @@ class FeedEngine {
         maxItems: f && f.maxItems ? f.maxItems : 4,
         keepHours: f && f.keepHours ? f.keepHours : 24,
         auth: (f && f.auth) || { type: 'none' },
-        configError: false, lastStatus: null, lastOkAt: null, lastErrorAt: null,
+        configError: false, lastStatus: null, lastOkAt: null, lastErrorAt: null, lastError: null,
         feedTitle: '', snapshot: new Map(), rows: [],
         etag: null, lastModified: null,
       };
@@ -180,6 +159,7 @@ class FeedEngine {
       vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration(`${CONFIG_NS}.feeds`)) { this.loadConfig(); this.refreshAll(); }
         if (e.affectsConfiguration(`${CONFIG_NS}.pollMinutes`)) arm();
+        if (e.affectsConfiguration('http')) this.refreshAll();
       }),
       { dispose: () => { if (this.timer) clearInterval(this.timer); } }
     );
@@ -203,6 +183,29 @@ class FeedEngine {
     return { headers: {}, missing: false };
   }
 
+  /* The proxy comes from VS Code's own http.* settings — what the
+     user already configured for their network — with the process
+     environment as a fallback. Duo defines no proxy settings of its
+     own and stores nothing: credentials stay inside VS Code's own
+     setting. PAC files are not evaluated (see the README's
+     troubleshooting section for that case). */
+  proxyConfig() {
+    const httpCfg = vscode.workspace.getConfiguration('http');
+    let proxy = httpCfg.get('proxy', '') || '';
+    if (!proxy) {
+      proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
+        process.env.HTTP_PROXY || process.env.http_proxy || '';
+    }
+    const fromVsCode = httpCfg.get('noProxy', []) || [];
+    const envList = (process.env.NO_PROXY || process.env.no_proxy || '').split(/[,\s]+/);
+    return {
+      proxy,
+      noProxy: [...(Array.isArray(fromVsCode) ? fromVsCode : []), ...envList.filter(Boolean)],
+      authorization: httpCfg.get('proxyAuthorization', null) || null,
+      strictSSL: httpCfg.get('proxyStrictSSL', true) !== false,
+    };
+  }
+
   async refreshAll() {
     /* Cycles never overlap: a trigger that arrives mid-cycle folds
        into a single follow-up run instead of racing the shared
@@ -210,6 +213,7 @@ class FeedEngine {
     if (this.refreshing) { this.refreshQueued = true; return; }
     this.refreshing = true;
     try {
+      this.pxCfg = this.proxyConfig();
       for (const rec of this.feeds) {
         if (rec.enabled && !rec.configError) await this.refreshOne(rec);
       }
@@ -227,26 +231,48 @@ class FeedEngine {
       const { headers: authH, missing } = await this.authHeaders(rec);
       if (missing) {
         rec.lastStatus = 401; rec.lastErrorAt = now;
+        rec.lastError = { symptom: 'feed-auth', detail: '' };
         this.maybePromptToken(rec);
         return;
       }
       const headers = { 'User-Agent': USER_AGENT, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml', ...authH };
       if (rec.etag) headers['If-None-Match'] = rec.etag;
       if (rec.lastModified) headers['If-Modified-Since'] = rec.lastModified;
-      const res = await fetchOnce(rec.url, headers, Object.keys(authH), MAX_REDIRECTS, Date.now() + FETCH_DEADLINE_MS);
+      let res;
+      try {
+        res = await fetchOnce(rec.url, headers, Object.keys(authH), MAX_REDIRECTS, Date.now() + FETCH_DEADLINE_MS, this.pxCfg);
+      } catch (err) {
+        rec.lastErrorAt = now;
+        rec.lastError = {
+          symptom: classifyError(err, !!proxyForUrl(rec.url, this.pxCfg)),
+          detail: err && err.code ? String(err.code) : '',
+        };
+        this.log(`feed ${rec.id}: ${err && err.message ? err.message : err}`);
+        return;
+      }
       rec.lastStatus = res.status;
-      if (res.status === 304) { rec.lastOkAt = now; return; }
+      if (res.status === 304) { rec.lastOkAt = now; rec.lastError = null; return; }
       if (res.status === 401 || res.status === 403) {
         rec.lastErrorAt = now;
+        rec.lastError = { symptom: 'feed-auth', detail: String(res.status) };
         this.maybePromptToken(rec);
         return;
       }
       if (res.status !== 200 || res.body == null) {
         rec.lastErrorAt = now;
+        rec.lastError = { symptom: 'http', detail: String(res.status) };
         this.log(`feed ${rec.id}: HTTP ${res.status}`);
         return;
       }
-      const parsed = rec.kind === 'stock' ? parseQuotes(res.body) : parseFeed(res.body);
+      let parsed;
+      try {
+        parsed = rec.kind === 'stock' ? parseQuotes(res.body) : parseFeed(res.body);
+      } catch (err) {
+        rec.lastErrorAt = now;
+        rec.lastError = { symptom: 'format', detail: '' };
+        this.log(`feed ${rec.id}: unparseable response (${err && err.message ? err.message : err})`);
+        return;
+      }
       if (rec.kind === 'ci') {
         for (const it of parsed.items) {
           const v = ciVerdict(it.title);
@@ -263,10 +289,12 @@ class FeedEngine {
       rec.snapshot = merged.snapshot;
       rec.rows = merged.rows.map((r) => ({ ...r, status: this.rowStatus(rec, r) }));
       rec.lastOkAt = now;
+      rec.lastError = null;
       this.dirty = true;
     } catch (err) {
       rec.lastErrorAt = now;
       rec.lastStatus = rec.lastStatus || 0;
+      if (!rec.lastError) rec.lastError = { symptom: classifyError(err, false), detail: '' };
       this.log(`feed ${rec.id}: ${err && err.message ? err.message : err}`);
     }
   }
@@ -300,12 +328,20 @@ class FeedEngine {
       .map((p, i) => ({ p, rec: this.feeds[i] }))
       .filter(({ p }) => p.no != null)
       .map(({ p, rec }) => {
+        const state = rec ? platformState(rec, now, poll) : 'loading';
+        let diag = null;
+        if (rec && (state === 'error' || state === 'stale' || state === 'authError' || state === 'configError')) {
+          const symptom = (rec.lastError && rec.lastError.symptom) ||
+            (state === 'configError' ? 'config' : state === 'authError' ? 'feed-auth' : 'connect');
+          diag = diagFor(symptom, rec.lastError && rec.lastError.detail);
+        }
         return {
           no: p.no,
           name: p.name || (rec && rec.feedTitle) || p.id,
           kind: p.kind,
           favicon: rec ? faviconOf(rec.url) : '',
-          state: rec ? platformState(rec, now, poll) : 'loading',
+          state,
+          diag,
           lastOkAt: rec && rec.lastOkAt ? rec.lastOkAt : null,
           rows: (rec ? rec.rows : []).map((r) => ({
             key: r.key, title: r.title, timeMs: r.timeMs,

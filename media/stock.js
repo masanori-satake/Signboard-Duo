@@ -67,8 +67,11 @@ function buildPages() {
   const pages = [];
   for (const p of platforms) {
     const rows = p.rows.length ? p.rows : [{
-      key: p.no + ':empty', title: LANG_JA ? 'データがありません' : 'No data', timeMs: null,
-      price: null, change: null, changePct: null, remark: '', url: '', empty: true,
+      key: p.no + ':empty',
+      title: p.diag ? p.diag.title : (LANG_JA ? 'データがありません' : 'No data'), timeMs: null,
+      price: null, change: null, changePct: null,
+      remark: p.diag ? p.diag.cause : '',
+      url: p.diag ? p.diag.url : '', empty: true,
     }];
     const per = rows[0] && rows[0].price != null ? PER_PAGE : plainPerPage();
     for (let i = 0; i < rows.length; i += per) {

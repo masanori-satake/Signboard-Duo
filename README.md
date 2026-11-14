@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.2.2-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.3.0-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.2.2**
+Current version: **v1.3.0**
 
 ---
 
@@ -56,6 +56,7 @@ Current version: **v1.2.2**
 - [🧭 Roadmap](#en-roadmap)
 - [🛠️ Developer Documentation](#en-developer-docs)
 - [📄 License](#en-license)
+- [🛠️ Troubleshooting](#en-troubleshooting)
 
 ---
 
@@ -114,7 +115,7 @@ For VSCodium, Gitpod, Eclipse Theia, or environments configured with Open VSX:
 #### Method 3: Install from VSIX Package File (Offline / Manual)
 
 1. Go to the [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) page.
-2. Download the `.vsix` file (e.g., `signboard-duo-1.2.2.vsix`) under Assets.
+2. Download the `.vsix` file (e.g., `signboard-duo-1.3.0.vsix`) under Assets.
 3. In VS Code Extensions view (`Ctrl+Shift+X`), click the **"..." (Views and More Actions)** icon at the top right, select **Install from VSIX...**, and choose the downloaded file.
 
 ---
@@ -251,6 +252,8 @@ Feed kinds:
 | `jma` | Japan Meteorological Agency feeds | Presentation only: a `WX` chip on the flap board, a local type on the LED board; items are interpreted like `generic` |
 | `stock` | Quote JSON in the CNBC shape | The platform renders as securities-style panels on the stock board instead of flap/LED rows |
 
+Proxy: Duo reads VS Code's built-in `http.proxy`, `http.noProxy` and `http.proxyStrictSSL` settings (the `HTTPS_PROXY` / `NO_PROXY` environment variables are the fallback), so a proxy you already configured for VS Code applies to feeds as well. If a feed cannot be reached, see [Troubleshooting](#en-troubleshooting).
+
 
 #### Authenticated feeds
 
@@ -289,7 +292,7 @@ Feed content is treated as untrusted text and can never turn into code:
 <a id="en-roadmap"></a>
 ### 🧭 Roadmap
 
-- Bamboo build-result title patterns, once a real Bamboo RSS sample is available.
+- Richer CI title-verdict patterns for the `ci` kind, as real samples arrive.
 - Live-state providers (Bamboo / GitHub Actions REST APIs) alongside the RSS core.
 - More sources in the same shape: pull requests, AI-agent sessions.
 - Real train information (public-transport open data) — the current challenge dataset has no Sagami Railway (Sotetsu) data, so this waits.
@@ -318,6 +321,69 @@ npm run check-version
 
 ---
 
+<a id="en-troubleshooting"></a>
+### 🛠️ Troubleshooting
+
+Signboard-Duo fetches feeds directly, or through the proxy configured in VS Code's own settings (`http.proxy` / `http.noProxy`). When a platform cannot fetch its feed, the board shows what happened on that platform — click the message to jump to the matching entry below.
+
+**Which case am I?**
+
+- **External feed on a company network**: if your company only allows internet access through a proxy, set the proxy in VS Code's `http.proxy` setting. Duo uses the same setting, so a VS Code that already reaches the internet through the proxy makes Duo work too.
+- **Feed hosted inside the company network**: an internal RSS/Atom server must *not* be fetched through the proxy. Add its host to `http.noProxy` (for example `rss.internal.example.com`); otherwise the request is sent to the proxy and fails there.
+- **PAC-based assignment**: if your company assigns proxies with a PAC file and also publishes a fixed proxy host, set that host in `http.proxy`. Duo does not evaluate PAC files, so with no fixed host available it cannot fetch through a PAC-only setup.
+
+<a id="troubleshooting-dns"></a>
+#### Server not found (DNS)
+
+The feed's host name could not be resolved. Check the URL for typos. If the host only exists inside a company network, its name may only resolve on the company DNS — and when a proxy is configured, the proxy resolves names instead, which fails for purely internal names (the internal-feed case above).
+
+<a id="troubleshooting-connect"></a>
+#### Cannot connect to the server
+
+The server refused the connection or is unreachable: it may be down, a firewall may block the port, or the address may only be reachable through a proxy that is not configured yet. If the same URL opens in your browser, compare how the browser connects — a proxy, most likely.
+
+<a id="troubleshooting-timeout"></a>
+#### No response (timeout)
+
+The server or an intermediary did not answer in time (Duo gives up at about 30 seconds). Congestion, a silently dropping proxy, or a filtering proxy holding the request can all cause this. If every feed times out while the browser works, suspect the proxy path.
+
+<a id="troubleshooting-tls"></a>
+#### Certificate error
+
+The server's TLS certificate could not be verified — expired, self-signed, issued by a company-internal CA, or presented by a TLS-inspecting proxy whose CA is not trusted here. The durable fix is a properly chained certificate on the feed server. For connections through a proxy, VS Code's `http.proxyStrictSSL: false` relaxes verification — only use it when you understand the risk.
+
+<a id="troubleshooting-proxy"></a>
+#### Cannot reach the proxy
+
+A proxy is configured in `http.proxy` but did not answer: a wrong host or port, the proxy is down, or you are on a different network than the setting assumes (a common laptop case: the office proxy setting, at home). Duo follows `http.proxy` exactly — check that setting first.
+
+<a id="troubleshooting-proxy-auth"></a>
+#### Proxy authentication required (407)
+
+The proxy wants credentials. Put them in the proxy URL in `http.proxy` — `http://user:password@proxy.example.com:8080` — or set `http.proxyAuthorization`. URL-encode special characters in the password (`@` becomes `%40`, and so on). The credentials live in VS Code's own setting; Duo stores nothing itself.
+
+<a id="troubleshooting-http"></a>
+#### The server replied with an error (HTTP …)
+
+The board shows the status code. A 404 usually means the feed path is wrong — check the URL. A 5xx is the server's side, and a 429 means you are rate-limited; the next poll may succeed. If a login page comes back with a 200, that is the unreadable-feed case below.
+
+<a id="troubleshooting-feed-auth"></a>
+#### The feed asks for authentication (401 / 403)
+
+The feed itself needs credentials. Set the feed's `auth` type in settings and run **Signboard-Duo: Set Feed Token** to store the secret in SecretStorage. Feeds behind single sign-on usually need a personal access token issued by that service.
+
+<a id="troubleshooting-format"></a>
+#### The response is not a readable feed
+
+The URL answered, but not with RSS / Atom (or quote JSON for `stock`). It often points at an HTML page — sometimes a login page — instead of the feed itself. Look for the site's real feed URL (see [Finding Feeds](#en-finding-feeds)).
+
+<a id="troubleshooting-config"></a>
+#### Settings error
+
+The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, and `url` must start with `http://` or `https://`. The Signboard-Duo Output channel names the entry that was rejected.
+
+---
+
 <a id="japanese"></a>
 ## Japanese (日本語)
 
@@ -325,7 +391,7 @@ npm run check-version
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.2.2**
+現在のバージョン: **v1.3.0**
 
 ---
 
@@ -363,6 +429,7 @@ npm run check-version
 - [🧭 ロードマップ](#ja-roadmap)
 - [🛠️ 開発者向けドキュメント](#ja-developer-docs)
 - [📄 ライセンス](#ja-license)
+- [🛠️ トラブルシュート](#ja-troubleshooting)
 
 ---
 
@@ -421,7 +488,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 #### 方法 3: VSIX パッケージファイルからのインストール（オフライン環境等）
 
 1. [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) ページを開きます。
-2. Assets の `.vsix` ファイル（例: `signboard-duo-1.2.2.vsix`）をダウンロードします。
+2. Assets の `.vsix` ファイル（例: `signboard-duo-1.3.0.vsix`）をダウンロードします。
 3. VS Code の拡張機能ビュー（`Ctrl+Shift+X`）右上の **「...」（ビューとその他のアクション）** から **VSIX からのインストール...** を選び、ダウンロードしたファイルを指定します。
 
 ---
@@ -558,6 +625,8 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 | `jma` | 気象庁のフィード | 表示のみ：フラップ盤面では `WX` チップ、LED 盤面では普通タイプ。項目の解釈は `generic` と同じ |
 | `stock` | CNBC 形式の相場 JSON | フラップ/LED の行ではなく、株価ボードの証券風パネルとして表示される |
 
+プロキシ： Duo は VS Code 本体の `http.proxy`、`http.noProxy`、`http.proxyStrictSSL` 設定を読みます（環境変数 `HTTPS_PROXY` / `NO_PROXY` は予備）。VS Code 用に設定済みのプロキシがそのままフィードにも効きます。フィードに届かないときは[トラブルシュート](#ja-troubleshooting)を見てください。
+
 
 #### 認証フィード
 
@@ -622,3 +691,66 @@ npm run check-version
 ### 📄 ライセンス
 
 [MIT License](LICENSE)
+
+---
+
+<a id="ja-troubleshooting"></a>
+### 🛠️ トラブルシュート
+
+Signboard-Duo の取得は直接接続か、VS Code 本体の設定（`http.proxy` / `http.noProxy`）にあるプロキシ経由です。番線のフィードを取得できなかったときは、盤面に何が起きたかを表示します。その表示をクリックすると、下の該当する項目へ飛びます。
+
+**まずケースの切り分け**
+
+- **会社のネットワークから外部のフィードを読む**: 会社がプロキシ経由でしか外に出られない場合は、VS Code の `http.proxy` にプロキシを設定してください。Duo は同じ設定を使うので、VS Code がプロキシ経由で外に出られているなら Duo もそのまま動きます。
+- **フィードが社内にある**: 社内に置かれた RSS/Atom サーバーは、プロキシを経由させてはいけません。そのホストを `http.noProxy` に加えてください（例：`rss.internal.example.com`）。入れていないと要求がプロキシへ送られ、そこで失敗します。
+- **PAC で割り当てられている**: 会社が PAC ファイルでプロキシを割り当てていて、固定のプロキシホストも公開されている場合は、そのホストを `http.proxy` に設定してください。Duo は PAC ファイルを評価しないため、固定ホストが無い PAC のみの環境では取得できません。
+
+<a id="troubleshooting-ja-dns"></a>
+#### サーバーが見つからない（DNS）
+
+フィードのホスト名を解決できませんでした。URL のタイプミスを確認してください。社内だけに存在するホストは、社内の DNS でしか解決できないことがあります。また、プロキシ設定時は名前解決をプロキシ側が行うため、社内専用の名前は失敗します（上の社内フィードのケース）。
+
+<a id="troubleshooting-ja-connect"></a>
+#### サーバーに接続できない
+
+接続が拒否されたか、サーバーに到達できません。サーバーの停止、ファイアウォールによるポート遮断、あるいは未設定のプロキシ経由でしか届かないアドレス、といった原因が考えられます。同じ URL がブラウザで開けるなら、ブラウザがどう接続しているか（大抵はプロキシ）と比べてください。
+
+<a id="troubleshooting-ja-timeout"></a>
+#### 応答がない（タイムアウト）
+
+サーバーか中継機器が時間内に応答しませんでした（Duo は約30秒で諦めます）。混雑、応答を黙って捨てるプロキシ、検査のために要求を保留するプロキシなどが原因になります。全フィードがタイムアウトするのにブラウザでは開ける場合は、プロキシ経路を疑ってください。
+
+<a id="troubleshooting-ja-tls"></a>
+#### 証明書エラー
+
+サーバーの TLS 証明書を検証できませんでした。期限切れ、自己署名、社内 CA の発行、あるいは TLS を検査するプロキシが提示する証明書で、その CA がここでは信頼されていない場合に起きます。恒久対処はフィードサーバー側に正しくチェーンした証明書を入れることです。プロキシ経由の接続では VS Code の `http.proxyStrictSSL: false` で検証を緩められますが、リスクを理解したうえで使ってください。
+
+<a id="troubleshooting-ja-proxy"></a>
+#### プロキシに接続できない
+
+`http.proxy` にプロキシが設定されていますが、応答がありません。ホストやポートの誤り、プロキシの停止、あるいは設定が想定するネットワークと違う場所にいる（ノートPCでありがちな「会社のプロキシ設定のまま自宅」）といったケースです。Duo は `http.proxy` にそのまま従うので、まずその設定を確認してください。
+
+<a id="troubleshooting-ja-proxy-auth"></a>
+#### プロキシ認証が必要（407）
+
+プロキシが資格情報を要求しています。`http.proxy` の URL に資格情報を含める（`http://user:password@proxy.example.com:8080`）か、`http.proxyAuthorization` を設定してください。パスワード中の特殊文字は URL エンコードが必要です（`@` は `%40` など）。資格情報は VS Code の設定の中だけにあり、Duo 自身は何も保存しません。
+
+<a id="troubleshooting-ja-http"></a>
+#### サーバーエラーが返った（HTTP …）
+
+盤面にステータスコードが出ます。404 は大抵フィードのパスの誤りなので URL を確認してください。5xx はサーバー側の問題、429 はレート制限で、次の取得で成功することもあります。200 でログインページが返る場合は、下の「フィードを読めない」ケースです。
+
+<a id="troubleshooting-ja-feed-auth"></a>
+#### フィード側の認証が必要（401 / 403）
+
+フィード自体が資格情報を要求しています。設定でフィードの `auth` 方式を指定し、コマンド **Signboard-Duo: フィードのトークンを設定** で秘密情報を SecretStorage に保存してください。シングルサインオンの内側にあるフィードは、そのサービスが発行する個人用アクセストークンが必要なことが多いです。
+
+<a id="troubleshooting-ja-format"></a>
+#### フィードを読めない
+
+URL は応答しましたが、RSS / Atom（`stock` の場合は相場 JSON）ではありませんでした。フィードではなく HTML ページ（ログインページのこともあります）を指しているケースが多いです。サイトの本当のフィード URL を探してください（[フィードの探し方](#ja-finding-feeds)）。
+
+<a id="troubleshooting-ja-config"></a>
+#### 設定エラー
+
+フィードの項目自体が不正です。`id` は `^[a-z0-9-]+$` に一致し、重複がないこと、`url` は `http://` か `https://` で始まることが必要です。拒否された項目は Signboard-Duo の出力チャネルに出ます。

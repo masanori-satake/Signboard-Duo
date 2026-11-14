@@ -242,8 +242,11 @@ function buildPages() {
   const out = [];
   for (const p of platforms) {
     const list = p.rows.length ? p.rows : [{
-      key: p.no + ':empty', title: emptyTitle(p), timeMs: null,
-      status: 'ontime', remark: '', url: '', empty: true,
+      key: p.no + ':empty',
+      title: p.diag ? p.diag.title : emptyTitle(p), timeMs: null,
+      status: p.diag ? 'failed' : 'ontime',
+      remark: p.diag ? p.diag.cause : '',
+      url: p.diag ? p.diag.url : '', empty: true,
     }];
     for (let i = 0; i < list.length; i += per) out.push({ platform: p, rows: list.slice(i, i + per) });
   }

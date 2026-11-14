@@ -120,8 +120,11 @@ function buildSets() {
   const out = [];
   for (const p of platforms) {
     const list = p.rows.length ? p.rows : [{
-      key: p.no + ':empty', title: emptyTitle(p), timeMs: null,
-      status: 'ontime', remark: '', url: '', empty: true,
+      key: p.no + ':empty',
+      title: p.diag ? p.diag.title : emptyTitle(p), timeMs: null,
+      status: p.diag ? 'failed' : 'ontime',
+      remark: p.diag ? p.diag.cause : '',
+      url: p.diag ? p.diag.url : '', empty: true,
     }];
     const flat = list.map((r) => ({ ...r, _no: p.no, _pname: p.name, _kind: p.kind, _pstate: p.state }));
     for (let i = 0; i < flat.length; i += setSize) out.push({ platform: p, rows: flat.slice(i, i + setSize) });

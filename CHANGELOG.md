@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0] - 2026-11-14
+
+- Proxy support: feeds are fetched through the proxy from VS Code's own `http.proxy` / `http.noProxy` / `http.proxyStrictSSL` settings (environment variables as fallback), with CONNECT tunnelling for HTTPS and per-URL NO_PROXY bypass. PAC files are not evaluated
+- Failures are classified by symptom (DNS, connection, timeout, TLS, proxy, proxy auth, HTTP status, feed auth, unreadable feed, settings). A platform that cannot fetch shows the diagnosis as a board article in every mode (flap / LED / stock) — what happened and the likely cause — and clicking it opens the matching per-language, per-symptom troubleshooting anchor in the README, which now ends each language half with a troubleshooting section that separates the external-feed, internal-feed and PAC cases
+
+- プロキシ対応：VS Code 本体の `http.proxy` / `http.noProxy` / `http.proxyStrictSSL` 設定（予備として環境変数）でフィードを取得する。HTTPS は CONNECT トンネル、NO_PROXY は URL ごとに判定する。PAC ファイルは評価しない
+- 失敗を症状別に分類する（DNS・接続・タイムアウト・TLS・プロキシ・プロキシ認証・HTTP ステータス・フィード認証・フィードを読めない・設定）。取得できない番線は、全モード（フラップ／LED／株価）で「何が起きたか＋予想される原因」を記事として盤面に表示し、クリックすると README の言語別・症状別トラブルシュートのアンカーが開く。README 各言語の末尾に、外部フィード／社内フィード／PAC のケースを分けたトラブルシュート節を追加した
+
 ## [1.2.2] - 2026-11-14
 
 - README: the stock (`kind: "stock"`) settings examples are now written as indented, one-field-per-line JSON instead of a crammed one-liner
