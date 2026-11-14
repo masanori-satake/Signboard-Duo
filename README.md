@@ -7,7 +7,7 @@ RSS / Atom フィードを空港のフラップ盤／駅の LED 盤／証券の�
 ## Features / 機能
 
 - Up to 5 RSS 1.0 / RSS 2.0 / Atom feeds, shown one platform per page
-- Three board styles: split-flap, LED, and a zoned stock board for quote feeds
+- Three board styles: split-flap, LED, and a stock board for quote feeds — one title-bar button rotates flap → LED → stock
 - Feed topics arrive with a flap / LED animation; click a row to open the link
 - Long headlines scroll one way (LED) or flip through in segments (flap); remarks flip in plate-sized segments too
 - The flap logo cell shows each site's own favicon; the LED ticker greets you in the name of the line on screen
@@ -49,9 +49,9 @@ A different mix for a different feed culture: link culture, world news, and tech
 
 ## Stock quotes / 株価ボード
 
-Set `"kind": "stock"` on a feed that returns quotes as JSON (CNBC quote shape) and switch the board to the stock style with **Signboard-Duo: Show Stock Board**. Rows are zoned like a real securities board: the name never scrolls, the price is large, and the change zone carries the direction colour (red up / green down, Japanese convention).
+Set `"kind": "stock"` on a feed that returns quotes as JSON (CNBC quote shape) and rotate the board to the stock style with the board-style button. Each instrument is a royal-blue panel like the boards at securities firms: name and symbol in the head, the current price big and white, the change coloured by direction (red up / green down, Japanese convention), and a quiet Open / High / Low strip.
 
-`kind: "stock"` のフィード（CNBC 形式の JSON）を追加し、**Signboard-Duo: Show Stock Board** で株価ボードに切り替えます。銘柄は固定、現在値は大きく、前日比の区画が色で上げ下げを語ります（日本の慣例で、上昇＝赤、下落＝緑）。
+`kind: "stock"` のフィード（CNBC 形式の JSON）を追加し、盤面切替ボタンで株価ボードに切り替えます。証券会社のボードのような青いパネル表示で、銘柄とシンボル、大きな現在値、色で語る前日比（日本の慣例で、上昇＝赤、下落＝緑）、そして始値・高値・安値の帯が付きます。
 
 日本向け（日経平均・TOPIX・ドル円・ソフトバンクグループ）:
 
@@ -79,4 +79,4 @@ For feeds with `auth`, run **Signboard-Duo: Set Feed Token** to store the secret
 
 ## Version
 
-0.5.0 — stock board, region starter feeds in the README, renderer buttons moved to the right edge of the title bar.
+0.6.0 — one-button board rotation and securities-style blue quote panels with Open / High / Low.

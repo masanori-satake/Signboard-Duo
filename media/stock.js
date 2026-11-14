@@ -1,13 +1,14 @@
 'use strict';
 /* Signboard-Duo — stock board renderer.
-   A securities-board layout: every row is zoned — the name zone never
-   scrolls, the price zone is big and right-aligned, the change zone
-   carries the direction colour (Japanese convention: red up, green
-   down), and the time zone stays quiet. Rows from non-stock feeds
-   (no price) fall back to name + remark + time. */
+   Modelled on the blue quote panels of securities firms / bank HQs:
+   each instrument is a royal-blue panel — name and symbol in the head,
+   the current price big and white, the change zone coloured by
+   direction (Japanese convention: red up, green down), and a quiet
+   detail strip with Open / High / Low. Rows from non-stock feeds
+   (no price) fall back to a slim dark row. */
 const vscodeApi = acquireVsCodeApi();
 
-const PER_PAGE = 8;
+const PER_PAGE = 4;
 const ROTATE_MS = 12000;
 
 let platforms = [];
@@ -18,7 +19,6 @@ let currentPage = 0;
 let lastPageChange = Date.now();
 const prevPrice = new Map();
 
-const boardEl = document.getElementById('board');
 const platformEl = document.getElementById('platform');
 const rowsEl = document.getElementById('rows');
 const pageInfoEl = document.getElementById('pageInfo');
@@ -41,6 +41,12 @@ function dirOf(r) {
   const c = r.changePct != null ? r.changePct : r.change;
   if (c == null || c === 0) return 'flat';
   return c > 0 ? 'up' : 'down';
+}
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
 }
 
 function buildPages() {
@@ -65,6 +71,63 @@ function stateNote(p) {
   return '';
 }
 
+function quotePanel(r) {
+  const dir = dirOf(r);
+  const panel = el('div', 'panel dir-' + dir);
+  panel.title = r.title + (r.remark ? `\n${r.remark}` : '');
+
+  const head = el('div', 'p-head');
+  head.appendChild(el('span', 'p-name', r.title));
+  if (r.remark) head.appendChild(el('span', 'p-sym', r.remark));
+  head.appendChild(el('span', 'p-time', r.timeMs ? hhmm(r.timeMs) : ''));
+  panel.appendChild(head);
+
+  const main = el('div', 'p-main');
+  const price = el('span', 'p-price', fmtPrice(r.price));
+  const before = prevPrice.get(r.key);
+  if (before != null && before !== r.price) price.classList.add('flash');
+  prevPrice.set(r.key, r.price);
+  main.appendChild(price);
+  const chg = el('span', 'p-chg');
+  if (r.change != null || r.changePct != null) {
+    const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '─';
+    chg.appendChild(el('span', 'p-chg-v', `${arrow} ${fmtSigned(r.change, 2)}`));
+    if (r.changePct != null) chg.appendChild(el('span', 'p-chg-p', fmtSigned(r.changePct, 2) + '%'));
+  }
+  main.appendChild(chg);
+  panel.appendChild(main);
+
+  if (r.open != null || r.high != null || r.low != null) {
+    const det = el('div', 'p-det');
+    const cells = [
+      [LANG_JA ? '始値' : 'Open', r.open],
+      [LANG_JA ? '高値' : 'High', r.high],
+      [LANG_JA ? '安値' : 'Low', r.low],
+    ];
+    for (const [label, v] of cells) {
+      const c = el('span', 'p-det-c');
+      c.appendChild(el('span', 'p-det-l', label));
+      c.appendChild(el('span', 'p-det-v', fmtPrice(v)));
+      det.appendChild(c);
+    }
+    panel.appendChild(det);
+  }
+  return panel;
+}
+
+function plainRow(r) {
+  const row = el('div', 'row plain' + (r.empty ? ' empty' : ''));
+  row.title = r.title || '';
+  row.appendChild(el('span', 'z-name', r.title));
+  row.appendChild(el('span', 'z-note', r.remark || ''));
+  row.appendChild(el('span', 'z-time', r.timeMs ? hhmm(r.timeMs) : ''));
+  if (r.url) {
+    row.dataset.url = r.url;
+    row.addEventListener('click', () => vscodeApi.postMessage({ type: 'open', url: r.url }));
+  }
+  return row;
+}
+
 function render() {
   const pages = buildPages();
   if (currentPage >= pages.length) currentPage = 0;
@@ -75,48 +138,7 @@ function render() {
 
   const frag = document.createDocumentFragment();
   for (const r of page.rows) {
-    const row = document.createElement('div');
-    const dir = dirOf(r);
-    row.className = 'row dir-' + dir + (r.empty ? ' empty' : '');
-    row.title = r.title + (r.remark ? `\n${r.remark}` : '');
-
-    const name = document.createElement('span');
-    name.className = 'z-name';
-    name.textContent = r.title;
-    row.appendChild(name);
-
-    const price = document.createElement('span');
-    price.className = 'z-price';
-    if (r.price != null) {
-      price.textContent = fmtPrice(r.price);
-      const before = prevPrice.get(r.key);
-      if (before != null && before !== r.price) price.classList.add('flash');
-      prevPrice.set(r.key, r.price);
-    } else {
-      price.textContent = r.remark || '';
-      price.classList.add('note');
-    }
-    row.appendChild(price);
-
-    const chg = document.createElement('span');
-    chg.className = 'z-chg';
-    if (r.price != null && (r.change != null || r.changePct != null)) {
-      const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '─';
-      const pct = r.changePct != null ? ` (${fmtSigned(r.changePct, 2)}%)` : '';
-      chg.textContent = `${arrow} ${fmtSigned(r.change, 2)}${pct}`;
-    }
-    row.appendChild(chg);
-
-    const time = document.createElement('span');
-    time.className = 'z-time';
-    time.textContent = r.timeMs ? hhmm(r.timeMs) : '';
-    row.appendChild(time);
-
-    if (r.url) {
-      row.dataset.url = r.url;
-      row.addEventListener('click', () => vscodeApi.postMessage({ type: 'open', url: r.url }));
-    }
-    frag.appendChild(row);
+    frag.appendChild(r.price != null ? quotePanel(r) : plainRow(r));
   }
   rowsEl.replaceChildren(frag);
   pageInfoEl.textContent = pages.length > 1 ? `PAGE ${currentPage + 1} / ${pages.length}` : '';
@@ -139,7 +161,11 @@ setInterval(() => {
   }
 }, 500);
 
+let wheelAt = 0;
 window.addEventListener('wheel', (e) => {
+  const now = Date.now();
+  if (now - wheelAt < 350) return;
+  wheelAt = now;
   const pages = buildPages();
   if (pages.length <= 1) return;
   gotoPage(currentPage + (e.deltaY > 0 ? 1 : -1), pages);
@@ -155,10 +181,6 @@ window.addEventListener('message', (ev) => {
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
     platforms = msg.platforms || [];
     document.getElementById('boardTitle').textContent = LANG_JA ? '株価' : 'QUOTES';
-    document.getElementById('colName').textContent = LANG_JA ? '銘柄' : 'NAME';
-    document.getElementById('colPrice').textContent = LANG_JA ? '現在値' : 'LAST';
-    document.getElementById('colChg').textContent = LANG_JA ? '前日比' : 'CHANGE';
-    document.getElementById('colTime').textContent = LANG_JA ? '時刻' : 'TIME';
     render();
   } else if (msg.type === 'nav') {
     const pages = buildPages();

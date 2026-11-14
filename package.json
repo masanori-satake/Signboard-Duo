@@ -11,7 +11,8 @@
     "onCommand:signboardDuo.pinPlatform",
     "onCommand:signboardDuo.unpinPlatform",
     "onCommand:signboardDuo.cycleTheme",
-    "onCommand:signboardDuo.showStock"
+    "onCommand:signboardDuo.showStock",
+    "onCommand:signboardDuo.cycleMode"
   ],
   "categories": [
     "Other"
@@ -73,6 +74,11 @@
         "command": "signboardDuo.showStock",
         "title": "Signboard-Duo: Show Stock Board",
         "icon": "$(graph-line)"
+      },
+      {
+        "command": "signboardDuo.cycleMode",
+        "title": "Signboard-Duo: Switch Board Style",
+        "icon": "$(layout)"
       }
     ],
     "configuration": {
@@ -238,18 +244,8 @@
           "group": "navigation@5"
         },
         {
-          "command": "signboardDuo.showStock",
-          "when": "view == signboardDuo.board && !signboardDuo.isStock",
-          "group": "navigation@6"
-        },
-        {
-          "command": "signboardDuo.showFlap",
-          "when": "view == signboardDuo.board && !signboardDuo.isFlap",
-          "group": "navigation@6"
-        },
-        {
-          "command": "signboardDuo.showLed",
-          "when": "view == signboardDuo.board && !signboardDuo.isLed",
+          "command": "signboardDuo.cycleMode",
+          "when": "view == signboardDuo.board",
           "group": "navigation@6"
         }
       ]
@@ -279,5 +275,5 @@
     "package": "vsce package",
     "test": "node --test"
   },
-  "version": "0.5.0"
+  "version": "0.6.0"
 }

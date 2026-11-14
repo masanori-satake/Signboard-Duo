@@ -72,6 +72,9 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
         price: it.price != null ? it.price : null,
         change: it.change != null ? it.change : null,
         changePct: it.changePct != null ? it.changePct : null,
+        open: it.open != null ? it.open : null,
+        high: it.high != null ? it.high : null,
+        low: it.low != null ? it.low : null,
       });
     } else {
       // Quote rows change by price, not by timestamp (their time moves
@@ -87,6 +90,9 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
         price: it.price != null ? it.price : old.price,
         change: it.change != null ? it.change : old.change,
         changePct: it.changePct != null ? it.changePct : old.changePct,
+        open: it.open != null ? it.open : old.open,
+        high: it.high != null ? it.high : old.high,
+        low: it.low != null ? it.low : old.low,
       });
     }
   }

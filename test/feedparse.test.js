@@ -17,6 +17,7 @@ test('CNBC stock quotes fixture parses prices, changes and times', () => {
   assert.equal(nk.price, 61142.35);
   assert.equal(nk.change, 322.99);
   assert.equal(nk.changePct, 0.53);
+  assert.equal(nk.open, 61223.41);
   assert.ok(nk.timeMs > 0);
   const ix = feed.items[1];
   assert.equal(ix.changePct, -0.91);

@@ -261,6 +261,9 @@ class FeedEngine {
             price: r.price != null ? r.price : null,
             change: r.change != null ? r.change : null,
             changePct: r.changePct != null ? r.changePct : null,
+            open: r.open != null ? r.open : null,
+            high: r.high != null ? r.high : null,
+            low: r.low != null ? r.low : null,
           })),
         };
       });
@@ -296,6 +299,14 @@ class BoardProvider {
     this.onRendererChange = null;
     this.pinned = false;
     this.theme = context.globalState.get('duoTheme', 'duo');
+  }
+
+  cycleMode() {
+    const order = ['flap', 'led', 'stock'];
+    const labels = { flap: 'Split-Flap', led: 'LED', stock: 'Stock Board' };
+    const next = order[(order.indexOf(this.effectiveMode()) + 1) % order.length];
+    vscode.window.setStatusBarMessage(`Signboard-Duo board: ${labels[next]}`, 2500);
+    setMode(next);
   }
 
   cycleTheme() {
@@ -409,7 +420,6 @@ class BoardProvider {
     <span class="clock" id="clock"></span>
   </div>
   <div class="platform" id="platform"></div>
-  <div class="cols"><span class="c-name" id="colName">NAME</span><span class="c-price" id="colPrice">LAST</span><span class="c-chg" id="colChg">CHANGE</span><span class="c-time" id="colTime">TIME</span></div>
   <div id="rows"></div>
   <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span></div>
 </div>`
@@ -493,6 +503,7 @@ function activate(context) {
     vscode.commands.registerCommand('signboardDuo.prevPlatform', () => provider.navPlatform(-1)),
     vscode.commands.registerCommand('signboardDuo.nextPlatform', () => provider.navPlatform(1)),
     vscode.commands.registerCommand('signboardDuo.cycleTheme', () => provider.cycleTheme()),
+    vscode.commands.registerCommand('signboardDuo.cycleMode', () => provider.cycleMode()),
     vscode.commands.registerCommand('signboardDuo.pinPlatform', () => provider.setPinned(true)),
     vscode.commands.registerCommand('signboardDuo.unpinPlatform', () => provider.setPinned(false)),
     vscode.commands.registerCommand('signboardDuo.setToken', async (presetId) => {

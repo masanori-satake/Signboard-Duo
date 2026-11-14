@@ -240,6 +240,9 @@ function parseQuotes(text) {
       price,
       change: num(q.change),
       changePct: num(q.change_pct),
+      open: num(q.open),
+      high: num(q.high),
+      low: num(q.low),
     });
   }
   return { title: '', items };
