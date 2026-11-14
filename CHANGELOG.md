@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.5] - 2026-11-14
+
+- Flap board: at mini panel width the 7-segment header clock now hides entirely instead of clipping its left digits (title + clock no longer fit side by side there). The footer items (page info, fetched-at) now wrap as whole units and never split mid-token across lines. Same fix as Signboard-Solo 1.9.1
+
+- フラップ盤面：最小幅（mini）では、右上の7セグ時計が左の桁から見切れる代わりに丸ごと非表示になるようにした（タイトルと時計が横に並びきらないため）。フッターのページ数と最終取得は、途中で割れずに項目ごと折り返すようにした。Signboard-Solo 1.9.1 と共通の修正
+
 ## [0.7.4] - 2026-11-14
 
 - Flap board: the remark plate now shows status words only (arrived / updated / suspended). Feed descriptions flipped through it in segments alongside the headline, and two moving texts in one row both demanded reading — the description remains available in the row tooltip, and page rotation no longer waits for remark segments
