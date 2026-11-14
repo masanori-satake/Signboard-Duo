@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.4] - 2026-11-14
+
+- Flap board: the remark plate now shows status words only (arrived / updated / suspended). Feed descriptions flipped through it in segments alongside the headline, and two moving texts in one row both demanded reading — the description remains available in the row tooltip, and page rotation no longer waits for remark segments
+
+- フラップ盤面：備考プレートはステータス表示（到着／更新／運休）に徹するよう変更。フィードの概要文が見出しと同時に区切りめくりされると、1行の中で動く文字が2つになってどちらも読まなければと集中できなかった。概要文は行のツールチップで読めるままにし、ページ送りの待ち時間からも備考区切りを外した
+
 ## [0.7.3] - 2026-11-14
 
 - Flap board: fixed the page indicator oscillating between the last pages (e.g. 9/10 → 10/10 → 9/10). Two causes: (1) the row height was re-measured from each page's first row, so a pixel of difference changed the page count and clamped the current page back and forth — the height is now learned once per size tier and frozen, and repagination keeps the page holding the row you were looking at; (2) a row stays flagged new until its feed is fetched again, so every unrelated state push jumped back to the same "new" row — jumps now happen only for rows this board has never displayed

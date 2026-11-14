@@ -9,7 +9,7 @@ RSS / Atom フィードを空港のフラップ盤／駅の LED 盤／証券の�
 - Up to 5 RSS 1.0 / RSS 2.0 / Atom feeds, shown one platform per page
 - Three board styles: split-flap, LED, and a stock board for quote feeds — one title-bar button rotates flap → LED → stock
 - Feed topics arrive with a flap / LED animation; click a row to open the link
-- Long headlines scroll one way (LED) or flip through in segments (flap); remarks flip in plate-sized segments too
+- Long headlines scroll one way (LED) or flip through in segments (flap); the flap remark plate shows status words only, so just one text per row ever moves
 - The flap logo cell shows each site's own favicon; the LED ticker greets you in the name of the line on screen
 - Colour themes (title-bar palette button): Duo Green / Lime / Ice
 - The stock board carries a small "No trading" badge, so nobody at the office mistakes it for real trading — the flap and LED boards need no such note: their motifs give the joke away at a glance

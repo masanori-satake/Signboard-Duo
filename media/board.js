@@ -48,29 +48,12 @@ function displayName(title, tiles) {
 }
 function hhmm(ms) { const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
 
-/* The remark plate is word-sized (112px wide / 82px narrow). A feed
-   remark is a sentence, so — like a long title — it flips through in
-   segments sized to the plate instead of overflowing it. Status words
-   are short and stay put. */
-function remarkSegChars(text) {
-  const cjk = hasCjk(text);
-  return tier === 'wide' ? (cjk ? 8 : 13) : (cjk ? 5 : 9);
-}
+/* The remark plate shows status words only (arrived / updated /
+   suspended). Feed descriptions used to flip through it in segments,
+   but two flipping texts in one row both demand reading and neither
+   lands — the description lives in the row tooltip instead. */
 function displayRemark(r) {
-  const full = STATUS_WORDS[r.status] || r.remark || '';
-  if (STATUS_WORDS[r.status] || !full) return full;
-  const chars = [...full];
-  const seg = remarkSegChars(full);
-  if (chars.length <= seg) return full;
-  const segs = [];
-  for (let i = 0; i < chars.length; i += seg) segs.push(chars.slice(i, i + seg).join(''));
-  return segs[segTick % segs.length];
-}
-function remarkSegCount(r) {
-  if (STATUS_WORDS[r.status] || !r.remark) return 1;
-  const len = [...r.remark].length;
-  const seg = remarkSegChars(r.remark);
-  return len > seg ? Math.ceil(len / seg) : 1;
+  return STATUS_WORDS[r.status] || '';
 }
 
 /* ---------- flap engine: one ticker for every tile (from Solo) ---------- */
@@ -328,10 +311,6 @@ function render(pageChanged) {
       const len = [...String(r.title || '')].length;
       if (len > tiles) {
         PAGE_NEED_MS = Math.max(PAGE_NEED_MS, Math.ceil(len / tiles) * CONFIG.segmentMs);
-      }
-      const rSegs = remarkSegCount(r);
-      if (rSegs > 1) {
-        PAGE_NEED_MS = Math.max(PAGE_NEED_MS, rSegs * CONFIG.segmentMs);
       }
     }
   }
