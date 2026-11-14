@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.6] - 2026-11-14
+
+- Raised the feed limit from 10 to 20 (signboardDuo.feeds).
+
+- フィードの上限を 10 本から 20 本に引き上げ（signboardDuo.feeds）
+
 ## [1.0.5] - 2026-11-14
 
 - LED board: the ticker line is now bottom-aligned to the board area, and the page dots ride on the ticker row instead of overlapping its text. Also fixed the README's Open VSX badge URL — a dot in place of a slash between the namespace and the extension name — which had made the badge render as "badge not found"
