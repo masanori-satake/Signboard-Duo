@@ -217,9 +217,13 @@ function computeTier() {
   tier = w >= 540 ? 'wide' : w >= 240 ? 'narrow' : 'mini';
   boardEl.dataset.tier = tier;
 }
-let measuredRowH = 0;
+/* Row height is learned once per tier from the first rendered row and
+   then frozen. Measuring every page's first row made the page count
+   flicker (rows differ by a pixel or two), which clamped and rotated
+   the board between two page counts forever. */
+const measuredByTier = {};
 function rowsPerPage() {
-  const rowH = measuredRowH || (tier === 'wide' ? 41 : 74);
+  const rowH = measuredByTier[tier] || (tier === 'wide' ? 41 : 74);
   const avail = rowsEl.clientHeight || Math.max(rowH, window.innerHeight - 132);
   return Math.max(1, Math.floor(avail / rowH));
 }
@@ -279,15 +283,26 @@ function rowElFor(r) {
   return row;
 }
 
+let lastPgCount = 0;
 function render(pageChanged) {
   if (pendingFocusNo != null) {
     const idx = pagesCache.findIndex((pg) => pg.platform.no === pendingFocusNo);
     if (idx >= 0) currentPage = idx;
     pendingFocusNo = null;
   }
+  // Anchor: if repagination changes the page count, stay on the page
+  // that holds the row we were looking at, instead of being clamped
+  // to a different page.
+  const anchorPage = pagesCache[currentPage];
+  const anchorKey = anchorPage && anchorPage.rows[0] ? anchorPage.rows[0].key : null;
   computeTier();
   refreshPages();
   const pg = Math.max(1, pagesCache.length);
+  if (anchorKey && lastPgCount && pg !== lastPgCount) {
+    const idx = pagesCache.findIndex((p2) => p2.rows.some((r) => r.key === anchorKey));
+    if (idx >= 0) currentPage = idx;
+  }
+  lastPgCount = pg;
   if (currentPage >= pg) currentPage = pg - 1;
   const page = pagesCache[currentPage];
   const slice = page ? page.rows : [];
@@ -346,8 +361,8 @@ function render(pageChanged) {
     prevByKey.set(r.key, { disp, timeMs: r.timeMs, remarkText });
   });
   const firstRow = rowsEl.querySelector('.row');
-  if (firstRow && firstRow.offsetHeight > 0 && firstRow.offsetHeight !== measuredRowH) {
-    measuredRowH = firstRow.offsetHeight;
+  if (firstRow && firstRow.offsetHeight > 0 && !measuredByTier[tier]) {
+    measuredByTier[tier] = firstRow.offsetHeight;
     const before = pagesCache.length;
     refreshPages();
     if (pagesCache.length !== before) { render(pageChanged); return; }
@@ -380,10 +395,15 @@ window.addEventListener('message', (ev) => {
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
+    // A row stays flagged isNew in the payload until its feed is
+    // fetched again, so an ungated scan would jump back to the same
+    // "new" row on every unrelated state push. Jump only for rows
+    // this webview has never displayed.
+    const seenBefore = new Set(prevByKey.keys());
     platforms = msg.platforms || [];
     render(false);
     for (const p of platforms) {
-      const fresh = p.rows.find((r) => r.isNew);
+      const fresh = p.rows.find((r) => r.isNew && !seenBefore.has(r.key));
       if (fresh) { lastEventAt = Date.now(); jumpToKey(fresh.key); break; }
     }
   } else if (msg.type === 'event' && msg.key) {

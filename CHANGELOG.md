@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.3] - 2026-11-14
+
+- Flap board: fixed the page indicator oscillating between the last pages (e.g. 9/10 → 10/10 → 9/10). Two causes: (1) the row height was re-measured from each page's first row, so a pixel of difference changed the page count and clamped the current page back and forth — the height is now learned once per size tier and frozen, and repagination keeps the page holding the row you were looking at; (2) a row stays flagged new until its feed is fetched again, so every unrelated state push jumped back to the same "new" row — jumps now happen only for rows this board has never displayed
+
+- フラップ盤面：ページ表示が末尾で往復する不具合（9/10 → 10/10 → 9/10）を修正。原因は2つ。(1) 行の高さをページごとに先頭行から測り直していたため、1ピクセルの差で総ページ数が変わり、現在ページがクランプで前後していた → 高さはサイズ段ごとに一度だけ学んで固定し、再分割時も見ていた行のあるページに留まるようにした。(2) 新着フラグはそのフィードの次回取得まで残るため、無関係な状態通知のたびに同じ「新着」行へジャンプしていた → ジャンプはこの盤面がまだ表示したことのない行だけに限定した
+
 ## [0.7.2] - 2026-11-14
 
 - Stock board: the badge is now just "No trading" — that is the whole point, and it fits any width
