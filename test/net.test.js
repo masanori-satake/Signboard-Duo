@@ -5,9 +5,7 @@ const assert = require('node:assert/strict');
 const http = require('http');
 const https = require('https');
 const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
 const { fetchOnce, parseProxyUrl, noProxyMatch, proxyForUrl, classifyError } = require('../src/net');
 
 const DEADLINE = () => Date.now() + 15000;
@@ -111,27 +109,35 @@ test('fetchOnce reaches an HTTP origin through a proxy (absolute form)', { timeo
   } finally { origin.closeAllConnections(); proxy.closeAllConnections(); origin.close(); proxy.close(); }
 });
 
-function selfSigned(t) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'duo-net-'));
-  try {
-    execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-keyout', path.join(dir, 'k.pem'),
-      '-out', path.join(dir, 'c.pem'), '-days', '1', '-nodes', '-subj', '/CN=localhost'], { stdio: 'ignore' });
-    return { key: fs.readFileSync(path.join(dir, 'k.pem')), cert: fs.readFileSync(path.join(dir, 'c.pem')) };
-  } catch (e) { t.skip('openssl unavailable'); return null; }
-}
-
-async function tunnelSetup(t) {
-  const material = selfSigned(t);
-  if (!material) return null;
+/* The TLS origin uses a committed self-signed fixture certificate
+   (CN=localhost, SAN 127.0.0.1/localhost, 100-year validity) instead
+   of shelling out to the system openssl at test time: the runner's
+   openssl build turned out to be an uncontrolled variable. The key
+   is a throwaway for loopback tests only. */
+function tunnelSetup(t) {
+  const material = {
+    key: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost-key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost-cert.pem')),
+  };
   const origin = https.createServer(material, (req, res) => { res.writeHead(200); res.end('<feed/>'); });
   const proxy = makeProxy();
   const authProxy = makeProxy({ requireAuth: true });
-  const [oPort, pPort, aPort] = [await listen(origin), await listen(proxy), await listen(authProxy)];
-  t.after(() => {
-    origin.closeAllConnections(); proxy.closeAllConnections(); authProxy.closeAllConnections();
-    origin.close(); proxy.close(); authProxy.close();
+  return Promise.all([listen(origin), listen(proxy), listen(authProxy)]).then(([oPort, pPort, aPort]) => {
+    t.after(() => {
+      origin.closeAllConnections(); proxy.closeAllConnections(); authProxy.closeAllConnections();
+      origin.close(); proxy.close(); authProxy.close();
+    });
+    return { oPort, pPort, aPort };
   });
-  return { oPort, pPort, aPort };
+}
+
+/* Surface the underlying error in the log next to the failing leg —
+   in CI the assertion block is easy to miss when copying logs. */
+async function leg(name, fn) {
+  try { return await fn(); } catch (e) {
+    console.error('[net-test]', name, 'failed:', e && e.code, e && e.message);
+    throw e;
+  }
 }
 
 /* Each leg is its own test with a hard timeout: if an environment
@@ -139,30 +145,27 @@ async function tunnelSetup(t) {
    sitting silent until the workflow timeout. */
 test('CONNECT tunnel carries HTTPS to the origin', { timeout: 20000 }, async (t) => {
   const s = await tunnelSetup(t);
-  if (!s) return;
-  const res = await fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
-    { proxy: `http://127.0.0.1:${s.pPort}`, noProxy: [], strictSSL: false });
+  const res = await leg('tunnel', () => fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
+    { proxy: `http://127.0.0.1:${s.pPort}`, noProxy: [], strictSSL: false }));
   assert.equal(res.status, 200);
   assert.equal(res.body, '<feed/>');
 });
 
 test('strict SSL rejects a self-signed origin through the tunnel', { timeout: 20000 }, async (t) => {
   const s = await tunnelSetup(t);
-  if (!s) return;
   await assert.rejects(
-    fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
-      { proxy: `http://127.0.0.1:${s.pPort}`, noProxy: [], strictSSL: true }),
+    leg('strict', () => fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
+      { proxy: `http://127.0.0.1:${s.pPort}`, noProxy: [], strictSSL: true })),
     (e) => classifyError(e, true) === 'tls');
 });
 
 test('a proxy 407 is its own symptom, and credentials pass', { timeout: 20000 }, async (t) => {
   const s = await tunnelSetup(t);
-  if (!s) return;
   await assert.rejects(
-    fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
-      { proxy: `http://127.0.0.1:${s.aPort}`, noProxy: [], strictSSL: false }),
+    leg('407', () => fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
+      { proxy: `http://127.0.0.1:${s.aPort}`, noProxy: [], strictSSL: false })),
     (e) => e.symptom === 'proxy-auth');
-  const ok = await fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
-    { proxy: `http://u:p@127.0.0.1:${s.aPort}`, noProxy: [], strictSSL: false });
+  const ok = await leg('407-auth', () => fetchOnce(`https://127.0.0.1:${s.oPort}/feed.xml`, {}, [], 0, DEADLINE(),
+    { proxy: `http://u:p@127.0.0.1:${s.aPort}`, noProxy: [], strictSSL: false }));
   assert.equal(ok.status, 200);
 });

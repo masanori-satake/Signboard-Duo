@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.3] - 2026-11-15
+
+- Tests only: the proxy tunnel tests now use a committed self-signed fixture certificate instead of generating one with the system openssl at test time (an uncontrolled variable across CI runners), and a failing leg prints its underlying error code inline in the test log
+
+- テストのみ：プロキシトンネルのテストは、実行時にシステムの openssl で証明書を生成するのをやめ、コミット済みの自己署名フィクスチャ証明書を使うようにした（CI ランナーごとに異なる制御不能な変数を排除）。失敗した脚は、根本のエラーコードをテストログにそのまま出す
+
 ## [1.3.2] - 2026-11-15
 
 - Hardening: the TLS handshake over a proxy tunnel now has the same absolute deadline as every other fetch leg (a tunnel that opens but never speaks TLS could previously hold a fetch open), and the proxy integration tests are split into named legs with hard timeouts so a stalled environment fails loudly instead of hanging the release workflow
