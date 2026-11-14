@@ -118,6 +118,10 @@ body {
 .platform { padding: 2px 10px 4px; font-size: 12px; letter-spacing: .12em; color: #ffd76a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row[data-url] { cursor: pointer; }
 .cell.remark-plate { white-space: nowrap; overflow: hidden; }
+/* When the meta line is too narrow for time + plate, the plate hides
+   entirely instead of clipping at the board's right edge (the board
+   measures the plate's right edge every render — see board.js). */
+.board.no-plate .cell.remark-plate { visibility: hidden; }
 .logo.fav { background: #23232a; }
 /* Favicons are designed for light browser chrome: many are dark marks
    on transparency and vanish on the board's dark cell. Give the icon

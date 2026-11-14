@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.7] - 2026-11-14
+
+- Flap board: the remark plate now hides entirely when the panel is too narrow for it to fit, instead of staying half-clipped at the right edge. The board measures the plate's right edge against the rows area on every render and hides it the moment it would cross. Same fix as Signboard-Solo 1.9.2
+
+- フラップ盤面：備考プレートが、幅が足りないときに右端で半分切れたまま残らず、丸ごと非表示になるようにした。描画のたびにプレートの右端と行エリアの右端を実測して比べ、はみ出す時点で隠す。Signboard-Solo 1.9.2 と共通の修正
+
 ## [0.7.6] - 2026-11-14
 
 - Stock board: plain (non-quote) rows no longer inherit the quote panels' 4-per-page — their pages now hold as many slim rows as the board height fits (up to 12), so a news platform no longer splits across pages with most of the board empty. Quote panels keep 4 per page. The plain row height is learned once from the first rendered row and frozen
