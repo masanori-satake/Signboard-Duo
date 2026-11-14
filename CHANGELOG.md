@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.8] - 2026-11-14
+
+- Fixed the LED ticker going blank when the platform changed: the board rebuild recreates the ticker's scroll element, but the 1.0.7 render cache skipped writing into it whenever the text was unchanged. The cache is now invalidated on rebuilds
+
+- LED テロップが番線切替のあと消えてしまう問題を修正：盤面の再構築でテロップのスクロール要素が作り直されるのに、1.0.7 の描画キャッシュが「文面が同じなら描かない」と判断して新しい要素が空のままになっていた。再構築時にキャッシュを無効化する
+
 ## [1.0.7] - 2026-11-14
 
 - LED ticker: the line name, the arrived count and the last-fetched time now stand out in the accent colour and blink once a second. The ticker also scrolls smoothly now — it no longer restarts when a page turns on the same platform or when a fetch updates the text, and its speed is time-based rather than fixed steps
