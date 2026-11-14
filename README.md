@@ -12,7 +12,7 @@ RSS / Atom フィードを空港のフラップ盤／駅の LED 盤／証券の�
 - Long headlines scroll one way (LED) or flip through in segments (flap); remarks flip in plate-sized segments too
 - The flap logo cell shows each site's own favicon; the LED ticker greets you in the name of the line on screen
 - Colour themes (title-bar palette button): Duo Green / Lime / Ice
-- Unmistakably a toy: every board carries a small "just for looking" note (footer badge / LED ticker), so nobody at the office mistakes it for a serious tool — the stock board adds "(no trading)"
+- The stock board carries a small "just for looking (no trading)" badge, so nobody at the office mistakes it for real trading — the flap and LED boards need no such note: their motifs give the joke away at a glance
 - Conditional fetching (ETag / Last-Modified), read-only polling of the URLs you configure — no telemetry, no other traffic
 - Tokens for authenticated feeds are stored in VS Code SecretStorage, never in settings
 
@@ -80,4 +80,4 @@ For feeds with `auth`, run **Signboard-Duo: Set Feed Token** to store the secret
 
 ## Version
 
-0.7.0 — the rotate button's glyph follows the current style, the watched platform survives width-driven style switches, and every board now says it is a joke.
+0.7.1 — the joke badge is stock-board-only, the stock header is STOCK BOARD only, and the stock footer wraps instead of clipping at narrow widths.

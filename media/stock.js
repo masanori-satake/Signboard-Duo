@@ -193,8 +193,6 @@ window.addEventListener('message', (ev) => {
     if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
     platforms = msg.platforms || [];
     if (!focusDone) { focusDone = true; pendingFocusNo = msg.platformNo != null ? msg.platformNo : null; }
-    document.getElementById('boardTitle').textContent = LANG_JA ? '株価ボード' : 'STOCK BOARD';
-    document.getElementById('boardSub').textContent = LANG_JA ? 'STOCK BOARD' : '株価ボード';
     document.getElementById('jokeBadge').textContent = LANG_JA
       ? '眺める専用のジョークです（売買はできません）'
       : 'A just-for-looking joke board (no trading)';

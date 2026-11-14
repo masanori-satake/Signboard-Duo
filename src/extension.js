@@ -418,7 +418,7 @@ class BoardProvider {
     const body = stock
       ? `<div class="board" id="board">
   <div class="board-head">
-    <span class="title" id="boardTitle">STOCK BOARD</span><span class="title-sub" id="boardSub">株価ボード</span>
+    <span class="title" id="boardTitle">STOCK BOARD</span>
     <span class="clock" id="clock"></span>
   </div>
   <div class="platform" id="platform"></div>
@@ -440,7 +440,7 @@ class BoardProvider {
   <div class="platform" id="platform"></div>
   <div class="cols"><span class="c-logo"></span><span class="c-name" id="colName">便名</span><span class="c-meta"><span class="c-time" id="colTime">到着時刻</span><span class="c-rem" id="colRemark">備考</span></span><span class="c-count" id="flightCount"></span></div>
   <div id="rows"></div>
-  <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span><span id="jokeBadge"></span></div>
+  <div class="board-foot"><span id="pageInfo"></span><span id="fetchInfo"></span></div>
 </div>`;
     return `<!DOCTYPE html>
 <html lang="en">

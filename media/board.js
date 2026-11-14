@@ -19,8 +19,6 @@ function setLocale(lang) {
   document.getElementById('colName').textContent = LANG_JA ? '便名' : 'FLIGHT NAME';
   document.getElementById('colTime').textContent = LANG_JA ? '到着時刻' : 'ARRIVAL';
   document.getElementById('colRemark').textContent = LANG_JA ? '備考' : 'REMARKS';
-  const jb = document.getElementById('jokeBadge');
-  if (jb) jb.textContent = LANG_JA ? '眺める専用のジョークです' : 'A just-for-looking joke board';
 }
 setLocale('ja');
 

@@ -128,4 +128,3 @@ body[data-theme="ice"] { --clock-on: #a8d8ff; --clock-glow: rgba(168, 216, 255, 
 .seg.on { background: var(--clock-on); box-shadow: 0 0 7px var(--clock-glow); }
 .cdot.on { background: var(--clock-on); box-shadow: 0 0 7px var(--clock-glow); }
 .platform { color: var(--acc); }
-#jokeBadge { margin-left: auto; color: var(--acc); letter-spacing: .08em; white-space: nowrap; }

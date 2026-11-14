@@ -20,7 +20,6 @@ body {
 }
 .board-head { display: flex; align-items: baseline; padding: 2px 2px 6px; border-bottom: 2px solid var(--acc); }
 .board-head .title { font-weight: 700; letter-spacing: .22em; font-size: 14px; color: var(--acc); }
-.board-head .title-sub { margin-left: 8px; font-size: 9px; letter-spacing: .28em; color: #7e93ad; }
 .board-head .clock { margin-left: auto; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px; color: var(--acc); }
 .platform { padding: 2px 2px 6px; font-size: 12px; letter-spacing: .08em; color: #9fb4cc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -55,9 +54,10 @@ body {
 .row.plain { display: grid; grid-template-columns: minmax(0, 1fr) auto 3.2em; gap: 12px; align-items: baseline; padding: 5px 2px; border-bottom: 1px solid #131c29; }
 .row.plain[data-url] { cursor: pointer; }
 .row.plain .z-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-.row.plain .z-note { font-size: 11px; color: #8fa1b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row.plain .z-note { font-size: 11px; color: #8fa1b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
 .row.plain .z-time { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: #5f7189; text-align: right; }
 .row.plain.empty .z-name { color: #8fa1b8; font-weight: 400; }
 
-.board-foot { display: flex; gap: 14px; padding-top: 2px; color: #5f7189; font-size: 11px; letter-spacing: .14em; min-height: 20px; }
-#jokeBadge { margin-left: auto; border: 1px solid var(--acc); color: var(--acc); border-radius: 999px; padding: 0 8px; letter-spacing: .06em; white-space: nowrap; }
+.board-foot { display: flex; flex-wrap: wrap; row-gap: 4px; gap: 6px 14px; padding-top: 2px; color: #5f7189; font-size: 11px; letter-spacing: .14em; min-height: 20px; }
+#pageInfo, #fetchInfo { white-space: nowrap; }
+#jokeBadge { margin-left: auto; border: 1px solid var(--acc); color: var(--acc); border-radius: 999px; padding: 0 8px; letter-spacing: .06em; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }

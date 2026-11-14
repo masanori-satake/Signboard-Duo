@@ -21,8 +21,8 @@ let SCROLL = true;
 let FETCHED_AT = null;
 function defaultTicker() {
   const base = LANG_JA
-    ? '本日も Signboard-Duo をご利用くださいまして、ありがとうございます。　この案内板は、RSS / Atom フィードの新着を表示しています。　※眺める専用のジョークです。'
-    : 'Thank you for using Signboard-Duo today. This board shows the latest topics from your RSS / Atom feeds. (A just-for-looking joke board.)';
+    ? '本日も Signboard-Duo をご利用くださいまして、ありがとうございます。　この案内板は、RSS / Atom フィードの新着を表示しています。'
+    : 'Thank you for using Signboard-Duo today. This board shows the latest topics from your RSS / Atom feeds.';
   if (!FETCHED_AT) return base;
   return base + (LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.');
 }
@@ -52,7 +52,6 @@ function loopTickerText() {
       ? `本日も${line}のご利用ありがとうございます。${p.rows.length}件が到着しています。`
       : `Thank you for using the ${p.name} line today. ${p.rows.length} topics have arrived.`;
   }
-  base += LANG_JA ? '　※眺める専用のジョークです。' : ' (A just-for-looking joke board.)';
   if (FETCHED_AT) base += LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.';
   return base;
 }
