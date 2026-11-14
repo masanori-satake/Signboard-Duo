@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.5] - 2026-11-14
+
+- LED board: the ticker line is now bottom-aligned to the board area, and the page dots ride on the ticker row instead of overlapping its text. Also fixed the README's Open VSX badge URL — a dot in place of a slash between the namespace and the extension name — which had made the badge render as "badge not found"
+
+- LED 盤面：テロップ行を盤面エリアに対して下寄せにし、ページドットをテロップ行に載せて文字と重ならないようにした。あわせて README の Open VSX バッジ URL の誤り（名前空間と拡張機能名の間のスラッシュがドットになっていた）を修正。このためバッジが「badge not found」と表示されていた
+
 ## [1.0.4] - 2026-11-14
 
 - Raised the per-feed maxItems limit from 10 to 20.
