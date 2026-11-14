@@ -19,41 +19,46 @@ const TYPE_DEFAULT = TYPE_BY_KIND.generic;
 let LANG_JA = false;
 let SCROLL = true;
 let FETCHED_AT = null;
-function defaultTicker() {
+function defaultTickerSegs() {
   const base = LANG_JA
     ? '本日も Signboard-Duo をご利用くださいまして、ありがとうございます。　この案内板は、RSS / Atom フィードの新着を表示しています。'
     : 'Thank you for using Signboard-Duo today. This board shows the latest topics from your RSS / Atom feeds.';
-  if (!FETCHED_AT) return base;
-  return base + (LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.');
+  if (!FETCHED_AT) return [{ t: base }];
+  return LANG_JA
+    ? [{ t: base + '　最終取得 ' }, { t: hhmm(FETCHED_AT), hi: 1 }, { t: '。' }]
+    : [{ t: base + ' Last fetched ' }, { t: hhmm(FETCHED_AT), hi: 1 }, { t: '.' }];
 }
 
 /* The loop ticker speaks for the line on screen: each feed is a line,
    and the greeting / notices carry its name. */
-function loopTickerText() {
+function loopTickerSegs() {
   const s = setsCache[currentSet];
   const p = s && s.platform;
-  if (!p || p.state === 'nofeeds') return defaultTicker();
-  const line = p.name + '線';
-  let base;
+  if (!p || p.state === 'nofeeds') return defaultTickerSegs();
+  const lineSeg = { t: LANG_JA ? p.name + '線' : p.name + ' line', hi: 1 };
+  let segs;
   if (p.state === 'authError') {
-    base = LANG_JA
-      ? `本日も${line}のご利用ありがとうございます。現在、認証エラーのため運休しています。トークンを設定してください。`
-      : `Thank you for using the ${p.name} line. Service is suspended (authentication error) — please set a token.`;
+    segs = LANG_JA
+      ? [{ t: '本日も' }, lineSeg, { t: 'のご利用ありがとうございます。現在、認証エラーのため運休しています。トークンを設定してください。' }]
+      : [{ t: 'Thank you for using the ' }, lineSeg, { t: '. Service is suspended (authentication error) — please set a token.' }];
   } else if (p.state === 'configError') {
-    base = LANG_JA
-      ? `本日も${line}のご利用ありがとうございます。フィード設定を確認してください。`
-      : `Thank you for using the ${p.name} line. Please check the feed settings.`;
+    segs = LANG_JA
+      ? [{ t: '本日も' }, lineSeg, { t: 'のご利用ありがとうございます。フィード設定を確認してください。' }]
+      : [{ t: 'Thank you for using the ' }, lineSeg, { t: '. Please check the feed settings.' }];
   } else if (p.state === 'stale' || p.state === 'error') {
-    base = LANG_JA
-      ? `本日も${line}のご利用ありがとうございます。接続が不安定です。前回の到着情報を表示しています。`
-      : `Thank you for using the ${p.name} line. The connection is unstable; showing the previous arrivals.`;
+    segs = LANG_JA
+      ? [{ t: '本日も' }, lineSeg, { t: 'のご利用ありがとうございます。接続が不安定です。前回の到着情報を表示しています。' }]
+      : [{ t: 'Thank you for using the ' }, lineSeg, { t: '. The connection is unstable; showing the previous arrivals.' }];
   } else {
-    base = LANG_JA
-      ? `本日も${line}のご利用ありがとうございます。${p.rows.length}件が到着しています。`
-      : `Thank you for using the ${p.name} line today. ${p.rows.length} topics have arrived.`;
+    segs = LANG_JA
+      ? [{ t: '本日も' }, lineSeg, { t: 'のご利用ありがとうございます。' }, { t: p.rows.length + '件', hi: 1 }, { t: 'が到着しています。' }]
+      : [{ t: 'Thank you for using the ' }, lineSeg, { t: ' today. ' }, { t: p.rows.length + ' topics', hi: 1 }, { t: ' have arrived.' }];
   }
-  if (FETCHED_AT) base += LANG_JA ? '　最終取得 ' + hhmm(FETCHED_AT) + '。' : ' Last fetched ' + hhmm(FETCHED_AT) + '.';
-  return base;
+  if (FETCHED_AT) {
+    if (LANG_JA) segs.push({ t: '　最終取得 ' }, { t: hhmm(FETCHED_AT), hi: 1 }, { t: '。' });
+    else segs.push({ t: ' Last fetched ' }, { t: hhmm(FETCHED_AT), hi: 1 }, { t: '.' });
+  }
+  return segs;
 }
 
 function pad2(v) { return String(v).padStart(2, '0'); }
@@ -84,7 +89,10 @@ let currentSet = 0;
 let lastSetChange = Date.now();
 let lastEventAt = 0;
 let setSize = 4;
-let tickerText = defaultTicker();
+let tickerSegs = defaultTickerSegs();
+let lastTickerSig = '';
+let lastTickerKey = '';
+let lastScrollAt = null;
 let tickerMode = 'loop';
 let tickerOffset = 0;
 
@@ -131,7 +139,7 @@ function jumpToKey(key) {
   buildRows();
 }
 function announce(text) {
-  tickerText = text;
+  tickerSegs = [{ t: text }];
   tickerMode = 'once';
   tickerOffset = null;
   renderTickerText();
@@ -244,10 +252,33 @@ function syncGlow() {
 }
 
 function scrollEls() { return board.querySelectorAll('.ticker .scroll'); }
+function tickerPlatformKey() {
+  const s = setsCache[currentSet];
+  const p = s && s.platform;
+  return p ? String(p.no) : 'none';
+}
 function renderTickerText() {
-  const text = tickerMode === 'loop' ? (tickerText + '　　　').repeat(2) : tickerText + '　　　';
-  scrollEls().forEach((s) => { s.textContent = text; });
-  if (tickerMode === 'loop') tickerOffset = 0;
+  const one = tickerSegs.concat([{ t: '　　' }]);
+  const segs = tickerMode === 'loop' ? one.concat(one) : one;
+  const sig = tickerMode + '|' + segs.map((sg) => (sg.hi ? '*' : '') + sg.t).join('');
+  if (sig !== lastTickerSig) {
+    lastTickerSig = sig;
+    scrollEls().forEach((elm) => {
+      elm.replaceChildren();
+      segs.forEach((seg) => {
+        if (seg.hi) elm.appendChild(el('span', 'tick-hi', seg.t));
+        else elm.appendChild(document.createTextNode(seg.t));
+      });
+    });
+  }
+  /* Restart the scroll only when the platform (or mode) changed.
+     Re-renders for a new count / fetch time keep the offset, so the
+     ticker never rewinds on the same platform. */
+  const key = tickerMode + '|' + tickerPlatformKey();
+  if (key !== lastTickerKey) {
+    lastTickerKey = key;
+    if (tickerMode === 'loop') tickerOffset = 0;
+  }
 }
 
 function measureSetSize() {
@@ -277,27 +308,29 @@ function tickClock() {
 setInterval(() => {
   if (document.hidden) return;
   const now = Date.now();
-  refreshSets();
   if (!PINNED && setsCache.length > 1 && now - lastSetChange >= SET_NEED_MS && now - lastEventAt >= SET_SWITCH_MS) {
     currentSet = (currentSet + 1) % setsCache.length;
     lastSetChange = now;
     buildRows();
-    if (tickerMode === 'loop') { tickerText = loopTickerText(); renderTickerText(); }
+    if (tickerMode === 'loop') { tickerSegs = loopTickerSegs(); renderTickerText(); }
   }
   const els = scrollEls();
   if (els.length) {
     const main = textLayer.querySelector('.ticker .scroll');
     const w = main ? main.scrollWidth : 0;
     const box = tickerEl;
+    const dt = lastScrollAt == null ? 50 : Math.min(250, Math.max(0, now - lastScrollAt));
+    lastScrollAt = now;
+    const step = 60 * dt / 1000;
     if (tickerMode === 'loop') {
       const half = w / 2;
-      tickerOffset -= 3;
-      if (half > 0 && tickerOffset <= -half) tickerOffset += half;
+      tickerOffset -= step;
+      while (half > 0 && tickerOffset <= -half) tickerOffset += half;
     } else {
       if (tickerOffset === null) tickerOffset = box ? box.clientWidth : 0;
-      tickerOffset -= 3;
+      tickerOffset -= step;
       if (w > 0 && tickerOffset < -w) {
-        tickerText = loopTickerText();
+        tickerSegs = loopTickerSegs();
         tickerMode = 'loop';
         renderTickerText();
       }
@@ -319,7 +352,7 @@ window.addEventListener('message', (ev) => {
     const before = prevByKey;
     platforms = msg.platforms || [];
     buildAll();
-    if (tickerMode === 'loop') { tickerText = loopTickerText(); renderTickerText(); }
+    if (tickerMode === 'loop') { tickerSegs = loopTickerSegs(); renderTickerText(); }
     if (!focusDone) {
       focusDone = true;
       const idx = setsCache.findIndex((s) => s.platform.no === msg.platformNo);
@@ -356,7 +389,7 @@ function navSet(dir) {
   currentSet = (currentSet + dir + setsCache.length) % setsCache.length;
   lastSetChange = Date.now();
   buildRows();
-  if (tickerMode === 'loop') { tickerText = loopTickerText(); renderTickerText(); }
+  if (tickerMode === 'loop') { tickerSegs = loopTickerSegs(); renderTickerText(); }
 }
 
 let wheelAt = 0;

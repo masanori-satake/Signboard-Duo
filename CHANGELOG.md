@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.7] - 2026-11-14
+
+- LED ticker: the line name, the arrived count and the last-fetched time now stand out in the accent colour and blink once a second. The ticker also scrolls smoothly now — it no longer restarts when a page turns on the same platform or when a fetch updates the text, and its speed is time-based rather than fixed steps
+
+- LED テロップ：線名・到着件数・最終取得時刻をアクセント色で表示し、1秒ごとに点滅するようにした。あわせてスクロールを滑らかにした——同じ番線でのページ送りや取得による文面更新で巻き戻らなくなり、速度も固定ステップ式から時間ベースに変更した
+
 ## [1.0.6] - 2026-11-14
 
 - Raised the feed limit from 10 to 20 (signboardDuo.feeds).
