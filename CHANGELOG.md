@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.9] - 2026-11-15
+
+- Docs: renamed the Culture feed's id in the Japanese starter feeds from `culture` to `msatake-culture`, so starter ids stay namespaced by source like the other entries (nhk-, hatena-, yahoo-) and cannot collide with another culture feed
+
+- ドキュメント：日本語スターターのカルチャー番線の id を `culture` から `msatake-culture` に変更。他のエントリー（nhk-、hatena-、yahoo-）と同じく配信元で名前空間を分け、別のカルチャー系フィードと衝突しないようにした
+
 ## [1.3.8] - 2026-11-15
 
 - Docs: added a copy-paste tech feed set to the Japanese starter feeds — Zenn, Qiita, DevelopersIO, ＠IT, Publickey, CodeZine, the AWS Japan blog and Gizmodo Japan (Japanese editions where a source has both), each URL verified live
