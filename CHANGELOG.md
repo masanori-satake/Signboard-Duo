@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.7] - 2026-11-15
+
+- Docs: added the Culture feed (カルチャー番線) to the Japanese starter feeds — culture anniversaries and trending topics from the Signboard-Feeds repository, refreshed twice a day
+
+- ドキュメント：日本語のスターターフィードに「カルチャー番線」を追加。Signboard-Feeds リポジトリのフィードで、文化の記念日と話題を1日2回更新する
+
 ## [1.3.6] - 2026-11-15
 
 - New icon: a deep blue board with a coral signal badge, so the extension reads at a glance as the one that connects outside — unlike the local-only Solo series (teal). The badge is the Duo series mark for external connections of any kind, not only feeds; the design guide and SVG masters live in the common-design repository
