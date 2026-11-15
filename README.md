@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.3.7-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.3.8-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.3.7**
+Current version: **v1.3.8**
 
 ---
 
@@ -115,7 +115,7 @@ For VSCodium, Gitpod, Eclipse Theia, or environments configured with Open VSX:
 #### Method 3: Install from VSIX Package File (Offline / Manual)
 
 1. Go to the [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) page.
-2. Download the `.vsix` file (e.g., `signboard-duo-1.3.7.vsix`) under Assets.
+2. Download the `.vsix` file (e.g., `signboard-duo-1.3.8.vsix`) under Assets.
 3. In VS Code Extensions view (`Ctrl+Shift+X`), click the **"..." (Views and More Actions)** icon at the top right, select **Install from VSIX...**, and choose the downloaded file.
 
 ---
@@ -391,7 +391,7 @@ The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, 
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.3.7**
+現在のバージョン: **v1.3.8**
 
 ---
 
@@ -488,7 +488,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 #### 方法 3: VSIX パッケージファイルからのインストール（オフライン環境等）
 
 1. [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) ページを開きます。
-2. Assets の `.vsix` ファイル（例: `signboard-duo-1.3.7.vsix`）をダウンロードします。
+2. Assets の `.vsix` ファイル（例: `signboard-duo-1.3.8.vsix`）をダウンロードします。
 3. VS Code の拡張機能ビュー（`Ctrl+Shift+X`）右上の **「...」（ビューとその他のアクション）** から **VSIX からのインストール...** を選び、ダウンロードしたファイルを指定します。
 
 ---
@@ -532,6 +532,23 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
   { "id": "culture", "name": "カルチャー番線", "url": "https://masanori-satake.github.io/Signboard-Feeds/culture.xml", "maxItems": 10, "keepHours": 48 }
 ],
 "signboardDuo.pollMinutes": 15
+```
+
+#### テック系
+
+技術記事だけを集めたセットです。上のスターターと入れ替えても、配列同士を混ぜても使えます。海外メディアは日本語版のフィードを選んでいます。
+
+```jsonc
+"signboardDuo.feeds": [
+  { "id": "zenn", "name": "Zenn トレンド", "url": "https://zenn.dev/feed", "maxItems": 5, "keepHours": 24 },
+  { "id": "qiita-popular", "name": "Qiita 人気", "url": "https://qiita.com/popular-items/feed.atom", "maxItems": 5, "keepHours": 48 },
+  { "id": "developersio", "name": "DevelopersIO", "url": "https://dev.classmethod.jp/feed/", "maxItems": 5, "keepHours": 24 },
+  { "id": "at-it", "name": "＠IT", "url": "https://rss.itmedia.co.jp/rss/1.0/ait.xml", "maxItems": 5, "keepHours": 48 },
+  { "id": "publickey", "name": "Publickey", "url": "https://www.publickey1.jp/atom.xml", "maxItems": 5, "keepHours": 72 },
+  { "id": "codezine", "name": "CodeZine", "url": "https://codezine.jp/rss/new/20/index.xml", "maxItems": 5, "keepHours": 48 },
+  { "id": "aws-jp-blog", "name": "AWS ブログ", "url": "https://aws.amazon.com/jp/blogs/news/feed/", "maxItems": 4, "keepHours": 72 },
+  { "id": "gizmodo-jp", "name": "ギズモード", "url": "https://www.gizmodo.jp/index.xml", "maxItems": 5, "keepHours": 24 }
+]
 ```
 
 #### 株価ボード

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.8] - 2026-11-15
+
+- Docs: added a copy-paste tech feed set to the Japanese starter feeds — Zenn, Qiita, DevelopersIO, ＠IT, Publickey, CodeZine, the AWS Japan blog and Gizmodo Japan (Japanese editions where a source has both), each URL verified live
+
+- ドキュメント：日本語のスターターフィードに、貼り付けるだけのテック系フィード集を追加。Zenn、Qiita、DevelopersIO、＠IT、Publickey、CodeZine、AWS ブログ、ギズモード・ジャパン（英日両版があるものは日本語版）。各 URL は取得できることを確認済み
+
 ## [1.3.7] - 2026-11-15
 
 - Docs: added the Culture feed (カルチャー番線) to the Japanese starter feeds — culture anniversaries and trending topics from the Signboard-Feeds repository, refreshed twice a day
