@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.10] - 2026-11-15
+
+- Docs: the Culture starter feed's display name is now "MSatake Culture", matching the feed's own renamed RSS channel title (the feed dropped 番線 from its name)
+
+- ドキュメント：カルチャーのスターターの表示名を「MSatake Culture」に変更。フィード側の RSS チャンネル名も同名に改称済み（「番線」を名前に含めない形に統一）
+
 ## [1.3.9] - 2026-11-15
 
 - Docs: renamed the Culture feed's id in the Japanese starter feeds from `culture` to `msatake-culture`, so starter ids stay namespaced by source like the other entries (nhk-, hatena-, yahoo-) and cannot collide with another culture feed
