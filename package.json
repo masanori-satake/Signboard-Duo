@@ -139,12 +139,14 @@
       {
         "command": "signboardDuo.addCiPlatform",
         "title": "%command.addCiPlatform%",
-        "category": "Signboard-Duo"
+        "category": "Signboard-Duo",
+        "icon": "$(add)"
       },
       {
         "command": "signboardDuo.editInterests",
         "title": "%command.editInterests%",
-        "category": "Signboard-Duo"
+        "category": "Signboard-Duo",
+        "icon": "$(checklist)"
       }
     ],
     "configuration": {
@@ -424,6 +426,16 @@
           "command": "signboardDuo.cycleModeStock",
           "when": "view == signboardDuo.board && signboardDuo.isStock",
           "group": "navigation@6"
+        },
+        {
+          "command": "signboardDuo.addCiPlatform",
+          "when": "view == signboardDuo.board",
+          "group": "navigation@7"
+        },
+        {
+          "command": "signboardDuo.editInterests",
+          "when": "view == signboardDuo.board",
+          "group": "navigation@8"
         }
       ]
     },

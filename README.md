@@ -214,8 +214,8 @@ Many sites publish RSS/Atom feeds without making a fuss about them. A few ways t
 | **Show Stored Tokens** | `signboardDuo.listTokens` | List the feeds that have a stored token (values are never shown) |
 | **Delete Unlinked Tokens** | `signboardDuo.deleteOrphanTokens` | Remove tokens whose feed is no longer in the settings |
 | **Delete All Tokens** | `signboardDuo.deleteAllTokens` | Remove every stored token at once |
-| **Add CI Feed** | `signboardDuo.addCiPlatform` | Set up a Bamboo / GitHub Actions feed in a one-screen form (target, branch scope, news items) — no JSON editing, and the form survives trips to the browser |
-| **Change News Items (Interests)** | `signboardDuo.editInterests` | Change what becomes news on an existing REST platform |
+| **Add CI Feed** | `signboardDuo.addCiPlatform` | Set up a Bamboo / GitHub Actions feed in a one-screen form (target, branch scope, news items) — no JSON editing, and the form survives trips to the browser. Also a **+** button on the board title bar |
+| **Change News Items (Interests)** | `signboardDuo.editInterests` | Change what becomes news on an existing REST platform. Also a button on the board title bar |
 
 ---
 
@@ -642,8 +642,8 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 | **トークンの保存状況** | `signboardDuo.listTokens` | トークンが保存されているフィードの一覧を見る（値そのものは表示しません） |
 | **紐づいていないトークンを削除** | `signboardDuo.deleteOrphanTokens` | 設定から消えたフィードのトークンだけを削除する |
 | **すべてのトークンを削除** | `signboardDuo.deleteAllTokens` | 保存したトークンを一括で削除する |
-| **CI フィードを追加** | `signboardDuo.addCiPlatform` | Bamboo / GitHub Actions のフィードを1画面のフォームで設定する（対象・ブランチの範囲・ニュース項目）。JSON の手編集は不要で、ブラウザへ行って戻っても入力は残る |
-| **ニュース項目を変更** | `signboardDuo.editInterests` | 既存の REST 番線について、何をニュースにするかを変更する |
+| **CI フィードを追加** | `signboardDuo.addCiPlatform` | Bamboo / GitHub Actions のフィードを1画面のフォームで設定する（対象・ブランチの範囲・ニュース項目）。JSON の手編集は不要で、ブラウザへ行って戻っても入力は残る。盤面のタイトルバーの **+** ボタンからも開ける |
+| **ニュース項目を変更** | `signboardDuo.editInterests` | 既存の REST フィードについて、何をニュースにするかを変更する。盤面のタイトルバーのボタンからも開ける |
 
 ---
 
