@@ -94,6 +94,22 @@ function makeProxy({ requireAuth = false } = {}) {
   return proxy;
 }
 
+test('the body cap aborts oversize responses, and a larger cap admits them', { timeout: 20000 }, async () => {
+  // Regression: the GitHub adapter's 100-run listing legitimately
+  // exceeds the 1 MB feed cap; it fetches with a larger cap instead.
+  const big = 'x'.repeat(2 * 1024 * 1024);
+  const origin = http.createServer((req, res) => { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(big); });
+  const oPort = await listen(origin);
+  try {
+    await assert.rejects(
+      fetchOnce(`http://127.0.0.1:${oPort}/runs`, {}, [], 0, DEADLINE(), null),
+      /response too large/);
+    const res = await fetchOnce(`http://127.0.0.1:${oPort}/runs`, {}, [], 0, DEADLINE(), null, 8 * 1024 * 1024);
+    assert.equal(res.status, 200);
+    assert.equal(res.body.length, big.length);
+  } finally { origin.closeAllConnections(); origin.close(); }
+});
+
 test('fetchOnce reaches an HTTP origin through a proxy (absolute form)', { timeout: 20000 }, async () => {
   const origin = http.createServer((req, res) => { res.writeHead(200, { 'Content-Type': 'text/xml' }); res.end('<rss/>'); });
   const proxy = makeProxy();

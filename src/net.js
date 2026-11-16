@@ -97,7 +97,8 @@ function taggedError(symptom, message, cause) {
 
 /* ---------------- fetching ---------------- */
 
-function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg) {
+function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg, maxBodyBytes) {
+  const bodyCap = maxBodyBytes || MAX_BODY_BYTES;
   return new Promise((resolve, reject) => {
     let url;
     try { url = new URL(urlStr); } catch (e) { reject(e); return; }
@@ -131,7 +132,7 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
             nextHeaders[k] = v;
           }
         }
-        resolve(fetchOnce(next.toString(), nextHeaders, credNames, redirectsLeft - 1, deadline, proxyCfg));
+        resolve(fetchOnce(next.toString(), nextHeaders, credNames, redirectsLeft - 1, deadline, proxyCfg, maxBodyBytes));
         return;
       }
       if (status === 304) { res.resume(); resolve({ status, body: null, headers: res.headers }); return; }
@@ -143,7 +144,7 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
            truncating would surface as a confusing parse error, and
            consuming an endless body to the end would hold the
            request (and its poll lane) until the deadline. */
-        if (size > MAX_BODY_BYTES) { res.destroy(taggedError('format', 'response too large')); return; }
+        if (size > bodyCap) { res.destroy(taggedError('format', 'response too large')); return; }
         chunks.push(c);
       });
       res.on('end', () => resolve({ status, body: Buffer.concat(chunks).toString('utf8'), headers: res.headers }));

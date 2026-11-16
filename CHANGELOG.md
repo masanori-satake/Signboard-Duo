@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.2] - 2026-11-17
+
+### Fixed
+
+- **GitHub Actions feeds failed with "response too large".** A regression from the audit changes themselves: 1.17.1 widened the run window to 100 (each run is a sizeable JSON object, so a busy repository's listing legitimately exceeds 1 MB), and 1.18.1 then aborted responses at the 1 MB feed cap instead of truncating them. REST adapter responses now have their own 8 MB cap; RSS / Atom feeds keep the 1 MB cap.
+
+### 日本語
+
+- **GitHub Actions のフィードが「response too large」で取得エラーになる問題を直しました。** 監査の変更同士が組み合わさった回帰です：1.17.1 で取得窓を100件に広げた結果（ラン1件の JSON が大きいため、忙しいリポジトリの一覧は正当に1MBを超えます）、1.18.1 で導入した「1MB上限で打ち切り」がそれを止めるようになっていました。REST アダプタの応答には専用の8MB上限を設け、RSS / Atom フィードの1MB上限はそのまま維持します。
+
 ## [1.18.1] - 2026-11-17
 
 ### Fixed

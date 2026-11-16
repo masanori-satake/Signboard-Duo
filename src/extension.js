@@ -21,6 +21,7 @@ const JA = (vscode.env.language || '').toLowerCase().startsWith('ja');
 const STATE_KEY = 'signboardDuo.state.v1';
 const MAX_REDIRECTS = 5;
 const FETCH_DEADLINE_MS = 30000;
+const ADAPTER_MAX_BODY_BYTES = 8 * 1024 * 1024; // REST adapter JSON; RSS keeps net.js's 1 MB cap
 let USER_AGENT = 'Signboard-Duo (+https://marketplace.visualstudio.com/)';
 
 function autoModeForWidth(width) {
@@ -415,8 +416,14 @@ class FeedEngine {
        a fresh 30 s per step let a slow-dripping server stretch a
        single feed's refresh to ~10 minutes. */
     const deadline = Date.now() + FETCH_DEADLINE_MS;
+    /* Adapter JSON gets a larger body cap than the 1 MB feed cap:
+       a GitHub run listing at the API's widest window (100 runs,
+       each a sizeable object) legitimately exceeds 1 MB, and the
+       strict abort turned that into a permanent "response too
+       large" error. The endpoints are the user's own CI servers,
+       and the cap still bounds the work. */
     const fetchJson = async (url) => {
-      const res = await fetchOnce(url, headers, credNames, MAX_REDIRECTS, deadline, this.pxCfg);
+      const res = await fetchOnce(url, headers, credNames, MAX_REDIRECTS, deadline, this.pxCfg, ADAPTER_MAX_BODY_BYTES);
       rec.lastStatus = res.status;
       if (res.status === 401 || res.status === 403) throw fail('feed-auth', String(res.status));
       if (res.status !== 200 || res.body == null) throw fail('http', String(res.status));
