@@ -46,5 +46,7 @@
   "config.ledHole.description": "LED盤面の穴の大きさ（％）。",
   "config.ledGlow.description": "LED盤面のグロー（マスクの下のにじんだ複製）。",
   "config.pollMinutes.description": "フィードの取得間隔（分）。",
-  "config.scrollLongText.description": "長いタイトルを切り捨てず、LED ではスクロール、フラップでは区切りめくりで表示します。"
+  "config.scrollLongText.description": "長いタイトルを切り捨てず、LED ではスクロール、フラップでは区切りめくりで表示します。",
+  "command.addCiPlatform": "CI 番線を追加",
+  "command.editInterests": "ニュース項目を変更"
 }

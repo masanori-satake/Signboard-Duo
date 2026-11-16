@@ -14,6 +14,7 @@ const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
 const { TokenStore, orphanIds } = require('./tokens');
 const bamboo = require('./bamboo');
 const github = require('./github');
+const wizard = require('./wizard');
 
 const CONFIG_NS = 'signboardDuo';
 const JA = (vscode.env.language || '').toLowerCase().startsWith('ja');
@@ -649,6 +650,232 @@ async function pickAuthFeed(engine, presetId) {
   return pick ? candidates.find((f) => f.id === pick.label) : null;
 }
 
+/* ---------------- CI setup wizard (design §16) ----------------
+   Click-driven platform setup: the user picks a CI, a target and
+   what becomes news; only the resulting entry is written to the
+   settings, so no JSON editing is needed and the choice persists
+   across restarts. Adapters declare what they can serve, and only
+   those catalog entries are ever offered. */
+
+const INTEREST_LABELS = {
+  failed: ['失敗', 'Failures'],
+  recovered: ['回復', 'Recoveries'],
+  streak: ['連続失敗', 'Failure streaks'],
+  running: ['実行中', 'Running'],
+  queued: ['待機中', 'Queued'],
+  long: ['長時間実行', 'Long-running'],
+  all: ['全結果', 'All results'],
+  first: ['初回', 'First runs'],
+};
+const PRESET_LABELS = {
+  'errors-only': ['エラーだけ（失敗）', 'Errors only (failures)'],
+  changes: ['変化だけ（失敗＋回復）', 'Changes only (failures + recoveries)'],
+  operations: ['運用寄り（失敗＋長時間＋待機）', 'Operations (failures + long-running + queued)'],
+  all: ['全部（全結果）', 'Everything (all results)'],
+  custom: ['カスタム（項目を個別に選ぶ）', 'Custom (pick items)'],
+};
+const ADAPTER_META = {
+  'github-actions': { mod: github, label: 'GitHub Actions', defaultUrl: 'https://api.github.com', authTypes: ['bearer', 'none'] },
+  'bamboo-rest': { mod: bamboo, label: 'Bamboo (REST)', defaultUrl: '', authTypes: ['bearer', 'basic', 'none'] },
+};
+
+async function wizardFetchJson(engine, url, headers) {
+  const res = await fetchOnce(url, { 'User-Agent': USER_AGENT, Accept: 'application/json', ...headers },
+    Object.keys(headers), MAX_REDIRECTS, Date.now() + FETCH_DEADLINE_MS, engine.proxyConfig());
+  if (res.status === 401 || res.status === 403) {
+    throw new Error(JA ? `認証が必要です（HTTP ${res.status}）。トークンを確認してください` : `Authentication required (HTTP ${res.status}). Check the token`);
+  }
+  if (res.status !== 200 || res.body == null) throw new Error(`HTTP ${res.status}`);
+  try { return JSON.parse(res.body); } catch (e) {
+    throw new Error(JA ? '応答を JSON として読めませんでした' : 'The response was not JSON');
+  }
+}
+
+async function pickInterests(capabilities, current) {
+  const presetItems = wizard.PRESET_ORDER.map((p) => ({
+    label: (JA ? PRESET_LABELS[p][0] : PRESET_LABELS[p][1]),
+    description: wizard.presetInterests(p, capabilities).join(', '),
+    preset: p,
+  }));
+  presetItems.push({ label: JA ? PRESET_LABELS.custom[0] : PRESET_LABELS.custom[1], description: '', preset: 'custom' });
+  const pick = await vscode.window.showQuickPick(presetItems, {
+    placeHolder: JA ? '何をニュースにしますか' : 'What becomes news',
+  });
+  if (!pick) return null;
+  if (pick.preset !== 'custom') return wizard.presetInterests(pick.preset, capabilities);
+  const items = wizard.catalogFor(capabilities).map((id) => ({
+    label: JA ? INTEREST_LABELS[id][0] : INTEREST_LABELS[id][1],
+    id,
+    picked: Array.isArray(current) ? current.includes(id) : id === 'failed' || id === 'recovered',
+  }));
+  const chosen = await vscode.window.showQuickPick(items, {
+    canPickMany: true,
+    placeHolder: JA ? 'ニュースにする項目' : 'News items',
+  });
+  if (!chosen) return null;
+  if (!chosen.length) {
+    vscode.window.showInformationMessage(JA
+      ? 'Signboard-Duo: 項目が選ばれなかったため、「失敗＋回復」を使います。'
+      : 'Signboard-Duo: nothing was picked; using failures + recoveries.');
+    return wizard.presetInterests('changes', capabilities);
+  }
+  return chosen.map((c) => c.id);
+}
+
+async function runAddCiWizard(engine, tokens) {
+  try {
+    const typePick = await vscode.window.showQuickPick(
+      Object.entries(ADAPTER_META).map(([type, m]) => ({ label: m.label, type })),
+      { placeHolder: JA ? '追加する CI の種類' : 'Kind of CI to add' }
+    );
+    if (!typePick) return;
+    const type = typePick.type;
+    const meta = ADAPTER_META[type];
+    const caps = meta.mod.CAPABILITIES;
+
+    const base = await vscode.window.showInputBox({
+      prompt: JA ? 'API のベース URL' : 'API base URL',
+      value: meta.defaultUrl,
+      placeHolder: type === 'bamboo-rest' ? 'https://bamboo.example.com/bamboo' : 'https://api.github.com',
+      validateInput: (v) => (/^https?:\/\//.test(v || '') ? null : (JA ? 'http(s) の URL を入力してください' : 'Enter an http(s) URL')),
+    });
+    if (!base) return;
+
+    const authPick = await vscode.window.showQuickPick(
+      meta.authTypes.map((t) => ({ label: t, type: t })),
+      { placeHolder: JA ? '認証方式' : 'Auth type' }
+    );
+    if (!authPick) return;
+    const authType = authPick.type;
+    let token = null;
+    let authUser = '';
+    const authH = {};
+    if (authType === 'basic') {
+      authUser = await vscode.window.showInputBox({ prompt: JA ? 'ユーザー名' : 'User name' });
+      if (authUser == null) return;
+    }
+    if (authType !== 'none') {
+      token = await vscode.window.showInputBox({
+        prompt: JA ? 'トークン（この後の確認と、フィードのトークン保存に使います）' : 'Token (used to browse now and stored as the feed token)',
+        password: true,
+      });
+      if (!token) return;
+      if (authType === 'bearer') authH.Authorization = `Bearer ${token}`;
+      if (authType === 'basic') authH.Authorization = 'Basic ' + Buffer.from(`${authUser}:${token}`, 'utf8').toString('base64');
+    }
+    const extraH = { ...(meta.mod.HEADERS || {}), ...authH };
+    const fetchJ = (url) => wizardFetchJson(engine, url, extraH);
+
+    let target = {};
+    let defaultName = '';
+    let idBase = type === 'github-actions' ? 'github' : 'bamboo';
+    if (type === 'github-actions') {
+      const repo = await vscode.window.showInputBox({
+        prompt: JA ? 'リポジトリ（owner/name）' : 'Repository (owner/name)',
+        validateInput: (v) => (/^[^/\s]+\/[^/\s]+$/.test(v || '') ? null : 'owner/name'),
+      });
+      if (!repo) return;
+      await fetchJ(github.repoUrl(base, repo)); // existence / access check
+      const workflows = github.parseWorkflows(await fetchJ(github.workflowsUrl(base, repo)));
+      let chosenWf = [];
+      if (workflows.length) {
+        const picks = await vscode.window.showQuickPick(
+          workflows.map((w) => ({ label: w.name, id: w.id })),
+          { canPickMany: true, placeHolder: JA ? '監視するワークフロー（未選択なら全部）' : 'Workflows to watch (none = all)' }
+        );
+        if (!picks) return;
+        chosenWf = picks.map((p) => p.label);
+      }
+      const scopePick = await vscode.window.showQuickPick([
+        { label: JA ? '本線のみ（デフォルトブランチ）' : 'Mainline only (default branch)', scope: 'mainline' },
+        { label: JA ? 'ブランチも含む' : 'Include branches', scope: 'include' },
+        { label: JA ? 'ブランチのみ' : 'Branches only', scope: 'only' },
+      ], { placeHolder: JA ? 'ブランチの範囲' : 'Branch scope' });
+      if (!scopePick) return;
+      target = { repo, branches: scopePick.scope };
+      if (chosenWf.length) target.workflows = chosenWf;
+      defaultName = repo;
+      idBase = 'github-' + wizard.slugify(repo.split('/')[1] || repo);
+    } else {
+      const projects = bamboo.parseProjects(await fetchJ(bamboo.projectsUrl(base)));
+      if (!projects.length) throw new Error(JA ? 'プロジェクトが見つかりませんでした' : 'No projects were found');
+      const projPick = await vscode.window.showQuickPick(
+        projects.map((p) => ({ label: p.name, description: p.key, key: p.key })),
+        { placeHolder: JA ? 'プロジェクト' : 'Project' }
+      );
+      if (!projPick) return;
+      const scopePick = await vscode.window.showQuickPick([
+        { label: JA ? 'プロジェクト全体（全プラン）' : 'Whole project (all plans)', plans: null },
+        { label: JA ? 'プランを選ぶ' : 'Pick plans', plans: [] },
+      ], { placeHolder: JA ? '監視の粒度' : 'Granularity' });
+      if (!scopePick) return;
+      target = { project: projPick.key };
+      if (scopePick.plans) {
+        const plans = bamboo.parseProjectPlans(await fetchJ(bamboo.projectUrl(base, projPick.key)));
+        const picks = await vscode.window.showQuickPick(
+          plans.map((p) => ({ label: p.name, description: p.key, key: p.key })),
+          { canPickMany: true, placeHolder: JA ? '監視するプラン' : 'Plans to watch' }
+        );
+        if (!picks || !picks.length) return;
+        target.plans = picks.map((p) => p.key);
+      }
+      defaultName = projPick.label;
+      idBase = 'bamboo-' + wizard.slugify(projPick.key);
+    }
+
+    const interests = await pickInterests(caps, null);
+    if (!interests) return;
+
+    const name = await vscode.window.showInputBox({
+      prompt: JA ? '番線の名前' : 'Platform name',
+      value: defaultName,
+    });
+    if (name == null) return;
+
+    const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
+    const feeds = cfg.get('feeds', []) || [];
+    const id = wizard.uniqueFeedId(idBase, feeds.map((f) => f && f.id));
+    const entry = {
+      id, name: name || defaultName, type,
+      url: base.replace(/\/+$/, ''), target, interests,
+      auth: authType === 'basic' ? { type: 'basic', user: authUser } : { type: authType },
+      maxItems: 10, keepHours: 24,
+    };
+    await cfg.update('feeds', [...feeds, entry], vscode.ConfigurationTarget.Global);
+    if (token) await tokens.set(id, token);
+    vscode.window.showInformationMessage(JA
+      ? `Signboard-Duo: 番線「${entry.name}」を追加しました。`
+      : `Signboard-Duo: platform "${entry.name}" added.`);
+    await engine.refreshAll();
+  } catch (err) {
+    vscode.window.showErrorMessage(`Signboard-Duo: ${err && err.message ? err.message : err}`);
+  }
+}
+
+async function runEditInterests(engine) {
+  const candidates = engine.feeds.filter((f) => ADAPTER_META[f.type]);
+  if (!candidates.length) {
+    vscode.window.showInformationMessage(JA
+      ? 'Signboard-Duo: REST アダプタの番線がありません。'
+      : 'Signboard-Duo: there are no REST adapter platforms.');
+    return;
+  }
+  const pick = await vscode.window.showQuickPick(
+    candidates.map((f) => ({ label: f.name || f.id, description: `${f.type} — ${(f.interests || []).join(', ') || 'default'}`, id: f.id })),
+    { placeHolder: JA ? 'ニュース項目を変更する番線' : 'Platform whose news items to change' }
+  );
+  if (!pick) return;
+  const rec = candidates.find((f) => f.id === pick.id);
+  const interests = await pickInterests(ADAPTER_META[rec.type].mod.CAPABILITIES, rec.interests);
+  if (!interests) return;
+  const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
+  const feeds = (cfg.get('feeds', []) || []).map((f) => (f && f.id === rec.id ? { ...f, interests } : f));
+  await cfg.update('feeds', feeds, vscode.ConfigurationTarget.Global);
+  vscode.window.showInformationMessage(JA
+    ? `Signboard-Duo: 「${rec.name || rec.id}」のニュース項目を更新しました。`
+    : `Signboard-Duo: news items for "${rec.name || rec.id}" updated.`);
+}
+
 function activate(context) {
   USER_AGENT = `Signboard-Duo/${context.extension.packageJSON.version} (+https://marketplace.visualstudio.com/)`;
   let provider;
@@ -803,6 +1030,8 @@ function activate(context) {
         ? 'Signboard-Duo: すべてのトークンを削除しました。'
         : 'Signboard-Duo: all tokens deleted.');
     }),
+    vscode.commands.registerCommand('signboardDuo.addCiPlatform', () => runAddCiWizard(engine, tokens)),
+    vscode.commands.registerCommand('signboardDuo.editInterests', () => runEditInterests(engine)),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration(`${CONFIG_NS}.mode`)) syncModeContext();
     }),

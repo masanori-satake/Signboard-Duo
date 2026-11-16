@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0] - 2026-11-16
+
+### Added
+
+- **CI platform setup wizard**: the **Add CI Platform** command sets up a Bamboo / GitHub Actions platform by clicking — API base, auth, target (project / repository, plans / workflows), branch scope and news items — and writes only the resulting entry to the settings, so no JSON editing is needed and the choice persists across restarts. Only news items the chosen adapter can serve are offered, and the token entered during setup is stored as the feed's token.
+- **Change News Items (Interests)** command: re-pick what becomes news on an existing REST platform.
+
+### 日本語
+
+- **CI 番線のセットアップウィザード**を追加。**CI 番線を追加**コマンドで、API ベース・認証・対象（プロジェクト／リポジトリ、プラン／ワークフロー）・ブランチの範囲・ニュース項目をクリック操作だけで選ぶと、結果だけが設定に書き込まれます。JSON の手編集は不要で、再起動後もそのまま再現されます。選べるニュース項目は、そのアダプタが提供できるものだけに絞られます。途中で入力したトークンは、そのままその番線のトークンとして保存されます。
+- **ニュース項目を変更**コマンドを追加。既存の REST 番線について、何をニュースにするかを選び直せます。
+
 ## [1.6.0] - 2026-11-16
 
 - Added: the second REST adapter — **GitHub Actions** (`"type": "github-actions"`), proving the adapter pattern is not Bamboo-specific. A platform targets a repository (`target.repo`), aggregates its workflows (one row per workflow), and can narrow to named workflows and a branch scope (`mainline` / `include` / `only` against the repo's default branch). `interests` works as with Bamboo, and this adapter also serves `queued`. The engine's REST path was generalised so adapters plug into shared transport, auth and diagnosis

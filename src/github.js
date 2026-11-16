@@ -19,6 +19,17 @@ function repoUrl(base, repo) {
   return `${baseOf(base)}/repos/${repo}`;
 }
 
+function workflowsUrl(base, repo) {
+  return `${baseOf(base)}/repos/${repo}/actions/workflows?per_page=100`;
+}
+
+function parseWorkflows(json) {
+  const list = json && Array.isArray(json.workflows) ? json.workflows : [];
+  return list
+    .filter((w) => w && w.id != null && typeof w.name === 'string')
+    .map((w) => ({ id: String(w.id), name: w.name }));
+}
+
 function runsUrl(base, repo, perPage) {
   const n = Math.max(1, Math.min(100, perPage || 30));
   return `${baseOf(base)}/repos/${repo}/actions/runs?per_page=${n}`;
@@ -150,4 +161,4 @@ async function collect(fetchJson, rec, ctx) {
   return { items, feedTitle: repo };
 }
 
-module.exports = { CAPABILITIES, DEFAULT_INTERESTS, HEADERS, repoUrl, runsUrl, parseRuns, buildRows, collect };
+module.exports = { CAPABILITIES, DEFAULT_INTERESTS, HEADERS, repoUrl, workflowsUrl, parseWorkflows, runsUrl, parseRuns, buildRows, collect };

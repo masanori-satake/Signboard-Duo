@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.6.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.7.0-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.6.0**
+Current version: **v1.7.0**
 
 ---
 
@@ -115,7 +115,7 @@ For VSCodium, Gitpod, Eclipse Theia, or environments configured with Open VSX:
 #### Method 3: Install from VSIX Package File (Offline / Manual)
 
 1. Go to the [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) page.
-2. Download the `.vsix` file (e.g., `signboard-duo-1.6.0.vsix`) under Assets.
+2. Download the `.vsix` file (e.g., `signboard-duo-1.7.0.vsix`) under Assets.
 3. In VS Code Extensions view (`Ctrl+Shift+X`), click the **"..." (Views and More Actions)** icon at the top right, select **Install from VSIX...**, and choose the downloaded file.
 
 ---
@@ -214,6 +214,8 @@ Many sites publish RSS/Atom feeds without making a fuss about them. A few ways t
 | **Show Stored Tokens** | `signboardDuo.listTokens` | List the feeds that have a stored token (values are never shown) |
 | **Delete Unlinked Tokens** | `signboardDuo.deleteOrphanTokens` | Remove tokens whose feed is no longer in the settings |
 | **Delete All Tokens** | `signboardDuo.deleteAllTokens` | Remove every stored token at once |
+| **Add CI Platform** | `signboardDuo.addCiPlatform` | Set up a Bamboo / GitHub Actions platform by clicking (target, branch scope, news items) — no JSON editing |
+| **Change News Items (Interests)** | `signboardDuo.editInterests` | Change what becomes news on an existing REST platform |
 
 ---
 
@@ -262,7 +264,7 @@ Proxy: Duo reads VS Code's built-in `http.proxy`, `http.noProxy` and `http.proxy
 
 For feeds with `auth`, run **Signboard-Duo: Set Feed Token** to store the secret in SecretStorage; only the auth type lives in settings. Tokens are managed per feed: **Show Stored Tokens** lists which feeds hold one (values are never shown), removing a feed from the settings offers to delete its token too, and **Delete Unlinked Tokens** / **Delete All Tokens** retire tokens whose feeds are gone — deleting the settings entry and deleting the token can happen in either order. CI build-result feeds use `"kind": "ci"` (the former `"bamboo"` kind is treated as `"ci"`).
 
-**Bamboo over REST** — where Bamboo's RSS is unavailable (for example behind single sign-on), a platform can read Bamboo's REST API instead. Set `"type": "bamboo-rest"`, the Bamboo base URL as `url`, and a `target`: a `project` key (the platform aggregates all its plans, one row per plan) and/or explicit `plans` keys. `interests` chooses what becomes news — `failed`, `recovered`, `streak`, `running`, `long`, `all` (default: `failed` + `recovered`). Authentication is the feed's PAT as a bearer token, stored like any other feed token. Branch scope (`target.branches`) is accepted but plan branches are not expanded yet.
+**Bamboo over REST** — the **Add CI Platform** command sets this up by clicking (project, plans, news items); the hand-written form follows. Where Bamboo's RSS is unavailable (for example behind single sign-on), a platform can read Bamboo's REST API instead. Set `"type": "bamboo-rest"`, the Bamboo base URL as `url`, and a `target`: a `project` key (the platform aggregates all its plans, one row per plan) and/or explicit `plans` keys. `interests` chooses what becomes news — `failed`, `recovered`, `streak`, `running`, `long`, `all` (default: `failed` + `recovered`). Authentication is the feed's PAT as a bearer token, stored like any other feed token. Branch scope (`target.branches`) is accepted but plan branches are not expanded yet.
 
 ```json
 {
@@ -278,7 +280,7 @@ For feeds with `auth`, run **Signboard-Duo: Set Feed Token** to store the secret
 }
 ```
 
-**GitHub Actions over REST** — `"type": "github-actions"` reads a repository's workflow runs. `url` is the API base (`https://api.github.com`, or a GitHub Enterprise base ending in `/api/v3`), and `target.repo` is `"owner/name"`. The platform aggregates the repo's workflows — one row per workflow — and `target.workflows` can narrow it to named workflows. `target.branches` is `mainline` (default: the repo's default branch only), `include`, or `only` (non-default branches). `interests` works as with Bamboo, and this adapter also serves `queued`. A token is optional for public repositories but strongly recommended (rate limits); store it like any other feed token.
+**GitHub Actions over REST** — the **Add CI Platform** command sets this up by clicking (repository, workflows, branch scope, news items); the hand-written form follows. `"type": "github-actions"` reads a repository's workflow runs. `url` is the API base (`https://api.github.com`, or a GitHub Enterprise base ending in `/api/v3`), and `target.repo` is `"owner/name"`. The platform aggregates the repo's workflows — one row per workflow — and `target.workflows` can narrow it to named workflows. `target.branches` is `mainline` (default: the repo's default branch only), `include`, or `only` (non-default branches). `interests` works as with Bamboo, and this adapter also serves `queued`. A token is optional for public repositories but strongly recommended (rate limits); store it like any other feed token.
 
 ```json
 {
@@ -426,7 +428,7 @@ The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, 
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.6.0**
+現在のバージョン: **v1.7.0**
 
 ---
 
@@ -523,7 +525,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 #### 方法 3: VSIX パッケージファイルからのインストール（オフライン環境等）
 
 1. [GitHub Releases](https://github.com/masanori-satake/Signboard-Duo/releases) ページを開きます。
-2. Assets の `.vsix` ファイル（例: `signboard-duo-1.6.0.vsix`）をダウンロードします。
+2. Assets の `.vsix` ファイル（例: `signboard-duo-1.7.0.vsix`）をダウンロードします。
 3. VS Code の拡張機能ビュー（`Ctrl+Shift+X`）右上の **「...」（ビューとその他のアクション）** から **VSIX からのインストール...** を選び、ダウンロードしたファイルを指定します。
 
 ---
@@ -640,6 +642,8 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 | **トークンの保存状況** | `signboardDuo.listTokens` | トークンが保存されているフィードの一覧を見る（値そのものは表示しません） |
 | **紐づいていないトークンを削除** | `signboardDuo.deleteOrphanTokens` | 設定から消えたフィードのトークンだけを削除する |
 | **すべてのトークンを削除** | `signboardDuo.deleteAllTokens` | 保存したトークンを一括で削除する |
+| **CI 番線を追加** | `signboardDuo.addCiPlatform` | Bamboo / GitHub Actions の番線をクリック操作だけで設定する（対象・ブランチの範囲・ニュース項目）。JSON の手編集は不要 |
+| **ニュース項目を変更** | `signboardDuo.editInterests` | 既存の REST 番線について、何をニュースにするかを変更する |
 
 ---
 
@@ -688,7 +692,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 
 `auth` を使うフィードは、コマンド **Signboard-Duo: フィードのトークンを設定** で秘密情報を SecretStorage に保存します。設定に残るのは方式だけです。トークンはフィード毎に管理します。**トークンの保存状況** で保存先の一覧を確認でき（値そのものは表示しません）、設定からフィードを消したときはトークンも一緒に消すか尋ねます。**紐づいていないトークンを削除** / **すべてのトークンを削除** もあり、設定の削除とトークンの削除はどちらが先でも構いません。CI のビルド結果フィードは `"kind": "ci"` を使います（旧 `"bamboo"` は `"ci"` として扱われます）。
 
-**Bamboo を REST で読む** — Bamboo の RSS が使えない環境（SSO 運用など）では、REST API から読む番線も作れます。`"type": "bamboo-rest"` とし、`url` には Bamboo のベース URL、`target` に対象を指定します。`project` キー（配下の全プランを1番線に集約し、行はプラン毎の最新だけ）か、`plans` へのプランキーの明示、または両方です。`interests` は何をニュースにするかで、`failed`、`recovered`、`streak`、`running`、`long`、`all` から選びます（既定は `failed` ＋ `recovered`）。認証は PAT を bearer トークンとして使い、保存方法は通常のフィードトークンと同じです。`target.branches` は受け付けますが、プランブランチの展開はまだ行いません。
+**Bamboo を REST で読む** — **CI 番線を追加**コマンドでクリック操作だけでも設定できます（プロジェクト・プラン・ニュース項目）。手書きの形は次の通りです。Bamboo の RSS が使えない環境（SSO 運用など）では、REST API から読む番線も作れます。`"type": "bamboo-rest"` とし、`url` には Bamboo のベース URL、`target` に対象を指定します。`project` キー（配下の全プランを1番線に集約し、行はプラン毎の最新だけ）か、`plans` へのプランキーの明示、または両方です。`interests` は何をニュースにするかで、`failed`、`recovered`、`streak`、`running`、`long`、`all` から選びます（既定は `failed` ＋ `recovered`）。認証は PAT を bearer トークンとして使い、保存方法は通常のフィードトークンと同じです。`target.branches` は受け付けますが、プランブランチの展開はまだ行いません。
 
 ```json
 {
@@ -704,7 +708,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 }
 ```
 
-**GitHub Actions を REST で読む** — `"type": "github-actions"` でリポジトリのワークフロー実行を読みます。`url` は API のベース（`https://api.github.com`、GitHub Enterprise の場合は `/api/v3` で終わるベース）、`target.repo` に `"owner/name"` を書きます。番線はリポジトリの全ワークフローを集約し（行はワークフロー毎の最新）、`target.workflows` で名前による絞り込みもできます。`target.branches` は `mainline`（既定：デフォルトブランチのみ）／`include`／`only`（デフォルトブランチ以外）。`interests` は Bamboo と同じで、このアダプタは `queued` にも対応します。トークンは公開リポジトリでは任意ですが、レート制限のため強く推奨します。保存方法は通常のフィードトークンと同じです。
+**GitHub Actions を REST で読む** — **CI 番線を追加**コマンドでクリック操作だけでも設定できます（リポジトリ・ワークフロー・ブランチの範囲・ニュース項目）。手書きの形は次の通りです。`"type": "github-actions"` でリポジトリのワークフロー実行を読みます。`url` は API のベース（`https://api.github.com`、GitHub Enterprise の場合は `/api/v3` で終わるベース）、`target.repo` に `"owner/name"` を書きます。番線はリポジトリの全ワークフローを集約し（行はワークフロー毎の最新）、`target.workflows` で名前による絞り込みもできます。`target.branches` は `mainline`（既定：デフォルトブランチのみ）／`include`／`only`（デフォルトブランチ以外）。`interests` は Bamboo と同じで、このアダプタは `queued` にも対応します。トークンは公開リポジトリでは任意ですが、レート制限のため強く推奨します。保存方法は通常のフィードトークンと同じです。
 
 ```json
 {

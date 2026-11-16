@@ -14,6 +14,17 @@ const DEFAULT_INTERESTS = ['failed', 'recovered'];
 
 function baseOf(url) { return String(url || '').replace(/\/+$/, ''); }
 
+function projectsUrl(base) {
+  return `${baseOf(base)}/rest/api/latest/project.json`;
+}
+
+function parseProjects(json) {
+  const list = json && json.projects && Array.isArray(json.projects.project) ? json.projects.project : [];
+  return list
+    .filter((p) => p && typeof p.key === 'string')
+    .map((p) => ({ key: p.key, name: typeof p.name === 'string' ? p.name : p.key }));
+}
+
 function projectUrl(base, projectKey) {
   return `${baseOf(base)}/rest/api/latest/project/${encodeURIComponent(projectKey)}.json?expand=plans`;
 }
@@ -152,4 +163,4 @@ async function collect(fetchJson, rec, ctx) {
   return { items, feedTitle };
 }
 
-module.exports = { CAPABILITIES, DEFAULT_INTERESTS, projectUrl, planResultsUrl, parseProjectPlans, parsePlanResults, buildRows, collect };
+module.exports = { CAPABILITIES, DEFAULT_INTERESTS, projectsUrl, parseProjects, projectUrl, planResultsUrl, parseProjectPlans, parsePlanResults, buildRows, collect };

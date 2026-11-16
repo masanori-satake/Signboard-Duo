@@ -46,5 +46,7 @@
   "config.ledHole.description": "LED hole size in percent.",
   "config.ledGlow.description": "LED glow (blurred copy under the mask).",
   "config.pollMinutes.description": "Feed polling interval in minutes.",
-  "config.scrollLongText.description": "Scroll (LED) or flip through (flap) long titles instead of truncating them."
+  "config.scrollLongText.description": "Scroll (LED) or flip through (flap) long titles instead of truncating them.",
+  "command.addCiPlatform": "Add CI Platform",
+  "command.editInterests": "Change News Items (Interests)"
 }
