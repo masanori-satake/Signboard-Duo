@@ -89,13 +89,13 @@
         "command": "signboardDuo.startRotation",
         "title": "%command.startRotation.title%",
         "category": "Signboard-Duo",
-        "icon": "$(sync)"
+        "icon": "$(play)"
       },
       {
         "command": "signboardDuo.stopRotation",
         "title": "%command.stopRotation.title%",
         "category": "Signboard-Duo",
-        "icon": "$(sync)"
+        "icon": "$(debug-pause)"
       },
       {
         "command": "signboardDuo.cycleTheme",
@@ -119,22 +119,22 @@
         "command": "signboardDuo.cycleModeFlap",
         "category": "Signboard-Duo",
         "title": "%command.cycleModeFlap.title%",
-        "icon": {
-          "dark": "media/flight-dark.svg",
-          "light": "media/flight-light.svg"
-        }
+        "icon": "$(dashboard)"
       },
       {
         "command": "signboardDuo.cycleModeLed",
         "category": "Signboard-Duo",
         "title": "%command.cycleModeLed.title%",
-        "icon": "$(dashboard)"
+        "icon": "$(graph-line)"
       },
       {
         "command": "signboardDuo.cycleModeStock",
         "category": "Signboard-Duo",
         "title": "%command.cycleModeStock.title%",
-        "icon": "$(graph-line)"
+        "icon": {
+          "dark": "media/flight-dark.svg",
+          "light": "media/flight-light.svg"
+        }
       },
       {
         "command": "signboardDuo.addCiPlatform",
@@ -146,7 +146,7 @@
         "command": "signboardDuo.editInterests",
         "title": "%command.editInterests%",
         "category": "Signboard-Duo",
-        "icon": "$(checklist)"
+        "icon": "$(edit)"
       }
     ],
     "configuration": {
@@ -475,5 +475,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.16.0"
+  "version": "1.17.0"
 }

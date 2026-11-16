@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.17.0] - 2026-11-17
+
+### Changed
+
+- **Title-bar buttons now all say what happens when you press them.** One convention across the board (and across Signboard-Solo, which adopts the same): a button's glyph and tooltip name the action, never the current state. Edit Feed gets the pencil glyph (it was a checklist); auto-rotation start/stop get play / pause glyphs (both were the same circular arrow, indistinguishable from Refresh and from each other — seeing Play tells you rotation is stopped); the board-style button shows the *next* style's glyph and names it ("Switch to LED Board" / "Switch to Stock Board" / "Switch to Flap Board") instead of showing the style currently on screen.
+
+### 日本語
+
+- **タイトルバーのボタンは、すべて「押すと起きること」を表す形に統一しました。** Signboard-Solo も含めた共通の約束事として、グリフとツールチップは今の状態ではなく、押したときの動作を表します。「フィードを編集」はチェックリストから鉛筆のグリフに変更。自動巡回の開始／停止は再生／一時停止のグリフに変えました（これまでは両方とも同じ円弧の矢印で、「更新」とも見分けがつきませんでした。再生が見えれば、今は止まっていると分かります）。盤面スタイルのボタンは、今表示しているスタイルではなく、切り替え先のグリフと名前（「LED ボードに切り替え」など）を出すようにしました。
+
 ## [1.16.0] - 2026-11-17
 
 ### Changed
