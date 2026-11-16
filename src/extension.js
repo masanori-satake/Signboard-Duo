@@ -355,6 +355,12 @@ class FeedEngine {
         return;
       }
       rec.lastStatus = res.status;
+      if (res.truncated && !rec.truncatedLogged) {
+        rec.truncatedLogged = true;
+        this.log(`feed ${rec.id}: response exceeds the size cap; reading the newest part only`);
+      } else if (!res.truncated) {
+        rec.truncatedLogged = false;
+      }
       if (res.status === 304) { rec.lastOkAt = now; rec.lastError = null; return; }
       if (res.status === 401 || res.status === 403) {
         rec.lastErrorAt = now;
@@ -427,6 +433,9 @@ class FeedEngine {
       rec.lastStatus = res.status;
       if (res.status === 401 || res.status === 403) throw fail('feed-auth', String(res.status));
       if (res.status !== 200 || res.body == null) throw fail('http', String(res.status));
+      /* A truncated JSON body cannot be parsed into anything
+         trustworthy — unlike RSS, there is no usable prefix. */
+      if (res.truncated) { const e = new Error('response too large'); e.symptom = 'format'; e.detail = ''; throw e; }
       try { return JSON.parse(res.body); } catch (e) { throw fail('format', ''); }
     };
     const labels = {

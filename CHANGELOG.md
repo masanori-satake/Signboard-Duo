@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.3] - 2026-11-17
+
+### Fixed
+
+- **Feeds larger than 1 MB (e.g. Think IT) failed with "response too large".** The 1.18.1 change aborted responses at the size cap — but truncation at the cap was load-bearing: feeds are newest-first, so the first 1 MB carries everything the board shows, and such feeds had always worked by reading that prefix. Prefix reading is restored, with the download now stopping at the cap instead of being consumed to the end (an endless body still cannot hold a fetch open), and the log notes once when a feed is being read this way. REST adapter JSON keeps its clear "response too large" error at its own cap, since a truncated JSON body has no usable prefix.
+
+### 日本語
+
+- **1MBを超えるフィード（Think IT など）が「response too large」で失敗する問題を直しました。** 1.18.1 で導入した「上限で打ち切り」が、実は効いていた切り捨てを壊していました。フィードは新しい順なので、先頭1MBに盤面表示に必要なものがすべて入っており、この種のフィードはその接頭辞を読むことで従来から動いていました。接頭辞を読む方式に戻しつつ、ダウンロード自体は上限で止めるようにしました（無限の本文が取得を掴み続けることもありません）。この読み方になったことはログに一度だけ残します。REST アダプタの JSON は接頭辞が使えないため、専用上限での明確なエラーのままにしています。
+
 ## [1.18.2] - 2026-11-17
 
 ### Fixed

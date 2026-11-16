@@ -140,11 +140,20 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
       let size = 0;
       res.on('data', (c) => {
         size += c.length;
-        /* Past the cap the fetch is aborted outright: silently
-           truncating would surface as a confusing parse error, and
-           consuming an endless body to the end would hold the
-           request (and its poll lane) until the deadline. */
-        if (size > bodyCap) { res.destroy(taggedError('format', 'response too large')); return; }
+        /* Past the cap, stop reading and resolve with the prefix.
+           Feeds are newest-first, so the first cap's worth carries
+           everything the board can show — real feeds over the cap
+           (Think IT's is one) have always worked exactly this way,
+           and aborting them outright broke them. The download still
+           ends here: the body is never consumed to its end, so an
+           endless body cannot hold the request open either. The
+           caller decides what a truncated body means (RSS parses
+           the prefix; JSON adapters treat it as an error). */
+        if (size > bodyCap) {
+          res.destroy();
+          resolve({ status, body: Buffer.concat(chunks).toString('utf8'), headers: res.headers, truncated: true });
+          return;
+        }
         chunks.push(c);
       });
       res.on('end', () => resolve({ status, body: Buffer.concat(chunks).toString('utf8'), headers: res.headers }));

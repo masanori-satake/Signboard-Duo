@@ -94,18 +94,22 @@ function makeProxy({ requireAuth = false } = {}) {
   return proxy;
 }
 
-test('the body cap aborts oversize responses, and a larger cap admits them', { timeout: 20000 }, async () => {
-  // Regression: the GitHub adapter's 100-run listing legitimately
-  // exceeds the 1 MB feed cap; it fetches with a larger cap instead.
+test('the body cap resolves with the newest-first prefix, and a larger cap admits the whole body', { timeout: 20000 }, async () => {
+  // Feeds are newest-first: the prefix up to the cap is what the
+  // board shows, and real feeds over the cap (Think IT) work by
+  // exactly this truncation. The GitHub adapter's 100-run listing
+  // also exceeds 1 MB, so it fetches with a larger cap instead.
   const big = 'x'.repeat(2 * 1024 * 1024);
   const origin = http.createServer((req, res) => { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(big); });
   const oPort = await listen(origin);
   try {
-    await assert.rejects(
-      fetchOnce(`http://127.0.0.1:${oPort}/runs`, {}, [], 0, DEADLINE(), null),
-      /response too large/);
+    const cut = await fetchOnce(`http://127.0.0.1:${oPort}/runs`, {}, [], 0, DEADLINE(), null);
+    assert.equal(cut.status, 200);
+    assert.equal(cut.truncated, true);
+    assert.ok(cut.body.length <= 1024 * 1024, 'prefix stays within the cap');
     const res = await fetchOnce(`http://127.0.0.1:${oPort}/runs`, {}, [], 0, DEADLINE(), null, 8 * 1024 * 1024);
     assert.equal(res.status, 200);
+    assert.equal(res.truncated, undefined);
     assert.equal(res.body.length, big.length);
   } finally { origin.closeAllConnections(); origin.close(); }
 });
