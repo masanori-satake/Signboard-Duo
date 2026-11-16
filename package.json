@@ -24,11 +24,13 @@
     "commands": [
       {
         "command": "signboardDuo.showLed",
+        "category": "Signboard-Duo",
         "icon": "$(dashboard)",
         "title": "%command.showLed.title%"
       },
       {
         "command": "signboardDuo.showFlap",
+        "category": "Signboard-Duo",
         "icon": {
           "dark": "media/flight-dark.svg",
           "light": "media/flight-light.svg"
@@ -37,54 +39,65 @@
       },
       {
         "command": "signboardDuo.setToken",
+        "category": "Signboard-Duo",
         "title": "%command.setToken.title%"
       },
       {
         "command": "signboardDuo.deleteToken",
+        "category": "Signboard-Duo",
         "title": "%command.deleteToken.title%"
       },
       {
         "command": "signboardDuo.refresh",
+        "category": "Signboard-Duo",
         "icon": "$(refresh)",
         "title": "%command.refresh.title%"
       },
       {
         "command": "signboardDuo.prevPlatform",
+        "category": "Signboard-Duo",
         "icon": "$(chevron-left)",
         "title": "%command.prevPlatform.title%"
       },
       {
         "command": "signboardDuo.nextPlatform",
+        "category": "Signboard-Duo",
         "icon": "$(chevron-right)",
         "title": "%command.nextPlatform.title%"
       },
       {
         "command": "signboardDuo.pinPlatform",
+        "category": "Signboard-Duo",
         "icon": "$(pin)",
         "title": "%command.pinPlatform.title%"
       },
       {
         "command": "signboardDuo.unpinPlatform",
+        "category": "Signboard-Duo",
         "icon": "$(pinned)",
         "title": "%command.unpinPlatform.title%"
       },
       {
         "command": "signboardDuo.cycleTheme",
+        "category": "Signboard-Duo",
         "title": "%command.cycleTheme.title%",
         "icon": "$(symbol-color)"
       },
       {
         "command": "signboardDuo.showStock",
+        "category": "Signboard-Duo",
         "title": "%command.showStock.title%",
         "icon": "$(graph-line)"
       },
       {
         "command": "signboardDuo.cycleMode",
+        "category": "Signboard-Duo",
         "title": "%command.cycleMode.title%",
         "icon": "$(layout)"
       },
       {
         "command": "signboardDuo.cycleModeFlap",
+        "category": "Signboard-Duo",
         "title": "%command.cycleModeFlap.title%",
         "icon": {
           "dark": "media/flight-dark.svg",
@@ -93,11 +106,13 @@
       },
       {
         "command": "signboardDuo.cycleModeLed",
+        "category": "Signboard-Duo",
         "title": "%command.cycleModeLed.title%",
         "icon": "$(dashboard)"
       },
       {
         "command": "signboardDuo.cycleModeStock",
+        "category": "Signboard-Duo",
         "title": "%command.cycleModeStock.title%",
         "icon": "$(graph-line)"
       }
@@ -326,5 +341,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.3.10"
+  "version": "1.3.11"
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.11] - 2026-11-16
+
+- Fixed: commands now carry the "Signboard-Duo" category, so the Command Palette lists them as "Signboard-Duo: …" as the README describes. Without a category the token commands (Set/Delete Feed Token) could not be found by searching for "Signboard-Duo" — they only existed under their bare titles
+
+- 修正：全コマンドに「Signboard-Duo」カテゴリを付け、コマンドパレットで README の表記どおり「Signboard-Duo: …」と表示されるようにした。カテゴリが無いと、トークンの設定・削除コマンドは「Signboard-Duo」で検索しても出てこず、素のタイトルでしか存在しなかった
+
 ## [1.3.10] - 2026-11-15
 
 - Docs: the Culture starter feed's display name is now "MSatake Culture", matching the feed's own renamed RSS channel title (the feed dropped 番線 from its name)
