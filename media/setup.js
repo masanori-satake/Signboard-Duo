@@ -19,6 +19,7 @@ function conn() {
     base: $('base').value.trim(),
     authType: $('authType').value,
     user: $('authUser').value.trim(),
+    headerName: $('authHeader').value.trim(),
     token: $('token').value,
   };
 }
@@ -47,10 +48,17 @@ function applyPreset() {
   rebuildInterests(wanted);
 }
 function syncType() {
-  const gh = currentType() === 'github-actions';
+  const t = currentType();
+  const gh = t === 'github-actions';
+  const rss = t === 'rss';
   $('githubSection').classList.toggle('hidden', !gh);
-  $('bambooSection').classList.toggle('hidden', gh);
-  $('authUserRow').classList.toggle('hidden', $('authType').value !== 'basic');
+  $('bambooSection').classList.toggle('hidden', gh || rss);
+  $('rssSection').classList.toggle('hidden', !rss);
+  $('interestsSection').classList.toggle('hidden', rss);
+  $('baseLabel').textContent = rss
+    ? (CFG && CFG.ja ? 'フィード URL' : 'Feed URL')
+    : (CFG && CFG.ja ? 'API ベース URL' : 'API base URL');
+  $('base').placeholder = rss ? 'https://example.com/feed.xml' : 'https://bamboo.example.com/bamboo';
   if (gh && !$('base').value) $('base').value = 'https://api.github.com';
   if (!gh && $('base').value === 'https://api.github.com') $('base').value = '';
   rebuildInterests(null);
@@ -59,6 +67,7 @@ function syncType() {
 }
 function syncAuth() {
   $('authUserRow').classList.toggle('hidden', $('authType').value !== 'basic');
+  $('authHeaderRow').classList.toggle('hidden', $('authType').value !== 'header');
   $('tokenRow').classList.toggle('hidden', $('authType').value === 'none');
 }
 function fillChecks(containerId, items, valueKey) {
@@ -97,10 +106,14 @@ function applyEdit(e) {
   $('name').value = e.name || '';
   $('maxItems').value = e.maxItems || 10;
   $('keepHours').value = e.keepHours || 24;
+  $('enabled').checked = e.enabled !== false;
+  $('authHeader').value = e.authHeader || '';
   rebuildInterests(e.interests && e.interests.length ? e.interests : null);
   $('preset').value = 'custom';
   const t = e.target || {};
-  if (e.type === 'github-actions') {
+  if (e.type === 'rss') {
+    $('kind').value = e.kind || 'generic';
+  } else if (e.type === 'github-actions') {
     $('repo').value = t.repo || '';
     const radio = document.querySelector(`input[name=branchScope][value="${t.branches || 'mainline'}"]`);
     if (radio) radio.checked = true;
@@ -204,14 +217,18 @@ document.addEventListener('DOMContentLoaded', () => {
     vscode.postMessage({ type: 'loadWorkflows', ...conn(), repo: $('repo').value });
   });
   $('save').addEventListener('click', () => {
-    const interests = checkedValues('interests');
-    if (!interests.length) {
+    const type = currentType();
+    const interests = type === 'rss' ? [] : checkedValues('interests');
+    if (type !== 'rss' && !interests.length) {
       status(CFG.ja ? 'ニュース項目を1つ以上選んでください' : 'Pick at least one news item', 'error');
       return;
     }
-    const data = { ...conn(), type: currentType(), name: $('name').value.trim(), interests,
+    const data = { ...conn(), type, name: $('name').value.trim(), interests,
+      enabled: $('enabled').checked,
       maxItems: Number($('maxItems').value) || 10, keepHours: Number($('keepHours').value) || 24, target: {} };
-    if (data.type === 'github-actions') {
+    if (data.type === 'rss') {
+      data.kind = $('kind').value;
+    } else if (data.type === 'github-actions') {
       data.target = { repo: $('repo').value, branches: document.querySelector('input[name=branchScope]:checked').value };
       const wf = checkedValues('workflows');
       if (wf.length) data.target.workflows = wf;

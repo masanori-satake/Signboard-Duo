@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.11.0] - 2026-11-16
+
+### Added
+
+- **The form now covers every feed**: RSS feeds can be added and edited in the same one-screen form (URL, kind, auth including header auth, max rows, keep hours, enabled), not just CI platforms — no settings.json editing is needed for counts and the like. The edit button now appears for whatever feed is on the board, and the commands were renamed to **Add Feed** / **Edit Feed** to match.
+
+### 日本語
+
+- **フォームが全フィードに対応**。RSS フィードも同じ1画面フォームで追加・編集できるようになりました（URL・kind・認証（ヘッダ認証含む）・最大行数・保持時間・有効/無効）。件数のような設定のために settings.json を書く必要はもうありません。編集ボタンは表示中のフィード全般で現れるようになり、コマンド名も実態に合わせて**フィードを追加**／**フィードを編集**に改称しました。
+
 ## [1.10.0] - 2026-11-16
 
 ### Added

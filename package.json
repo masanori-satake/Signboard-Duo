@@ -434,7 +434,7 @@
         },
         {
           "command": "signboardDuo.editInterests",
-          "when": "view == signboardDuo.board && signboardDuo.currentIsCi",
+          "when": "view == signboardDuo.board && signboardDuo.hasCurrentFeed",
           "group": "navigation@2"
         }
       ]
@@ -470,5 +470,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.10.0"
+  "version": "1.11.0"
 }

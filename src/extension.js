@@ -474,7 +474,7 @@ class BoardProvider {
 
   syncCurrentContext() {
     const f = this.currentFeed();
-    vscode.commands.executeCommand('setContext', 'signboardDuo.currentIsCi', !!(f && ADAPTER_META[f.type]));
+    vscode.commands.executeCommand('setContext', 'signboardDuo.hasCurrentFeed', !!f);
   }
 
   cycleMode() {
@@ -716,19 +716,19 @@ async function wizardFetchJson(engine, url, headers) {
 async function runEditFeed(engine, tokens, context, provider) {
   const rawOf = (id) => (vscode.workspace.getConfiguration(CONFIG_NS).get('feeds', []) || []).find((f) => f && f.id === id);
   const current = provider.currentFeed();
-  if (current && ADAPTER_META[current.type]) {
+  if (current) {
     const raw = rawOf(current.id);
     if (raw) { openSetupPanel(engine, tokens, context, raw); return; }
   }
-  const candidates = engine.feeds.filter((f) => ADAPTER_META[f.type]);
+  const candidates = engine.feeds;
   if (!candidates.length) {
     vscode.window.showInformationMessage(JA
-      ? 'Signboard-Duo: REST アダプタのフィードがありません。'
-      : 'Signboard-Duo: there are no REST adapter feeds.');
+      ? 'Signboard-Duo: フィードがありません。'
+      : 'Signboard-Duo: there are no feeds.');
     return;
   }
   const pick = await vscode.window.showQuickPick(
-    candidates.map((f) => ({ label: f.name || f.id, description: f.type, id: f.id })),
+    candidates.map((f) => ({ label: f.name || f.id, description: f.type || 'rss', id: f.id })),
     { placeHolder: JA ? '編集するフィード' : 'Feed to edit' }
   );
   if (!pick) return;
@@ -758,10 +758,10 @@ function setupHtml(webview, context, editFeed) {
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
 <link href="${cssUri}" rel="stylesheet">
-<title>${editing ? t('CI フィードを編集', 'Edit CI Feed') : t('CI フィードを追加', 'Add CI Feed')}</title>
+<title>${editing ? t('フィードを編集', 'Edit Feed') : t('フィードを追加', 'Add Feed')}</title>
 </head>
 <body>
-<h1>${editing ? t('CI フィードを編集', 'Edit CI Feed') : t('CI フィードを追加', 'Add CI Feed')}</h1>
+<h1>${editing ? t('フィードを編集', 'Edit Feed') : t('フィードを追加', 'Add Feed')}</h1>
 <p class="lead">${t('すべての項目が1画面にあります。ブラウザへ URL をコピーしに行ったり、トークンを取りに行ったりして戻ってきても、入力はそのまま残ります。', 'Everything is on one screen. Leave to copy a URL or fetch a token and come back — the form stays as you left it.')}</p>
 
 <fieldset>
@@ -770,16 +770,22 @@ function setupHtml(webview, context, editFeed) {
 <select id="type">
   <option value="github-actions">GitHub Actions</option>
   <option value="bamboo-rest">Bamboo (REST)</option>
+  <option value="rss">${t('RSS フィード', 'RSS feed')}</option>
 </select>
-<label class="row">${t('API ベース URL', 'API base URL')}</label>
+<label class="row" id="baseLabel">${t('API ベース URL', 'API base URL')}</label>
 <input type="text" id="base" placeholder="https://bamboo.example.com/bamboo">
 <div class="hint">${t('ブラウザのアドレスバーの URL をそのまま貼っても、ベース URL に切り詰めます。', 'A pasted browser URL is trimmed back to the base URL.')}</div>
 <label class="row">${t('認証方式', 'Auth type')}</label>
 <select id="authType">
   <option value="bearer">bearer</option>
   <option value="basic">basic</option>
+  <option value="header">header</option>
   <option value="none">none</option>
 </select>
+<div id="authHeaderRow" class="hidden">
+  <label class="row">${t('ヘッダ名', 'Header name')}</label>
+  <input type="text" id="authHeader" placeholder="X-API-Key">
+</div>
 <div id="authUserRow" class="hidden">
   <label class="row">${t('ユーザー名', 'User name')}</label>
   <input type="text" id="authUser">
@@ -828,7 +834,20 @@ function setupHtml(webview, context, editFeed) {
 </div>
 </fieldset>
 
-<fieldset>
+<fieldset id="rssSection" class="hidden">
+<legend>${t('RSS フィード', 'RSS feed')}</legend>
+<label class="row">${t('フィードの種類 (kind)', 'Feed kind')}</label>
+<select id="kind">
+  <option value="generic">generic — ${t('通常', 'plain RSS / Atom')}</option>
+  <option value="ci">ci — ${t('CI の結果（タイトルから判定）', 'CI results, verdict read off the title')}</option>
+  <option value="status">status — ${t('ステータスページ', 'status page')}</option>
+  <option value="jma">jma — ${t('気象庁', 'JMA weather')}</option>
+  <option value="stock">stock — ${t('株価 (JSON)', 'stock quotes (JSON)')}</option>
+</select>
+<div class="hint">${t('上の「API ベース URL」欄に、フィードの URL そのものを入力します。', 'Enter the feed URL itself in the URL field above.')}</div>
+</fieldset>
+
+<fieldset id="interestsSection">
 <legend>${t('ニュース項目', 'News items')}</legend>
 <label class="row">${t('プリセット', 'Preset')}</label>
 <select id="preset"></select>
@@ -842,6 +861,7 @@ function setupHtml(webview, context, editFeed) {
 <input type="text" id="name">
 <span class="inline-num"><label class="row">${t('最大行数', 'Max rows')}</label><input type="number" id="maxItems" value="10" min="1" max="20"></span>
 <span class="inline-num"><label class="row">${t('保持時間（時間）', 'Keep hours')}</label><input type="number" id="keepHours" value="24" min="1" max="168"></span>
+<label class="row"><input type="checkbox" id="enabled" checked> ${t('有効', 'Enabled')}</label>
 </fieldset>
 
 <div id="status"></div>
@@ -865,6 +885,7 @@ function setupAuthHeaders(adapterType, c) {
   if (c && c.token) {
     if (c.authType === 'bearer') h.Authorization = `Bearer ${c.token}`;
     if (c.authType === 'basic') h.Authorization = 'Basic ' + Buffer.from(`${c.user || ''}:${c.token}`, 'utf8').toString('base64');
+    if (c.authType === 'header' && c.headerName) h[c.headerName] = c.token;
   }
   return h;
 }
@@ -877,14 +898,17 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       post({
         type: 'init', ja: JA,
         edit: setupEditFeed ? {
-          id: setupEditFeed.id, type: setupEditFeed.type,
+          id: setupEditFeed.id, type: setupEditFeed.type || 'rss',
           url: setupEditFeed.url || '',
           authType: (setupEditFeed.auth && setupEditFeed.auth.type) || 'none',
           authUser: (setupEditFeed.auth && setupEditFeed.auth.user) || '',
+          authHeader: (setupEditFeed.auth && setupEditFeed.auth.headerName) || '',
           name: setupEditFeed.name || '',
           maxItems: setupEditFeed.maxItems || 10,
           keepHours: setupEditFeed.keepHours || 24,
           target: setupEditFeed.target || {},
+          kind: setupEditFeed.kind || 'generic',
+          enabled: setupEditFeed.enabled !== false,
           interests: Array.isArray(setupEditFeed.interests) ? setupEditFeed.interests : null,
         } : null,
         caps: { 'github-actions': github.CAPABILITIES, 'bamboo-rest': bamboo.CAPABILITIES },
@@ -919,16 +943,20 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
     }
     if (msg.type === 'save') {
       const d = msg.data || {};
+      const isRss = d.type === 'rss';
       const meta = ADAPTER_META[d.type];
-      if (!meta) throw new Error(JA ? 'CI の種類が不正です' : 'Unknown CI type');
+      if (!isRss && !meta) throw new Error(JA ? 'フィードの種類が不正です' : 'Unknown feed type');
       const base = wizard.normalizeBaseUrl(d.base);
-      if (!/^https?:\/\//.test(base)) throw new Error(JA ? 'API ベース URL が不正です' : 'Invalid API base URL');
-      const interests = Array.isArray(d.interests) ? d.interests.filter((i) => meta.mod.CAPABILITIES.includes(i)) : [];
-      if (!interests.length) throw new Error(JA ? 'ニュース項目を選んでください' : 'Pick at least one news item');
-      let target = {};
+      if (!/^https?:\/\//.test(base)) throw new Error(JA ? 'URL が不正です' : 'Invalid URL');
+      const interests = isRss ? [] : (Array.isArray(d.interests) ? d.interests.filter((i) => meta.mod.CAPABILITIES.includes(i)) : []);
+      if (!isRss && !interests.length) throw new Error(JA ? 'ニュース項目を選んでください' : 'Pick at least one news item');
+      let target = null;
       let defaultName = '';
-      let idBase = d.type === 'github-actions' ? 'github' : 'bamboo';
-      if (d.type === 'github-actions') {
+      let idBase = d.type === 'github-actions' ? 'github' : (isRss ? 'feed' : 'bamboo');
+      if (isRss) {
+        try { defaultName = new URL(base).hostname; } catch (e) { defaultName = 'Feed'; }
+        idBase = 'feed-' + wizard.slugify(defaultName);
+      } else if (d.type === 'github-actions') {
         const repo = wizard.normalizeRepoInput(d.target && d.target.repo);
         if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) throw new Error(JA ? 'リポジトリは owner/name の形式で入力してください' : 'Enter the repository as owner/name');
         target = { repo, branches: ['mainline', 'include', 'only'].includes(d.target.branches) ? d.target.branches : 'mainline' };
@@ -942,18 +970,27 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
         defaultName = d.target.project;
         idBase = 'bamboo-' + wizard.slugify(d.target.project);
       }
+      const auth = d.authType === 'basic'
+        ? { type: 'basic', user: d.user || '' }
+        : d.authType === 'header'
+          ? { type: 'header', headerName: d.headerName || 'X-API-Key' }
+          : { type: d.authType || 'none' };
       const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
       const feeds = cfg.get('feeds', []) || [];
       const fields = {
-        name: d.name || defaultName, url: base, target, interests,
-        auth: d.authType === 'basic' ? { type: 'basic', user: d.user || '' } : { type: d.authType || 'none' },
+        name: d.name || defaultName, url: base, auth,
+        enabled: d.enabled !== false,
         maxItems: Math.min(20, Math.max(1, Number(d.maxItems) || 10)),
         keepHours: Math.min(168, Math.max(1, Number(d.keepHours) || 24)),
+        ...(isRss
+          ? { kind: ['generic', 'ci', 'status', 'jma', 'stock'].includes(d.kind) ? d.kind : 'generic' }
+          : { target, interests }),
       };
       if (setupEditFeed) {
         const id = setupEditFeed.id;
         const oldRaw = feeds.find((f) => f && f.id === id) || {};
         const entry = { ...oldRaw, ...fields, id, type: oldRaw.type || d.type };
+        if ((entry.type || 'rss') === 'rss') { delete entry.target; delete entry.interests; }
         await cfg.update('feeds', feeds.map((f) => (f && f.id === id ? entry : f)), vscode.ConfigurationTarget.Global);
         if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
         else if (entry.auth.type === 'none' && (await tokens.has(id))) await tokens.delete(id);
@@ -986,8 +1023,8 @@ function openSetupPanel(engine, tokens, context, editFeed) {
   const panel = vscode.window.createWebviewPanel(
     'signboardDuoSetup',
     editFeed
-      ? (JA ? 'Signboard-Duo: CI フィードを編集' : 'Signboard-Duo: Edit CI Feed')
-      : (JA ? 'Signboard-Duo: CI フィードを追加' : 'Signboard-Duo: Add CI Feed'),
+      ? (JA ? 'Signboard-Duo: フィードを編集' : 'Signboard-Duo: Edit Feed')
+      : (JA ? 'Signboard-Duo: フィードを追加' : 'Signboard-Duo: Add Feed'),
     vscode.ViewColumn.Active,
     {
       enableScripts: true,
@@ -1164,7 +1201,7 @@ function activate(context) {
   );
   syncModeContext();
   vscode.commands.executeCommand('setContext', 'signboardDuo.pinned', false);
-  vscode.commands.executeCommand('setContext', 'signboardDuo.currentIsCi', false);
+  vscode.commands.executeCommand('setContext', 'signboardDuo.hasCurrentFeed', false);
   engine.start();
 }
 
