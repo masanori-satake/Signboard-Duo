@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.11.1] - 2026-11-16
+
+### Changed
+
+- The feed form's type list now starts with **RSS feed** — the core feed kind — followed by GitHub Actions and Bamboo (REST).
+
+### 日本語
+
+- フィードフォームの種類リストの先頭を、核である **RSS フィード** に変更しました（GitHub Actions、Bamboo (REST) が続きます）。
+
 ## [1.11.0] - 2026-11-16
 
 ### Added

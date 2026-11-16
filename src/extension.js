@@ -768,9 +768,9 @@ function setupHtml(webview, context, editFeed) {
 <legend>${t('接続', 'Connection')}</legend>
 <label class="row">${t('CI の種類', 'Kind of CI')}</label>
 <select id="type">
+  <option value="rss">${t('RSS フィード', 'RSS feed')}</option>
   <option value="github-actions">GitHub Actions</option>
   <option value="bamboo-rest">Bamboo (REST)</option>
-  <option value="rss">${t('RSS フィード', 'RSS feed')}</option>
 </select>
 <label class="row" id="baseLabel">${t('API ベース URL', 'API base URL')}</label>
 <input type="text" id="base" placeholder="https://bamboo.example.com/bamboo">
