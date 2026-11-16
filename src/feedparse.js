@@ -279,6 +279,13 @@ function ciVerdict(rawTitle) {
   if ((m = title.match(/^(.*?)\s+(successful|success)\s*$/i))) {
     return { failed: false, title: m[1].trim() };
   }
+  /* Real Bamboo feeds (verified 2026-11-16) also carry the phrase
+     mid-title, with text on both sides: "Plan #45 was SUCCESSFUL on
+     agent-1". The phrase cannot be stripped without mangling the
+     title, so the verdict is read and the title is kept whole. */
+  if ((m = title.match(/\b(?:was|has)\s+(successful|success|failed|failure)\b/i))) {
+    return { failed: /fail/i.test(m[1]), title };
+  }
   /* Generic fallback (the old bamboo rule): a failure word anywhere
      marks the run failed; the title stays as it is. */
   if (/\b(failed|failure|error)\b/i.test(title)) return { failed: true, title };

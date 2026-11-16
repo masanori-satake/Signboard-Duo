@@ -106,6 +106,11 @@ test('ciVerdict reads Bamboo-style trailing phrases', () => {
   assert.deepEqual(ciVerdict('PROJ - Plan #47 successful'), { failed: false, title: 'PROJ - Plan #47' });
 });
 
+test('ciVerdict reads Bamboo-style phrases mid-title (real feed shape)', () => {
+  assert.deepEqual(ciVerdict('PROJ - Plan #45 was SUCCESSFUL on agent-1'), { failed: false, title: 'PROJ - Plan #45 was SUCCESSFUL on agent-1' });
+  assert.deepEqual(ciVerdict('PROJ - Plan #46 has FAILED after 2 tests'), { failed: true, title: 'PROJ - Plan #46 has FAILED after 2 tests' });
+});
+
 test('ciVerdict falls back to failure words, else no verdict', () => {
   assert.deepEqual(ciVerdict('Nightly build error on agent-3'), { failed: true, title: 'Nightly build error on agent-3' });
   assert.deepEqual(ciVerdict('Weekly report published'), { failed: null, title: 'Weekly report published' });

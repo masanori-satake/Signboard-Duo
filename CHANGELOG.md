@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.13] - 2026-11-16
+
+- Improved: `ci` verdicts now also read Bamboo's mid-title phrases — a real feed (verified 2026-11-16) puts "was SUCCESSFUL" / "has FAILED" in the middle of the title with text on both sides, where the trailing-phrase rules missed the success case. The verdict is read and the title is kept whole
+
+- 改善：`ci` の判定が Bamboo の文中フレーズにも対応。実フィード（2026-11-16 確認）では「was SUCCESSFUL」「has FAILED」がタイトルの文中・前後に文字列ありで現れ、末尾前提の規則では成功側を取りこぼしていた。判定だけ読み取り、タイトルはそのまま保持する
+
 ## [1.3.12] - 2026-11-16
 
 - Fixed (palette audit): the three title-bar-only board-style variants no longer appear in the Command Palette, where they duplicated "Switch Board Style" four times over; Pin/Unpin now appear only in the state where they apply. All other commands and every setting were audited — registrations, activation and the settings schema all match what the code reads
