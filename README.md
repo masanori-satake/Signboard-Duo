@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.17.2-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.18.0-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.17.2**
+Current version: **v1.18.0**
 
 ---
 
@@ -127,7 +127,7 @@ For VSCodium, Gitpod, Eclipse Theia, or environments configured with Open VSX:
 Open the **Explorer** and expand the **Signboard-Duo** section. With no feeds configured yet, a guidance platform explains what to do.
 
 #### 2. Add feeds
-Add feeds to `signboardDuo.feeds` in your `settings.json` — the [Starter Feeds](#en-starter-feeds) below are copy-paste ready. The board starts moving on the next poll (or run **Signboard-Duo: Refresh Feeds Now**).
+Add feeds to `signboardDuo.feeds` in your **user** `settings.json` — the [Starter Feeds](#en-starter-feeds) below are copy-paste ready. The board starts moving on the next poll (or run **Signboard-Duo: Refresh Feeds Now**). Feeds are read from user settings only: a workspace's `.vscode/settings.json` is ignored, so a project you open cannot add feeds — or borrow a stored token by reusing a feed's `id`.
 
 #### 3. Switch the board and the theme
 - The **rightmost title-bar button** rotates flap → LED → stock board; its glyph always shows the current board.
@@ -429,7 +429,7 @@ The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, 
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.17.2**
+現在のバージョン: **v1.18.0**
 
 ---
 
@@ -538,7 +538,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 **エクスプローラー** を開き、**Signboard-Duo** セクションを展開します。フィード未設定の間は、案内用の番線が表示されます。
 
 #### 2. フィードを追加する
-`settings.json` の `signboardDuo.feeds` にフィードを追加します。下の[スターターフィード](#ja-starter-feeds)はそのままコピペできます。次の取得タイミングで盤面が動き出します（**Signboard-Duo: フィードを今すぐ更新** ですぐ取得もできます）。
+**ユーザー設定**の `settings.json` の `signboardDuo.feeds` にフィードを追加します。下の[スターターフィード](#ja-starter-feeds)はそのままコピペできます。次の取得タイミングで盤面が動き出します（**Signboard-Duo: フィードを今すぐ更新** ですぐ取得もできます）。フィードはユーザー設定からのみ読みます。ワークスペースの `.vscode/settings.json` は無視されるため、開いたプロジェクトがフィードを追加したり、フィードの `id` を再利用して保存済みトークンを流用したりすることはできません。
 
 #### 3. 盤面とテーマを切り替える
 - **タイトルバー右端のボタン** でフラップ → LED → 株価ボードとローテートします。グリフは常に現在の盤面を示します。

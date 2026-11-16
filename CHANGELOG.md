@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.0] - 2026-11-17
+
+### Changed
+
+- **Feeds are now read from your user settings only.** Previously the engine honoured `signboardDuo.feeds` from any settings scope, including a workspace's `.vscode/settings.json` — which travels with a cloned repository. A workspace could therefore add feeds on your machine, and a workspace feed reusing one of your feed ids would have been handed that feed's stored token to send to a workspace-chosen URL. Workspace-defined feeds are now ignored (the ignore is logged), and the setup form, the edit flow and the engine all read the same user-settings list. If you kept feeds in a workspace file, move them to your user settings.
+
+### 日本語
+
+- **フィードはユーザー設定からのみ読むようにしました。** これまではワークスペースの `.vscode/settings.json` を含む全スコープの `signboardDuo.feeds` を読んでいたため、クローンしたリポジトリがフィードを追加できてしまう状態でした。さらに、ワークスペース側のフィードが個人のフィードと同じ `id` を使うと、そのフィードの保存済みトークンがワークスペースの指定した URL へ送られていました。ワークスペースで定義されたフィードは無視し（無視したことはログに残します）、エンジン・設定フォーム・編集の入口すべてが同じユーザー設定のリストを読むように揃えました。ワークスペース側にフィードを置いていた場合は、ユーザー設定へ移してください。
+
 ## [1.17.2] - 2026-11-17
 
 ### Fixed

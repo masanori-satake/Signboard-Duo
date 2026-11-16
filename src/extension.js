@@ -76,6 +76,34 @@ function diagFor(symptom, detail) {
   };
 }
 
+/* ---------------- which settings the feeds come from ----------------
+   Feeds are read from the USER (global) settings only — never from
+   a workspace. A workspace's .vscode/settings.json travels with a
+   cloned repository, so honouring it would let a project define
+   feeds on the user's machine; worse, a workspace feed reusing a
+   personal feed's id would be handed that feed's stored token to
+   send to a workspace-chosen URL. The setup form already writes
+   Global, so personal feeds are unaffected. Workspace-defined
+   feeds are ignored, and the ignore is logged (once per distinct
+   value) so it is discoverable rather than silent. */
+let lastIgnoredWorkspaceFeeds = null;
+function userFeeds() {
+  const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
+  const info = cfg.inspect('feeds');
+  const global = info && Array.isArray(info.globalValue) ? info.globalValue : [];
+  const ws = info ? (info.workspaceFolderValue !== undefined ? info.workspaceFolderValue
+    : info.workspaceValue !== undefined ? info.workspaceValue : undefined) : undefined;
+  if (ws !== undefined) {
+    const sig = JSON.stringify(ws);
+    if (sig !== lastIgnoredWorkspaceFeeds) {
+      lastIgnoredWorkspaceFeeds = sig;
+      const n = Array.isArray(ws) ? ws.length : 0;
+      if (n) console.warn(`Signboard-Duo: ignoring ${n} feed(s) defined in workspace settings; feeds are read from user settings only.`);
+    }
+  }
+  return global;
+}
+
 /* ---------------- feed engine ---------------- */
 
 class FeedEngine {
@@ -115,8 +143,7 @@ class FeedEngine {
   loadConfig() {
     const prevIds = new Set(this.feeds.map((f) => f.id).filter((id) => typeof id === 'string'));
     const prevInterests = new Map(this.feeds.map((f) => [f.id, f.interests]));
-    const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
-    const raw = cfg.get('feeds', []) || [];
+    const raw = userFeeds();
     const seen = new Set();
     const records = [];
     raw.slice(0, 20).forEach((f, idx) => {
@@ -823,7 +850,7 @@ async function wizardFetchJson(engine, url, headers) {
    that feed; otherwise pick one first. Either way the feed opens
    in the setup form, pre-filled. */
 async function runEditFeed(engine, tokens, context, provider) {
-  const rawOf = (id) => (vscode.workspace.getConfiguration(CONFIG_NS).get('feeds', []) || []).find((f) => f && f.id === id);
+  const rawOf = (id) => userFeeds().find((f) => f && f.id === id);
   const current = provider.currentFeed();
   if (current) {
     const raw = rawOf(current.id);
@@ -1021,7 +1048,7 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
   try {
     if (msg.type === 'ready') {
       const pick = (labels) => Object.fromEntries(Object.entries(labels).map(([k, v]) => [k, JA ? v[0] : v[1]]));
-      const allFeeds = vscode.workspace.getConfiguration(CONFIG_NS).get('feeds', []) || [];
+      const allFeeds = userFeeds();
       const editIdx = setupEditFeed ? allFeeds.findIndex((f) => f && f.id === setupEditFeed.id) : -1;
       post({
         type: 'init', ja: JA,
@@ -1117,7 +1144,7 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
           ? { type: 'header', headerName: d.headerName || 'X-API-Key' }
           : { type: d.authType || 'none' };
       const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
-      const feeds = cfg.get('feeds', []) || [];
+      const feeds = userFeeds();
       const fields = {
         name: d.name || defaultName, url: base, auth,
         enabled: d.enabled !== false,
@@ -1180,7 +1207,7 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       );
       if (pick !== delLabel) return;
       const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
-      const feeds = cfg.get('feeds', []) || [];
+      const feeds = userFeeds();
       await cfg.update('feeds', feeds.filter((f) => !(f && f.id === id)), vscode.ConfigurationTarget.Global);
       vscode.window.showInformationMessage(JA
         ? `Signboard-Duo: フィード「${name}」を削除しました。`
