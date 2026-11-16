@@ -463,6 +463,20 @@ class BoardProvider {
     this.currentPlatformNo = 1;
   }
 
+  /* The feed record currently on the board, or null. Platform
+     numbers are assigned to enabled feeds in settings order
+     (model.js), and engine.platforms stays index-aligned with
+     engine.feeds. */
+  currentFeed() {
+    const idx = this.engine.platforms.findIndex((p) => p.no === this.currentPlatformNo);
+    return idx >= 0 ? this.engine.feeds[idx] : null;
+  }
+
+  syncCurrentContext() {
+    const f = this.currentFeed();
+    vscode.commands.executeCommand('setContext', 'signboardDuo.currentIsCi', !!(f && ADAPTER_META[f.type]));
+  }
+
   cycleMode() {
     const order = ['flap', 'led', 'stock'];
     const labels = { flap: 'Split-Flap', led: 'LED', stock: 'Stock Board' };
@@ -502,7 +516,10 @@ class BoardProvider {
     view.webview.onDidReceiveMessage((msg) => {
       if (!msg) return;
       if (msg.type === 'ready') this.push(true);
-      if (msg.type === 'platform' && Number.isFinite(msg.no)) this.currentPlatformNo = msg.no;
+      if (msg.type === 'platform' && Number.isFinite(msg.no)) {
+        this.currentPlatformNo = msg.no;
+        this.syncCurrentContext();
+      }
       if (msg.type === 'width') this.handleWidth(msg.width);
       if (msg.type === 'open' && msg.url && /^https?:\/\//.test(msg.url)) {
         vscode.env.openExternal(vscode.Uri.parse(msg.url));
@@ -551,6 +568,7 @@ class BoardProvider {
     const mode = this.configuredMode();
     const scroll = vscode.workspace.getConfiguration(CONFIG_NS).get('scrollLongText', true);
     const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), pinned: this.pinned, theme: this.theme, platformNo: this.currentPlatformNo };
+    this.syncCurrentContext();
     const signature = JSON.stringify(payload);
     if (!force && signature === this.lastSignature) return;
     this.lastSignature = signature;
@@ -692,38 +710,34 @@ async function wizardFetchJson(engine, url, headers) {
   }
 }
 
-async function pickInterests(capabilities, current) {
-  const presetItems = wizard.PRESET_ORDER.map((p) => ({
-    label: (JA ? PRESET_LABELS[p][0] : PRESET_LABELS[p][1]),
-    description: wizard.presetInterests(p, capabilities).join(', '),
-    preset: p,
-  }));
-  presetItems.push({ label: JA ? PRESET_LABELS.custom[0] : PRESET_LABELS.custom[1], description: '', preset: 'custom' });
-  const pick = await vscode.window.showQuickPick(presetItems, {
-    placeHolder: JA ? '何をニュースにしますか' : 'What becomes news',
-  });
-  if (!pick) return null;
-  if (pick.preset !== 'custom') return wizard.presetInterests(pick.preset, capabilities);
-  const items = wizard.catalogFor(capabilities).map((id) => ({
-    label: JA ? INTEREST_LABELS[id][0] : INTEREST_LABELS[id][1],
-    id,
-    picked: Array.isArray(current) ? current.includes(id) : id === 'failed' || id === 'recovered',
-  }));
-  const chosen = await vscode.window.showQuickPick(items, {
-    canPickMany: true,
-    placeHolder: JA ? 'ニュースにする項目' : 'News items',
-  });
-  if (!chosen) return null;
-  if (!chosen.length) {
-    vscode.window.showInformationMessage(JA
-      ? 'Signboard-Duo: 項目が選ばれなかったため、「失敗＋回復」を使います。'
-      : 'Signboard-Duo: nothing was picked; using failures + recoveries.');
-    return wizard.presetInterests('changes', capabilities);
+/* Edit entry point: when the board is showing a CI feed, edit
+   that feed; otherwise pick one first. Either way the feed opens
+   in the setup form, pre-filled. */
+async function runEditFeed(engine, tokens, context, provider) {
+  const rawOf = (id) => (vscode.workspace.getConfiguration(CONFIG_NS).get('feeds', []) || []).find((f) => f && f.id === id);
+  const current = provider.currentFeed();
+  if (current && ADAPTER_META[current.type]) {
+    const raw = rawOf(current.id);
+    if (raw) { openSetupPanel(engine, tokens, context, raw); return; }
   }
-  return chosen.map((c) => c.id);
+  const candidates = engine.feeds.filter((f) => ADAPTER_META[f.type]);
+  if (!candidates.length) {
+    vscode.window.showInformationMessage(JA
+      ? 'Signboard-Duo: REST アダプタのフィードがありません。'
+      : 'Signboard-Duo: there are no REST adapter feeds.');
+    return;
+  }
+  const pick = await vscode.window.showQuickPick(
+    candidates.map((f) => ({ label: f.name || f.id, description: f.type, id: f.id })),
+    { placeHolder: JA ? '編集するフィード' : 'Feed to edit' }
+  );
+  if (!pick) return;
+  const raw = rawOf(pick.id);
+  if (raw) openSetupPanel(engine, tokens, context, raw);
 }
 
 let setupPanel = null;
+let setupEditFeed = null;
 
 function setupNonce() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -732,7 +746,8 @@ function setupNonce() {
   return out;
 }
 
-function setupHtml(webview, context) {
+function setupHtml(webview, context, editFeed) {
+  const editing = !!editFeed;
   const nonce = setupNonce();
   const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'setup.js'));
   const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'setup.css'));
@@ -743,10 +758,10 @@ function setupHtml(webview, context) {
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
 <link href="${cssUri}" rel="stylesheet">
-<title>${t('CI フィードを追加', 'Add CI Feed')}</title>
+<title>${editing ? t('CI フィードを編集', 'Edit CI Feed') : t('CI フィードを追加', 'Add CI Feed')}</title>
 </head>
 <body>
-<h1>${t('CI フィードを追加', 'Add CI Feed')}</h1>
+<h1>${editing ? t('CI フィードを編集', 'Edit CI Feed') : t('CI フィードを追加', 'Add CI Feed')}</h1>
 <p class="lead">${t('すべての項目が1画面にあります。ブラウザへ URL をコピーしに行ったり、トークンを取りに行ったりして戻ってきても、入力はそのまま残ります。', 'Everything is on one screen. Leave to copy a URL or fetch a token and come back — the form stays as you left it.')}</p>
 
 <fieldset>
@@ -830,10 +845,19 @@ function setupHtml(webview, context) {
 </fieldset>
 
 <div id="status"></div>
-<button id="save" type="button">${t('この内容で追加する', 'Add this feed')}</button>
+<button id="save" type="button">${editing ? t('この内容で保存する', 'Save changes') : t('この内容で追加する', 'Add this feed')}</button>
 <script nonce="${nonce}" src="${jsUri}"></script>
 </body>
 </html>`;
+}
+
+async function setupAuthHeadersFor(engine, adapterType, c) {
+  let conn = c;
+  if (conn && !conn.token && setupEditFeed && setupEditFeed.id) {
+    const stored = await engine.context.secrets.get(`feed-token:${setupEditFeed.id}`);
+    if (stored) conn = { ...conn, token: stored };
+  }
+  return setupAuthHeaders(adapterType, conn);
 }
 
 function setupAuthHeaders(adapterType, c) {
@@ -852,6 +876,17 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       const pick = (labels) => Object.fromEntries(Object.entries(labels).map(([k, v]) => [k, JA ? v[0] : v[1]]));
       post({
         type: 'init', ja: JA,
+        edit: setupEditFeed ? {
+          id: setupEditFeed.id, type: setupEditFeed.type,
+          url: setupEditFeed.url || '',
+          authType: (setupEditFeed.auth && setupEditFeed.auth.type) || 'none',
+          authUser: (setupEditFeed.auth && setupEditFeed.auth.user) || '',
+          name: setupEditFeed.name || '',
+          maxItems: setupEditFeed.maxItems || 10,
+          keepHours: setupEditFeed.keepHours || 24,
+          target: setupEditFeed.target || {},
+          interests: Array.isArray(setupEditFeed.interests) ? setupEditFeed.interests : null,
+        } : null,
         caps: { 'github-actions': github.CAPABILITIES, 'bamboo-rest': bamboo.CAPABILITIES },
         presets: wizard.PRESETS, presetOrder: wizard.PRESET_ORDER, catalog: wizard.CATALOG,
         labels: { interests: pick(INTEREST_LABELS), presets: pick(PRESET_LABELS) },
@@ -860,13 +895,13 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
     }
     if (msg.type === 'loadProjects') {
       const base = wizard.normalizeBaseUrl(msg.base);
-      const items = bamboo.parseProjects(await wizardFetchJson(engine, bamboo.projectsUrl(base), setupAuthHeaders('bamboo-rest', msg)));
+      const items = bamboo.parseProjects(await wizardFetchJson(engine, bamboo.projectsUrl(base), await setupAuthHeadersFor(engine, 'bamboo-rest', msg)));
       post({ type: 'projects', items });
       return;
     }
     if (msg.type === 'loadPlans') {
       const base = wizard.normalizeBaseUrl(msg.base);
-      const items = bamboo.parseProjectPlans(await wizardFetchJson(engine, bamboo.projectUrl(base, msg.project), setupAuthHeaders('bamboo-rest', msg)));
+      const items = bamboo.parseProjectPlans(await wizardFetchJson(engine, bamboo.projectUrl(base, msg.project), await setupAuthHeadersFor(engine, 'bamboo-rest', msg)));
       post({ type: 'plans', items });
       return;
     }
@@ -876,7 +911,7 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) {
         throw new Error(JA ? 'リポジトリは owner/name の形式で入力してください' : 'Enter the repository as owner/name');
       }
-      const h = setupAuthHeaders('github-actions', msg);
+      const h = await setupAuthHeadersFor(engine, 'github-actions', msg);
       await wizardFetchJson(engine, github.repoUrl(base, repo), h);
       const items = github.parseWorkflows(await wizardFetchJson(engine, github.workflowsUrl(base, repo), h));
       post({ type: 'workflows', items });
@@ -909,13 +944,28 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       }
       const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
       const feeds = cfg.get('feeds', []) || [];
-      const id = wizard.uniqueFeedId(idBase, feeds.map((f) => f && f.id));
-      const entry = {
-        id, name: d.name || defaultName, type: d.type, url: base, target, interests,
+      const fields = {
+        name: d.name || defaultName, url: base, target, interests,
         auth: d.authType === 'basic' ? { type: 'basic', user: d.user || '' } : { type: d.authType || 'none' },
         maxItems: Math.min(20, Math.max(1, Number(d.maxItems) || 10)),
         keepHours: Math.min(168, Math.max(1, Number(d.keepHours) || 24)),
       };
+      if (setupEditFeed) {
+        const id = setupEditFeed.id;
+        const oldRaw = feeds.find((f) => f && f.id === id) || {};
+        const entry = { ...oldRaw, ...fields, id, type: oldRaw.type || d.type };
+        await cfg.update('feeds', feeds.map((f) => (f && f.id === id ? entry : f)), vscode.ConfigurationTarget.Global);
+        if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
+        else if (entry.auth.type === 'none' && (await tokens.has(id))) await tokens.delete(id);
+        post({ type: 'saved' });
+        vscode.window.showInformationMessage(JA
+          ? `Signboard-Duo: フィード「${entry.name}」を更新しました。`
+          : `Signboard-Duo: feed "${entry.name}" updated.`);
+        await engine.refreshAll();
+        return;
+      }
+      const id = wizard.uniqueFeedId(idBase, feeds.map((f) => f && f.id));
+      const entry = { id, type: d.type, ...fields };
       await cfg.update('feeds', [...feeds, entry], vscode.ConfigurationTarget.Global);
       if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
       post({ type: 'saved' });
@@ -930,11 +980,14 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
   }
 }
 
-function openSetupPanel(engine, tokens, context) {
-  if (setupPanel) { setupPanel.reveal(); return; }
+function openSetupPanel(engine, tokens, context, editFeed) {
+  if (setupPanel) { setupPanel.dispose(); setupPanel = null; }
+  setupEditFeed = editFeed || null;
   const panel = vscode.window.createWebviewPanel(
     'signboardDuoSetup',
-    JA ? 'Signboard-Duo: CI フィードを追加' : 'Signboard-Duo: Add CI Feed',
+    editFeed
+      ? (JA ? 'Signboard-Duo: CI フィードを編集' : 'Signboard-Duo: Edit CI Feed')
+      : (JA ? 'Signboard-Duo: CI フィードを追加' : 'Signboard-Duo: Add CI Feed'),
     vscode.ViewColumn.Active,
     {
       enableScripts: true,
@@ -943,33 +996,9 @@ function openSetupPanel(engine, tokens, context) {
     }
   );
   setupPanel = panel;
-  panel.onDidDispose(() => { setupPanel = null; });
-  panel.webview.html = setupHtml(panel.webview, context);
+  panel.onDidDispose(() => { setupPanel = null; setupEditFeed = null; });
+  panel.webview.html = setupHtml(panel.webview, context, editFeed);
   panel.webview.onDidReceiveMessage((msg) => { handleSetupMessage(panel, engine, tokens, msg); });
-}
-
-async function runEditInterests(engine) {
-  const candidates = engine.feeds.filter((f) => ADAPTER_META[f.type]);
-  if (!candidates.length) {
-    vscode.window.showInformationMessage(JA
-      ? 'Signboard-Duo: REST アダプタのフィードがありません。'
-      : 'Signboard-Duo: there are no REST adapter platforms.');
-    return;
-  }
-  const pick = await vscode.window.showQuickPick(
-    candidates.map((f) => ({ label: f.name || f.id, description: `${f.type} — ${(f.interests || []).join(', ') || 'default'}`, id: f.id })),
-    { placeHolder: JA ? 'ニュース項目を変更するフィード' : 'Feed whose news items to change' }
-  );
-  if (!pick) return;
-  const rec = candidates.find((f) => f.id === pick.id);
-  const interests = await pickInterests(ADAPTER_META[rec.type].mod.CAPABILITIES, rec.interests);
-  if (!interests) return;
-  const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
-  const feeds = (cfg.get('feeds', []) || []).map((f) => (f && f.id === rec.id ? { ...f, interests } : f));
-  await cfg.update('feeds', feeds, vscode.ConfigurationTarget.Global);
-  vscode.window.showInformationMessage(JA
-    ? `Signboard-Duo: 「${rec.name || rec.id}」のニュース項目を更新しました。`
-    : `Signboard-Duo: news items for "${rec.name || rec.id}" updated.`);
 }
 
 function activate(context) {
@@ -1127,7 +1156,7 @@ function activate(context) {
         : 'Signboard-Duo: all tokens deleted.');
     }),
     vscode.commands.registerCommand('signboardDuo.addCiPlatform', () => openSetupPanel(engine, tokens, context)),
-    vscode.commands.registerCommand('signboardDuo.editInterests', () => runEditInterests(engine)),
+    vscode.commands.registerCommand('signboardDuo.editInterests', () => runEditFeed(engine, tokens, context, provider)),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration(`${CONFIG_NS}.mode`)) syncModeContext();
     }),
@@ -1135,6 +1164,7 @@ function activate(context) {
   );
   syncModeContext();
   vscode.commands.executeCommand('setContext', 'signboardDuo.pinned', false);
+  vscode.commands.executeCommand('setContext', 'signboardDuo.currentIsCi', false);
   engine.start();
 }
 

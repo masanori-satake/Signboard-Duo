@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.10.0] - 2026-11-16
+
+### Added
+
+- **Edit the displayed CI feed in the form**: while the board shows a Bamboo / GitHub Actions feed, the **Change News Items** title-bar button is enabled and opens that feed in the setup form, pre-filled — target, branch scope, news items, name and limits are all editable, and saving updates the feed in place (its token stays attached; the stored token is used to load the lists, so it does not need re-entering). From the Command Palette, the command picks a feed first, then opens the same form.
+- **Title-bar layout**: Add CI Feed and Change News Items sit at the far left of the board title bar; the board-style switcher (flap / LED / stock) sits at the far right.
+
+### 日本語
+
+- **表示中の CI フィードをフォームで編集可能に**。盤面が Bamboo / GitHub Actions のフィードを表示している間、タイトルバーの**ニュース項目を変更**ボタンが有効になり、そのフィードを追加時と同じフォームに初期値入りで開きます。対象・ブランチの範囲・ニュース項目・名前・上限をすべて変更でき、保存すると同じフィードがその場で更新されます（トークンは紐づいたまま、一覧の読み込みには保存済みトークンを使うので入れ直し不要）。コマンドパレットから開く場合は、先にフィードを選んでから同じフォームを開きます。
+- **タイトルバーの配置**：CI フィードを追加とニュース項目を変更を盤面タイトルバーの一番左へ、表示形式の切り替え（フラップ／LED／株価）を一番右へ配置しました。
+
 ## [1.9.0] - 2026-11-16
 
 ### Added

@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.9.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.10.0-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.9.0**
+Current version: **v1.10.0**
 
 ---
 
@@ -215,7 +215,7 @@ Many sites publish RSS/Atom feeds without making a fuss about them. A few ways t
 | **Delete Unlinked Tokens** | `signboardDuo.deleteOrphanTokens` | Remove tokens whose feed is no longer in the settings |
 | **Delete All Tokens** | `signboardDuo.deleteAllTokens` | Remove every stored token at once |
 | **Add CI Feed** | `signboardDuo.addCiPlatform` | Set up a Bamboo / GitHub Actions feed in a one-screen form (target, branch scope, news items) — no JSON editing, and the form survives trips to the browser. Also a **+** button on the board title bar |
-| **Change News Items (Interests)** | `signboardDuo.editInterests` | Change what becomes news on an existing REST platform. Also a button on the board title bar |
+| **Change News Items (Interests)** | `signboardDuo.editInterests` | Edit the CI feed currently on the board in the same form (target, news items, name). The title-bar button appears while a CI feed is displayed; from the Command Palette you pick the feed first |
 
 ---
 
@@ -428,7 +428,7 @@ The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, 
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.9.0**
+現在のバージョン: **v1.10.0**
 
 ---
 
@@ -643,7 +643,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 | **紐づいていないトークンを削除** | `signboardDuo.deleteOrphanTokens` | 設定から消えたフィードのトークンだけを削除する |
 | **すべてのトークンを削除** | `signboardDuo.deleteAllTokens` | 保存したトークンを一括で削除する |
 | **CI フィードを追加** | `signboardDuo.addCiPlatform` | Bamboo / GitHub Actions のフィードを1画面のフォームで設定する（対象・ブランチの範囲・ニュース項目）。JSON の手編集は不要で、ブラウザへ行って戻っても入力は残る。盤面のタイトルバーの **+** ボタンからも開ける |
-| **ニュース項目を変更** | `signboardDuo.editInterests` | 既存の REST フィードについて、何をニュースにするかを変更する。盤面のタイトルバーのボタンからも開ける |
+| **ニュース項目を変更** | `signboardDuo.editInterests` | 表示中の CI フィードを、追加時と同じフォームで編集する（対象・ニュース項目・名前）。タイトルバーのボタンは CI フィードの表示中に現れる。コマンドパレットからはフィードを選んで開く |
 
 ---
 

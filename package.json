@@ -385,57 +385,57 @@
         {
           "command": "signboardDuo.prevPlatform",
           "when": "view == signboardDuo.board",
-          "group": "navigation@1"
+          "group": "navigation@3"
         },
         {
           "command": "signboardDuo.pinPlatform",
           "when": "view == signboardDuo.board && !signboardDuo.pinned",
-          "group": "navigation@2"
+          "group": "navigation@4"
         },
         {
           "command": "signboardDuo.unpinPlatform",
           "when": "view == signboardDuo.board && signboardDuo.pinned",
-          "group": "navigation@2"
+          "group": "navigation@4"
         },
         {
           "command": "signboardDuo.nextPlatform",
           "when": "view == signboardDuo.board",
-          "group": "navigation@3"
+          "group": "navigation@5"
         },
         {
           "command": "signboardDuo.refresh",
           "when": "view == signboardDuo.board",
-          "group": "navigation@4"
+          "group": "navigation@6"
         },
         {
           "command": "signboardDuo.cycleTheme",
           "when": "view == signboardDuo.board",
-          "group": "navigation@5"
+          "group": "navigation@7"
         },
         {
           "command": "signboardDuo.cycleModeFlap",
           "when": "view == signboardDuo.board && signboardDuo.isFlap",
-          "group": "navigation@6"
+          "group": "navigation@8"
         },
         {
           "command": "signboardDuo.cycleModeLed",
           "when": "view == signboardDuo.board && signboardDuo.isLed",
-          "group": "navigation@6"
+          "group": "navigation@8"
         },
         {
           "command": "signboardDuo.cycleModeStock",
           "when": "view == signboardDuo.board && signboardDuo.isStock",
-          "group": "navigation@6"
+          "group": "navigation@8"
         },
         {
           "command": "signboardDuo.addCiPlatform",
           "when": "view == signboardDuo.board",
-          "group": "navigation@7"
+          "group": "navigation@1"
         },
         {
           "command": "signboardDuo.editInterests",
-          "when": "view == signboardDuo.board",
-          "group": "navigation@8"
+          "when": "view == signboardDuo.board && signboardDuo.currentIsCi",
+          "group": "navigation@2"
         }
       ]
     },
@@ -470,5 +470,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.9.0"
+  "version": "1.10.0"
 }

@@ -5,6 +5,9 @@
 const vscode = acquireVsCodeApi();
 const $ = (id) => document.getElementById(id);
 let CFG = null;
+let pendingWf = null;
+let pendingProject = null;
+let pendingPlans = null;
 
 function status(msg, kind) {
   const el = $('status');
@@ -75,6 +78,45 @@ function checkedValues(containerId) {
   return [...$(containerId).querySelectorAll('input[type=checkbox]:checked')].map((c) => c.value);
 }
 
+
+function checkPending(containerId, values) {
+  if (!values) return;
+  const wanted = new Set(values.map(String));
+  for (const cb of $(containerId).querySelectorAll('input[type=checkbox]')) {
+    cb.checked = wanted.has(cb.value);
+  }
+}
+function applyEdit(e) {
+  $('type').value = e.type;
+  $('type').disabled = true;
+  syncType();
+  $('base').value = e.url || '';
+  $('authType').value = e.authType || 'none';
+  syncAuth();
+  $('authUser').value = e.authUser || '';
+  $('name').value = e.name || '';
+  $('maxItems').value = e.maxItems || 10;
+  $('keepHours').value = e.keepHours || 24;
+  rebuildInterests(e.interests && e.interests.length ? e.interests : null);
+  $('preset').value = 'custom';
+  const t = e.target || {};
+  if (e.type === 'github-actions') {
+    $('repo').value = t.repo || '';
+    const radio = document.querySelector(`input[name=branchScope][value="${t.branches || 'mainline'}"]`);
+    if (radio) radio.checked = true;
+    pendingWf = Array.isArray(t.workflows) && t.workflows.length ? t.workflows : null;
+    if ($('repo').value) {
+      status(CFG.ja ? 'ワークフローを読み込み中…' : 'Loading workflows…');
+      vscode.postMessage({ type: 'loadWorkflows', ...conn(), repo: $('repo').value });
+    }
+  } else {
+    pendingProject = t.project || null;
+    pendingPlans = Array.isArray(t.plans) && t.plans.length ? t.plans : null;
+    status(CFG.ja ? 'プロジェクトを読み込み中…' : 'Loading projects…');
+    vscode.postMessage({ type: 'loadProjects', ...conn() });
+  }
+}
+
 window.addEventListener('message', (ev) => {
   const m = ev.data || {};
   if (m.type === 'init') {
@@ -95,6 +137,7 @@ window.addEventListener('message', (ev) => {
     syncType();
     syncAuth();
     status('');
+    if (m.edit) applyEdit(m.edit);
   } else if (m.type === 'projects') {
     const sel = $('project');
     sel.innerHTML = '';
@@ -106,14 +149,28 @@ window.addEventListener('message', (ev) => {
     }
     $('bambooTarget').classList.remove('hidden');
     if (!$('name').value && m.items.length) $('name').value = m.items[0].name;
+    if (pendingProject) {
+      $('project').value = pendingProject;
+      pendingProject = null;
+      if (pendingPlans) {
+        $('granularity').value = 'plans';
+        $('loadPlans').classList.remove('hidden');
+        status(CFG.ja ? 'プランを読み込み中…' : 'Loading plans…');
+        vscode.postMessage({ type: 'loadPlans', ...conn(), project: $('project').value });
+      }
+    }
     status(m.items.length ? '' : (CFG.ja ? 'プロジェクトが見つかりませんでした' : 'No projects found'), m.items.length ? '' : 'error');
   } else if (m.type === 'plans') {
     fillChecks('plans', m.items.map((p) => ({ label: p.name, description: p.key, key: p.key })), 'key');
     $('plansRow').classList.remove('hidden');
+    checkPending('plans', pendingPlans);
+    pendingPlans = null;
     status('');
   } else if (m.type === 'workflows') {
     fillChecks('workflows', m.items.map((w) => ({ label: w.name, id: w.id })), 'label');
     $('workflowsRow').classList.remove('hidden');
+    checkPending('workflows', pendingWf);
+    pendingWf = null;
     if (!$('name').value) $('name').value = $('repo').value.trim();
     status('');
   } else if (m.type === 'error') {
