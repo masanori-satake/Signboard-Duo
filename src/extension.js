@@ -267,12 +267,23 @@ class FeedEngine {
     this.refreshing = true;
     try {
       this.pxCfg = this.proxyConfig();
-      for (const rec of this.feeds) {
-        if (rec.enabled && !rec.configError) {
+      /* Bounded parallelism: the old strictly serial cycle let one
+         hanging feed (a 30 s deadline each) delay every platform
+         behind it — with several dead feeds a cycle could take
+         minutes, exactly when the user most needs the board. Four
+         workers keep the pressure on any one server low while a
+         single hang costs one lane, not the whole cycle. Each
+         record is only ever touched by the worker that claimed it. */
+      const targets = this.feeds.filter((rec) => rec.enabled && !rec.configError);
+      let nextIdx = 0;
+      const worker = async () => {
+        while (nextIdx < targets.length) {
+          const rec = targets[nextIdx++];
           await this.refreshOne(rec);
           this.noteOutcome(rec, Date.now());
         }
-      }
+      };
+      await Promise.all(Array.from({ length: Math.min(4, targets.length) }, () => worker()));
       if (this.dirty) { this.dirty = false; await this.persist(); }
       this.onChange();
     } finally {
@@ -621,6 +632,23 @@ class BoardProvider {
     this.push(true);
   }
 
+  /* Change detection for the 1-second push tick. Stringifying the
+     whole payload every second — every platform, every row, every
+     URL — was the board's main idle cost. The digest keeps exactly
+     the fields a renderer can show (plus the row link, so a changed
+     link still re-renders), as compact tuples. */
+  signatureOf(payload) {
+    const parts = [payload.mode, payload.scroll, payload.theme, payload.rotating, payload.platformNo, payload.fetchedAt];
+    for (const p of payload.platforms) {
+      parts.push([p.no, p.name, p.kind, p.state, p.downSince || 0, p.lastOkAt || 0, p.diag ? p.diag.title : '']);
+      for (const r of p.rows) {
+        parts.push([r.key, r.timeMs, r.status, r.isNew ? 1 : 0, r.title, r.remark, r.url,
+          r.price, r.change, r.changePct, r.open, r.high, r.low]);
+      }
+    }
+    return JSON.stringify(parts);
+  }
+
   configuredMode() {
     return vscode.workspace.getConfiguration(CONFIG_NS).get('mode', 'flap');
   }
@@ -647,7 +675,7 @@ class BoardProvider {
     const scroll = vscode.workspace.getConfiguration(CONFIG_NS).get('scrollLongText', true);
     const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), rotating: this.rotating, theme: this.theme, platformNo: this.currentPlatformNo };
     this.syncCurrentContext();
-    const signature = JSON.stringify(payload);
+    const signature = this.signatureOf(payload);
     if (!force && signature === this.lastSignature) return;
     this.lastSignature = signature;
     this.view.webview.postMessage(payload);

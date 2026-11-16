@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.17.2] - 2026-11-17
+
+### Fixed
+
+- **One hanging feed no longer delays the whole board.** Poll cycles were strictly serial, so a feed that used its full 30-second deadline held up every platform behind it; with several unreachable feeds a cycle could take minutes. Up to four feeds now refresh in parallel (each feed is still handled by exactly one worker, and a server still sees only one request at a time per feed).
+- **The board's idle cost is lower.** The per-second change check used to stringify the entire board state; it now digests only the fields a renderer can actually show.
+
+### 日本語
+
+- **応答しないフィードが盤面全体を遅らせる問題を直しました。** 取得は直列だったため、30秒の期限いっぱいまで応答しないフィードがあると、後ろの番線が全部待たされていました（届かないフィードが複数あると、1サイクルに数分かかることも）。最大4フィードまで並行して取得するようにしました（1つのフィードを扱うのは常に1ワーカーだけで、サーバー側から見た同時リクエスト数は変わりません）。
+- **盤面の待機時コストを下げました。** 毎秒の変更チェックで盤面全体を文字列化していたのを、描画に必要な項目だけの要約で比べるようにしました。
+
 ## [1.17.1] - 2026-11-17
 
 ### Fixed
