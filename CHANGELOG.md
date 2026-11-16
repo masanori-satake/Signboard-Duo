@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.12] - 2026-11-16
+
+- Fixed (palette audit): the three title-bar-only board-style variants no longer appear in the Command Palette, where they duplicated "Switch Board Style" four times over; Pin/Unpin now appear only in the state where they apply. All other commands and every setting were audited — registrations, activation and the settings schema all match what the code reads
+
+- 修正（パレット監査）：タイトルバー専用の盤面切替バリアント3つをコマンドパレットに出さないようにした（「盤面スタイルを切り替え」が4つ並んでいた）。ピン留め／解除は、効く状態のときだけ出すようにした。他のコマンドと全設定は監査済みで、登録・起動・設定スキーマとコードの読み取りは一致している
+
 ## [1.3.11] - 2026-11-16
 
 - Fixed: commands now carry the "Signboard-Duo" category, so the Command Palette lists them as "Signboard-Duo: …" as the README describes. Without a category the token commands (Set/Delete Feed Token) could not be found by searching for "Signboard-Duo" — they only existed under their bare titles

@@ -262,6 +262,28 @@
       "title": "%config.title%"
     },
     "menus": {
+      "commandPalette": [
+        {
+          "command": "signboardDuo.cycleModeFlap",
+          "when": "never"
+        },
+        {
+          "command": "signboardDuo.cycleModeLed",
+          "when": "never"
+        },
+        {
+          "command": "signboardDuo.cycleModeStock",
+          "when": "never"
+        },
+        {
+          "command": "signboardDuo.pinPlatform",
+          "when": "!signboardDuo.pinned"
+        },
+        {
+          "command": "signboardDuo.unpinPlatform",
+          "when": "signboardDuo.pinned"
+        }
+      ],
       "view/title": [
         {
           "command": "signboardDuo.prevPlatform",
@@ -341,5 +363,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.3.11"
+  "version": "1.3.12"
 }
