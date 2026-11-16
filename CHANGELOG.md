@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.14.1] - 2026-11-16
+
+### Changed
+
+- Documentation only: completed the English README note for the 1.14.0 news-items row reset (the Japanese note already shipped in 1.14.0). No behaviour changes; this patch also restores the per-commit version-bump check on `main`.
+
+### 日本語
+
+- ドキュメントのみの更新です。1.14.0 のニュース項目リセットについて、英語 README の注記を補いました（日本語の注記は 1.14.0 に含まれています）。動作の変更はありません。あわせて、`main` のコミット単位のバージョンバンプチェックが通る状態に戻しました。
+
 ## [1.14.0] - 2026-11-16
 
 ### Changed
