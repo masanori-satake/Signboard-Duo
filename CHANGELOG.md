@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.12.0] - 2026-11-16
+
+### Added
+
+- **Delete from the edit form**: the feed form (in edit mode) ends with a clearly separated **Delete this feed** button. One modal confirmation, then the feed is removed from the settings; if a token was stored for it, the existing flow asks whether to delete that too.
+
+### 日本語
+
+- **編集フォームから削除可能に**。フィードのフォーム（編集時）の末尾に、区切りの下に**このフィードを削除**ボタンを置きました。確認はモーダルで1回。削除は設定から項目を外す形で行い、トークンが保存されていた場合は既存の仕組みが一緒に消すか尋ねます。
+
 ## [1.11.1] - 2026-11-16
 
 ### Changed

@@ -866,6 +866,10 @@ function setupHtml(webview, context, editFeed) {
 
 <div id="status"></div>
 <button id="save" type="button">${editing ? t('この内容で保存する', 'Save changes') : t('この内容で追加する', 'Add this feed')}</button>
+${editing ? `<div class="danger-zone">
+<div class="hint">${t('このフィードを盤面と設定から取り除きます。保存されているトークンがある場合は、削除後に一緒に消すか尋ねます。', 'Removes this feed from the board and the settings. If a token is stored for it, you will be asked about it after deletion.')}</div>
+<button id="deleteFeed" class="danger" type="button">${t('このフィードを削除', 'Delete this feed')}</button>
+</div>` : ''}
 <script nonce="${nonce}" src="${jsUri}"></script>
 </body>
 </html>`;
@@ -1009,6 +1013,28 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       vscode.window.showInformationMessage(JA
         ? `Signboard-Duo: フィード「${entry.name}」を追加しました。`
         : `Signboard-Duo: feed "${entry.name}" added.`);
+      await engine.refreshAll();
+      return;
+    }
+    if (msg.type === 'delete') {
+      if (!setupEditFeed) return;
+      const id = setupEditFeed.id;
+      const name = setupEditFeed.name || id;
+      const delLabel = JA ? '削除する' : 'Delete';
+      const pick = await vscode.window.showWarningMessage(
+        JA
+          ? `Signboard-Duo: フィード「${name}」を削除しますか？`
+          : `Signboard-Duo: delete the feed "${name}"?`,
+        { modal: true }, delLabel
+      );
+      if (pick !== delLabel) return;
+      const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
+      const feeds = cfg.get('feeds', []) || [];
+      await cfg.update('feeds', feeds.filter((f) => !(f && f.id === id)), vscode.ConfigurationTarget.Global);
+      vscode.window.showInformationMessage(JA
+        ? `Signboard-Duo: フィード「${name}」を削除しました。`
+        : `Signboard-Duo: feed "${name}" deleted.`);
+      if (setupPanel) setupPanel.dispose();
       await engine.refreshAll();
       return;
     }

@@ -52,3 +52,16 @@ button:disabled { opacity: 0.5; cursor: default; }
 #status.ok { color: var(--vscode-charts-green); }
 .hidden { display: none; }
 .inline-num { display: inline-block; margin-right: 18px; }
+
+.danger-zone {
+  margin-top: 26px;
+  padding-top: 14px;
+  border-top: 1px solid var(--vscode-panel-border);
+}
+button.danger {
+  color: var(--vscode-errorForeground);
+  background: transparent;
+  border: 1px solid var(--vscode-errorForeground);
+  padding: 7px 16px;
+}
+button.danger:hover { background: var(--vscode-inputValidation-errorBackground); }

@@ -245,5 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     vscode.postMessage({ type: 'save', data });
   });
+  const del = $('deleteFeed');
+  if (del) del.addEventListener('click', () => vscode.postMessage({ type: 'delete' }));
   vscode.postMessage({ type: 'ready' });
 });
