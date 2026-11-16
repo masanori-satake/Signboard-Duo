@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.8.0] - 2026-11-16
+## [1.9.0] - 2026-11-16
 
 ### Added
 
@@ -10,10 +10,16 @@
 
 - **Add CI Feed is now a one-screen form** instead of a chain of QuickPick / input boxes: every field (connection, target, news items, name) is visible at once, can be filled in any order, and survives leaving VS Code to copy a URL or fetch a token — the form is exactly as you left it when you come back. Pasted browser URLs are trimmed to the base URL / `owner/name` automatically, and the token may be left empty and set later. The command was renamed from "Add CI Platform" to **Add CI Feed** (Japanese: CI フィードを追加): the setup side speaks of feeds, whatever board style renders them.
 
+### Fixed
+
+- **Failed REST runs now show as cancelled**: the board's row status only honoured the failure flag for RSS `ci` feeds, so a failed Bamboo / GitHub Actions run arrived as an ordinary row and was easy to miss. Adapter rows carry the same flag and are now rendered as cancelled (LED) / cancelled flight (flap) too.
+
 ### 日本語
 
 - CI フィードを追加（+）とニュース項目を変更を、**盤面のタイトルバーのボタン**としても配置。コマンドパレットを経由せずに開けます。
 - **CI フィードを追加を、QuickPick の連鎖から1画面のフォームに変更**。接続・対象・ニュース項目・名前の全項目が同時に見え、順不同で埋められ、URL のコピーやトークンの取得で VS Code を離れて戻ってきても入力がそのまま残ります。ブラウザの URL を貼るとベース URL／`owner/name` に自動で切り詰め、トークンは空のまま保存して後から入れることもできます。あわせてコマンド名を「CI 番線を追加」から「**CI フィードを追加**」に改称。設定側の言葉は、表示形式によらない「フィード」に統一します。
+
+- **REST の失敗実行が「運休」表示にならない問題を修正**。行の状態判定が RSS の `ci` フィードの失敗フラグしか見ておらず、Bamboo / GitHub Actions の失敗が通常の「到着」行として出て気づけませんでした。アダプタの行も同じフラグを持つので、LED では運休、フラップでは欠航として表示します。
 
 ## [1.7.0] - 2026-11-16
 

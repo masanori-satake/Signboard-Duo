@@ -370,10 +370,11 @@ class FeedEngine {
     }
   }
 
-  /* ci kind: the verdict was read off the title at ingest (see
-     ciVerdict in feedparse.js); failed runs show as cancelled. */
+  /* Failed CI runs show as cancelled, however they arrived: RSS ci
+     feeds carry ciFailed from ciVerdict (feedparse.js), and the
+     REST adapters set the same flag in their buildRows. */
   rowStatus(rec, row) {
-    if (rec.kind === 'ci' && row.ciFailed) return 'failed';
+    if (row.ciFailed) return 'failed';
     if (row.updated) return 'updated';
     if (row.isNew) return 'arrived';
     return 'ontime';
