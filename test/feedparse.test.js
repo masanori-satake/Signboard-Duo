@@ -106,6 +106,40 @@ test('numeric entities in the surrogate range are not decoded', () => {
   assert.equal(decodeEntities('a&#x41;b'), 'aAb');
 });
 
+test('a pathological attribute run parses in linear time, not quadratic', () => {
+  // One long run of word characters with no '=' froze the old
+  // regex-based attribute scanner (33 s at 160 KB). 200 KB of it
+  // must now parse as an ordinary (if odd) feed, fast.
+  const junk = 'a'.repeat(200 * 1024);
+  const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>Ch</title>
+    <item ${junk}><title>Kept</title><guid>g1</guid></item>
+  </channel></rss>`;
+  const started = Date.now();
+  const feed = parseFeed(xml);
+  assert.ok(Date.now() - started < 5000, 'attribute scanning must stay fast');
+  assert.equal(feed.items.length, 1);
+  assert.equal(feed.items[0].title, 'Kept');
+});
+
+test('quoted attribute values still parse (single, double, entities)', () => {
+  const xml = `<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"><title>F</title>
+    <entry><id>e1</id><title>One</title><link rel='alternate' href="https://example.com/?a=1&amp;b=2"/></entry>
+  </feed>`;
+  const feed = parseFeed(xml);
+  assert.equal(feed.items[0].link, 'https://example.com/?a=1&b=2');
+});
+
+test('a deeply nested description does not overflow the stack', () => {
+  const open = '<b>'.repeat(20000);
+  const close = '</b>'.repeat(20000);
+  const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>Ch</title>
+    <item><title>Deep</title><guid>g1</guid><description>${open}core text${close}</description></item>
+  </channel></rss>`;
+  const feed = parseFeed(xml);
+  assert.equal(feed.items.length, 1);
+  assert.ok(feed.items[0].remark.includes('core text'));
+});
+
 test('unsupported root throws', () => {
   assert.throws(() => parseFeed('<html><body>x</body></html>'), /unsupported/);
 });

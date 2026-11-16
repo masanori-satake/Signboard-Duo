@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.18.1] - 2026-11-17
+
+### Fixed
+
+- More audit hardening, this round from an independent security review of the fetch → parse → render path (no behaviour changes for well-formed feeds and settings):
+  - **A single hostile feed could freeze the whole editor.** The XML attribute scanner used a regex that backtracks quadratically on a tag full of word characters with no `=` (measured 33 s at 160 KB; a tag can approach the 1 MB body cap). It is now a linear hand-written scanner. Deeply nested descriptions (~20k levels) no longer overflow the call stack either — the text walk is iterative now.
+  - **A REST feed's refresh now has one 30-second budget in total**, instead of a fresh 30 seconds per request in its sequence (a Bamboo project walk could previously stretch to ~10 minutes against a slow server).
+  - **Responses past the 1 MB cap are aborted** with a clear "response too large" error instead of being silently truncated into a parse error (or downloaded endlessly until the deadline).
+  - **HTTPS → HTTP redirect downgrades are refused** (credentials were already stripped on any origin change; the content now gets the same protection). A feed that truly lives on HTTP can still be configured with its HTTP URL directly.
+  - TLS identity checking for proxied HTTPS connections is now stated explicitly against the target host, and a custom auth header name outside the HTTP token grammar is treated as a settings error instead of failing every request.
+
+### 日本語
+
+- 独立したセキュリティレビュー（取得→解析→描画の経路）に基づく堅牢化の続きです（正しいフィードと設定では挙動は変わりません）：
+  - **悪意あるフィード1件でエディタ全体が固まる問題を直しました。** XML の属性読み取りに使っていた正規表現が、「= のない長い英字列」を含むタグで二乗時間のバックトラックを起こしていました（160KBで実測33秒。本文上限の1MB近くまで伸ばせました）。線形時間の手書きスキャナに置き換えました。あわせて、約2万段の深い入れ子の説明文でもスタックオーバーフローしないよう、テキスト収集を反復処理に変えました。
+  - **REST フィードの取得全体で30秒の予算を1つにしました。** リクエストごとに30秒を数え直していたため、Bamboo のプロジェクト走査が遅いサーバー相手に約10分まで伸びることがありました。
+  - **1MB上限を超えた応答は、その場で打ち切ります。** 静かに切り捨てて解析エラーに見せたり、無限の本文を期限まで読み続けたりしません。
+  - **HTTPS から HTTP へのリダイレクト（ダウングレード）を拒否します。** 資格情報は従来どおり別オリジンへは渡しませんが、本文についても同じ保護を効かせました。本当に HTTP で運用されているフィードは、HTTP の URL を直接設定すれば従来どおり使えます。
+  - プロキシ経由 HTTPS の TLS 本人確認を対象ホストに対して明示し、HTTP のトークン文法に合わないカスタム認証ヘッダ名は、毎回失敗する代わりに設定エラーとして扱うようにしました。
+
 ## [1.18.0] - 2026-11-17
 
 ### Changed

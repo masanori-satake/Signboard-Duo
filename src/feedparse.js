@@ -93,11 +93,36 @@ function pushText(node, s) {
   if (s) node.segs.push({ t: s, cdata: false });
 }
 
+/* Linear attribute scanner. The obvious regex for this
+   (name\s*=\s*"value") backtracks quadratically on a tag interior
+   that is one long run of word characters with no '=' — measured
+   33 s at 160 KB, and a tag interior can approach the 1 MB body
+   cap, which would freeze the extension host for minutes on a
+   single hostile feed. Scanning by hand keeps it O(n). Only
+   quoted values are recognised, exactly as the regex did. */
 function parseAttrs(s) {
   const attrs = {};
-  const re = /([\w:.-]+)\s*=\s*("([^"]*)"|'([^']*)')/g;
-  let m;
-  while ((m = re.exec(s))) attrs[localName(m[1])] = decodeEntities(m[3] !== undefined ? m[3] : m[4]);
+  const n = s.length;
+  const isNameChar = (c) => /[\w:.-]/.test(c);
+  let i = 0;
+  while (i < n) {
+    while (i < n && !isNameChar(s[i])) i++;
+    if (i >= n) break;
+    const nameStart = i;
+    while (i < n && isNameChar(s[i])) i++;
+    const name = s.slice(nameStart, i);
+    while (i < n && /\s/.test(s[i])) i++;
+    if (s[i] !== '=') continue; // valueless attribute: not recognised
+    i++;
+    while (i < n && /\s/.test(s[i])) i++;
+    const q = s[i];
+    if (q !== '"' && q !== "'") continue; // unquoted value: not recognised
+    i++;
+    const valStart = i;
+    while (i < n && s[i] !== q) i++;
+    attrs[localName(name)] = decodeEntities(s.slice(valStart, i));
+    if (i < n) i++; // the closing quote
+  }
   return attrs;
 }
 
@@ -111,10 +136,19 @@ function textOf(node) {
   if (!node) return '';
   return node.segs.map((s) => (s.cdata ? s.t : decodeEntities(s.t))).join('').trim();
 }
+/* Pre-order text collection, iteratively: the recursive version
+   threw RangeError on descriptions nested ~20k elements deep
+   (well inside the body cap), permanently format-erroring such a
+   feed. The explicit stack keeps the same document order. */
 function deepText(node) {
   if (!node) return '';
-  let out = node.segs.map((s) => (s.cdata ? s.t : decodeEntities(s.t))).join('');
-  for (const c of node.children) out += deepText(c);
+  let out = '';
+  const stack = [node];
+  while (stack.length) {
+    const cur = stack.pop();
+    out += cur.segs.map((s) => (s.cdata ? s.t : decodeEntities(s.t))).join('');
+    for (let i = cur.children.length - 1; i >= 0; i--) stack.push(cur.children[i]);
+  }
   return out;
 }
 

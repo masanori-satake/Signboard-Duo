@@ -170,6 +170,13 @@ class FeedEngine {
         etag: null, lastModified: null,
       };
       if (!rec.id || !rec.url || !/^[a-z0-9-]+$/.test(rec.id)) rec.configError = true;
+      /* A custom auth header name becomes a raw HTTP header key;
+         outside the token grammar Node throws on every request and
+         the feed fails forever, so treat it as a config error the
+         board can explain instead. */
+      else if (rec.auth && rec.auth.type === 'header'
+        && rec.auth.headerName != null
+        && !/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(String(rec.auth.headerName))) rec.configError = true;
       else if (seen.has(rec.id)) { rec.configError = true; this.log(`feeds: duplicate id "${rec.id}"`); }
       else if (!/^https?:\/\//.test(rec.url)) rec.configError = true;
       else if (rec.type === 'bamboo-rest'
@@ -403,8 +410,13 @@ class FeedEngine {
     const headers = { 'User-Agent': USER_AGENT, Accept: 'application/json', ...(adapter.HEADERS || {}), ...authH };
     const credNames = Object.keys(authH);
     const fail = (symptom, detail) => { const e = new Error(symptom); e.symptom = symptom; e.detail = detail || ''; return e; };
+    /* One deadline for the whole refresh, not per request: an
+       adapter walks a sequence (project, then up to 20 plans), and
+       a fresh 30 s per step let a slow-dripping server stretch a
+       single feed's refresh to ~10 minutes. */
+    const deadline = Date.now() + FETCH_DEADLINE_MS;
     const fetchJson = async (url) => {
-      const res = await fetchOnce(url, headers, credNames, MAX_REDIRECTS, Date.now() + FETCH_DEADLINE_MS, this.pxCfg);
+      const res = await fetchOnce(url, headers, credNames, MAX_REDIRECTS, deadline, this.pxCfg);
       rec.lastStatus = res.status;
       if (res.status === 401 || res.status === 403) throw fail('feed-auth', String(res.status));
       if (res.status !== 200 || res.body == null) throw fail('http', String(res.status));
@@ -1141,7 +1153,7 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       const auth = d.authType === 'basic'
         ? { type: 'basic', user: d.user || '' }
         : d.authType === 'header'
-          ? { type: 'header', headerName: d.headerName || 'X-API-Key' }
+          ? { type: 'header', headerName: /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(String(d.headerName || '')) ? String(d.headerName) : 'X-API-Key' }
           : { type: d.authType || 'none' };
       const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
       const feeds = userFeeds();

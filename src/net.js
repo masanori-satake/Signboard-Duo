@@ -111,6 +111,15 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
       if (status >= 300 && status < 400 && res.headers.location && redirectsLeft > 0) {
         res.resume();
         const next = new URL(res.headers.location, url);
+        /* A downgrade redirect would hand the feed's content to
+           whoever can intercept plain HTTP. Credentials are already
+           stripped on any origin change; the content itself is
+           worth the same protection. A feed that truly lives on
+           http can be configured with its http URL directly. */
+        if (url.protocol === 'https:' && next.protocol === 'http:') {
+          reject(taggedError('http', 'redirect from https to http refused'));
+          return;
+        }
         /* Credentials belong to the feed's own origin: a redirect to
            another host must not carry them along. */
         let nextHeaders = headers;
@@ -130,7 +139,12 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
       let size = 0;
       res.on('data', (c) => {
         size += c.length;
-        if (size <= MAX_BODY_BYTES) chunks.push(c);
+        /* Past the cap the fetch is aborted outright: silently
+           truncating would surface as a confusing parse error, and
+           consuming an endless body to the end would hold the
+           request (and its poll lane) until the deadline. */
+        if (size > MAX_BODY_BYTES) { res.destroy(taggedError('format', 'response too large')); return; }
+        chunks.push(c);
       });
       res.on('end', () => resolve({ status, body: Buffer.concat(chunks).toString('utf8'), headers: res.headers }));
       res.on('error', reject);
@@ -197,6 +211,11 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
         const tlsOptions = {
           socket,
           rejectUnauthorized: !proxyCfg || proxyCfg.strictSSL !== false,
+          /* Identity checking is stated explicitly against the
+             target: with a pre-connected socket there is no host
+             for Node to infer it from, so leaving it to defaults
+             left the IP-literal case ambiguous. */
+          checkServerIdentity: (host, cert) => tls.checkServerIdentity(targetHost, cert),
         };
         if (!net.isIP(targetHost)) tlsOptions.servername = targetHost;
         let tlsSock;
