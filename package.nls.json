@@ -35,7 +35,7 @@
   "config.feeds.keepHours.description": "Hours a topic stays after it leaves the feed.",
   "config.feeds.auth.description": "Auth method only — the secret itself is stored via the Set Feed Token command, never in settings.",
   "config.feeds.type.description": "Where the platform's rows come from: an RSS/Atom feed, or a REST adapter.",
-  "config.feeds.target.description": "Adapter target: a project key (all its plans) and/or explicit plan keys, branch scope, and the long-running threshold.",
+  "config.feeds.target.description": "Adapter target: for Bamboo a project key (all its plans) and/or plan keys; for GitHub a repo (\"owner/name\") and optional workflow names; plus branch scope and the long-running threshold.",
   "config.feeds.interests.description": "What becomes news on this platform (REST adapters). Each adapter serves a subset; unsupported entries are ignored.",
   "config.mode.description": "Board style: split-flap, LED, or stock board. Auto uses flap below 540px and LED at 540px and wider.",
   "config.mode.auto": "Automatic by view width (flap below 540px, LED at 540px and wider)",

@@ -13,6 +13,7 @@ const { fetchOnce, classifyError, proxyForUrl } = require('./net');
 const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
 const { TokenStore, orphanIds } = require('./tokens');
 const bamboo = require('./bamboo');
+const github = require('./github');
 
 const CONFIG_NS = 'signboardDuo';
 const JA = (vscode.env.language || '').toLowerCase().startsWith('ja');
@@ -129,6 +130,8 @@ class FeedEngine {
       else if (rec.type === 'bamboo-rest'
         && !(typeof rec.target.project === 'string' && rec.target.project)
         && !(Array.isArray(rec.target.plans) && rec.target.plans.length)) rec.configError = true;
+      else if (rec.type === 'github-actions'
+        && !(typeof rec.target.repo === 'string' && /^[^/\s]+\/[^/\s]+$/.test(rec.target.repo))) rec.configError = true;
       seen.add(rec.id);
       const sv = this.saved[rec.id];
       if (sv && typeof sv === 'object') {
@@ -252,7 +255,8 @@ class FeedEngine {
         this.maybePromptToken(rec);
         return;
       }
-      if (rec.type === 'bamboo-rest') { await this.refreshBamboo(rec, authH, now); return; }
+      if (rec.type === 'bamboo-rest') { await this.refreshAdapter(rec, authH, now, bamboo); return; }
+      if (rec.type === 'github-actions') { await this.refreshAdapter(rec, authH, now, github); return; }
       const headers = { 'User-Agent': USER_AGENT, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml', ...authH };
       if (rec.etag) headers['If-None-Match'] = rec.etag;
       if (rec.lastModified) headers['If-Modified-Since'] = rec.lastModified;
@@ -318,12 +322,11 @@ class FeedEngine {
   }
 
   /* REST adapter path (design §14/§16): transport stays here — auth
-     headers, proxy, deadlines, the symptom taxonomy — while the
-     adapter module owns URLs and response interpretation. One plan
-     failing does not sink the platform; if every plan fails, the
-     first error speaks for the platform. */
-  async refreshBamboo(rec, authH, now) {
-    const headers = { 'User-Agent': USER_AGENT, Accept: 'application/json', ...authH };
+     headers, proxy, deadlines, the symptom taxonomy — while each
+     adapter module owns its URLs and response interpretation and
+     returns common rows via collect(fetchJson, rec, ctx). */
+  async refreshAdapter(rec, authH, now, adapter) {
+    const headers = { 'User-Agent': USER_AGENT, Accept: 'application/json', ...(adapter.HEADERS || {}), ...authH };
     const credNames = Object.keys(authH);
     const fail = (symptom, detail) => { const e = new Error(symptom); e.symptom = symptom; e.detail = detail || ''; return e; };
     const fetchJson = async (url) => {
@@ -333,37 +336,16 @@ class FeedEngine {
       if (res.status !== 200 || res.body == null) throw fail('http', String(res.status));
       try { return JSON.parse(res.body); } catch (e) { throw fail('format', ''); }
     };
+    const labels = {
+      running: JA ? '実行中' : 'running',
+      long: JA ? '長時間実行中' : 'long-running',
+      recovered: JA ? '回復' : 'recovered',
+      queued: JA ? '待機中' : 'queued',
+      streak: (n) => (JA ? `${n}回連続失敗` : `${n} failed in a row`),
+    };
     try {
-      let planKeys = Array.isArray(rec.target.plans) ? rec.target.plans.filter((k) => typeof k === 'string') : [];
-      if (rec.target.project) {
-        const proj = await fetchJson(bamboo.projectUrl(rec.url, rec.target.project));
-        if (!planKeys.length) planKeys = bamboo.parseProjectPlans(proj).map((p) => p.key);
-        if (proj && typeof proj.name === 'string' && proj.name) rec.feedTitle = proj.name;
-      }
-      planKeys = [...new Set(planKeys)].slice(0, 20);
-      const labels = {
-        running: JA ? '実行中' : 'running',
-        long: JA ? '長時間実行中' : 'long-running',
-        recovered: JA ? '回復' : 'recovered',
-        streak: (n) => (JA ? `${n}回連続失敗` : `${n} failed in a row`),
-      };
-      const items = [];
-      let firstErr = null;
-      let okCount = 0;
-      for (const key of planKeys) {
-        try {
-          const json = await fetchJson(bamboo.planResultsUrl(rec.url, key, 5));
-          const { planName, results } = bamboo.parsePlanResults(json);
-          okCount++;
-          if (planKeys.length === 1 && planName) rec.feedTitle = planName;
-          items.push(...bamboo.buildRows({
-            planKey: key, planName, results,
-            interests: rec.interests, nowMs: now,
-            longMinutes: rec.target.longMinutes, labels,
-          }));
-        } catch (e) { if (!firstErr) firstErr = e; }
-      }
-      if (!okCount && firstErr) throw firstErr;
+      const { items, feedTitle } = await adapter.collect(fetchJson, rec, { nowMs: now, labels });
+      if (feedTitle) rec.feedTitle = feedTitle;
       const merged = mergeFeedRows(rec.id, items, rec.snapshot, now, {
         maxItems: rec.maxItems, keepHours: rec.keepHours,
       });

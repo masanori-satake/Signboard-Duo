@@ -212,6 +212,15 @@
                   },
                   "project": {
                     "type": "string"
+                  },
+                  "repo": {
+                    "type": "string"
+                  },
+                  "workflows": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
                   }
                 },
                 "type": "object"
@@ -221,7 +230,8 @@
                 "description": "%config.feeds.type.description%",
                 "enum": [
                   "rss",
-                  "bamboo-rest"
+                  "bamboo-rest",
+                  "github-actions"
                 ],
                 "type": "string"
               },
@@ -430,11 +440,11 @@
   "name": "signboard-duo",
   "publisher": "masanori-satake",
   "scripts": {
-    "check": "node --check src/extension.js && node --check src/model.js && node --check src/feedparse.js && node --check src/net.js && node --check src/tokens.js && node --check src/bamboo.js",
+    "check": "node --check src/extension.js && node --check src/model.js && node --check src/feedparse.js && node --check src/net.js && node --check src/tokens.js && node --check src/bamboo.js && node --check src/github.js",
     "package": "vsce package",
     "test": "node --test",
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.5.0"
+  "version": "1.6.0"
 }

@@ -118,4 +118,38 @@ function buildRows(opts) {
   return rows;
 }
 
-module.exports = { CAPABILITIES, DEFAULT_INTERESTS, projectUrl, planResultsUrl, parseProjectPlans, parsePlanResults, buildRows };
+/* Engine-facing entry: fetch everything this platform needs via
+   the engine's transport (fetchJson) and return common rows.
+   One plan failing does not sink the platform; if every plan
+   fails, the first error speaks for it. */
+async function collect(fetchJson, rec, ctx) {
+  const target = rec.target || {};
+  let planKeys = Array.isArray(target.plans) ? target.plans.filter((k) => typeof k === 'string') : [];
+  let feedTitle = '';
+  if (target.project) {
+    const proj = await fetchJson(projectUrl(rec.url, target.project));
+    if (!planKeys.length) planKeys = parseProjectPlans(proj).map((p) => p.key);
+    if (proj && typeof proj.name === 'string' && proj.name) feedTitle = proj.name;
+  }
+  planKeys = [...new Set(planKeys)].slice(0, 20);
+  const items = [];
+  let firstErr = null;
+  let okCount = 0;
+  for (const key of planKeys) {
+    try {
+      const json = await fetchJson(planResultsUrl(rec.url, key, 5));
+      const { planName, results } = parsePlanResults(json);
+      okCount++;
+      if (planKeys.length === 1 && planName) feedTitle = planName;
+      items.push(...buildRows({
+        planKey: key, planName, results,
+        interests: rec.interests, nowMs: ctx.nowMs,
+        longMinutes: target.longMinutes, labels: ctx.labels,
+      }));
+    } catch (e) { if (!firstErr) firstErr = e; }
+  }
+  if (!okCount && firstErr) throw firstErr;
+  return { items, feedTitle };
+}
+
+module.exports = { CAPABILITIES, DEFAULT_INTERESTS, projectUrl, planResultsUrl, parseProjectPlans, parsePlanResults, buildRows, collect };

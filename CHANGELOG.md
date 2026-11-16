@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.0] - 2026-11-16
+
+- Added: the second REST adapter — **GitHub Actions** (`"type": "github-actions"`), proving the adapter pattern is not Bamboo-specific. A platform targets a repository (`target.repo`), aggregates its workflows (one row per workflow), and can narrow to named workflows and a branch scope (`mainline` / `include` / `only` against the repo's default branch). `interests` works as with Bamboo, and this adapter also serves `queued`. The engine's REST path was generalised so adapters plug into shared transport, auth and diagnosis
+
+- 追加：2つ目の REST アダプタ、**GitHub Actions**（`"type": "github-actions"`）。アダプタ方式が Bamboo 固有でないことの証明。対象はリポジトリ（`target.repo`）で、全ワークフローを集約し（行はワークフロー毎の最新）、ワークフロー名の絞り込みとブランチ範囲（`mainline`／`include`／`only`、デフォルトブランチ基準）が使える。`interests` は Bamboo と同じで、このアダプタは `queued` にも対応。エンジンの REST 経路は、アダプタが取得・認証・診断を共有できる形に一般化した
+
 ## [1.5.0] - 2026-11-16
 
 - Added: the first REST adapter — **Bamboo over REST** (`"type": "bamboo-rest"`), for Bamboo servers whose RSS is unavailable (e.g. behind single sign-on, where the RSS layer refuses programmatic auth but the REST API accepts a PAT). A platform targets a project (all its plans aggregated, one row per plan) and/or explicit plans, and `interests` chooses what becomes news: `failed`, `recovered`, `streak`, `running`, `long`, `all` (default `failed` + `recovered`). Transport, auth, proxy handling and failure diagnosis are shared with RSS feeds. Plan branches are not expanded yet
