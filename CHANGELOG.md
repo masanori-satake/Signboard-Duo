@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.17.1] - 2026-11-17
+
+### Fixed
+
+- Hardening from a full audit (no behaviour changes for well-formed settings and feeds):
+  - Feed `maxItems` / `keepHours` from settings are now clamped to the documented ranges (1–20 / 1–168), and the LED pitch / hole settings are clamped to their schema ranges before the renderer uses them — the schema ranges alone did not stop a hand-edited settings file.
+  - The XML parser no longer lets a stray close tag evict a legitimate parent element (it closes the nearest matching element instead), and numeric character references in the surrogate range are no longer decoded into lone surrogates.
+  - The GitHub Actions adapter now reads the widest run window the API allows (100 instead of 30), so a quiet workflow's latest run can no longer be pushed out of the listing — and silently off the board — by a busy repository.
+
+### 日本語
+
+- 全体監査による堅牢化です（正しい設定とフィードでは挙動は変わりません）：
+  - 設定の `maxItems` / `keepHours` を、文書化された範囲（1〜20／1〜168）に収めるようにしました。LED のピッチと穴の大きさも、描画側に渡す前にスキーマの範囲へ収めます。スキーマの範囲だけでは、手で編集した設定ファイルを止められなかったためです。
+  - XML パーサで、閉じタグの乱れが正規の親要素を巻き込まないようにしました（最も近い一致する要素を閉じます）。サロゲート範囲の数値文字参照を、孤立サロゲートとしてデコードしないようにしました。
+  - GitHub Actions アダプタの取得窓を API の上限（30件→100件）に広げました。忙しいリポジトリに押し出されて、静かなワークフローの最新ランが盤面から静かに消えることがなくなります。
+
 ## [1.17.0] - 2026-11-17
 
 ### Changed

@@ -149,7 +149,11 @@ async function collect(fetchJson, rec, ctx) {
     const info = await fetchJson(repoUrl(rec.url, repo));
     if (info && typeof info.default_branch === 'string') defaultBranch = info.default_branch;
   }
-  let runs = parseRuns(await fetchJson(runsUrl(rec.url, repo, 30)));
+  /* The widest window the API allows: with the old 30-run window,
+     a busy repository could push a quiet workflow's latest run out
+     of the listing entirely, and that workflow silently vanished
+     from the board. */
+  let runs = parseRuns(await fetchJson(runsUrl(rec.url, repo, 100)));
   if (scope === 'mainline' && defaultBranch) runs = runs.filter((r) => r.branch === defaultBranch);
   if (scope === 'only' && defaultBranch) runs = runs.filter((r) => r.branch !== defaultBranch);
   const wf = Array.isArray(target.workflows) ? target.workflows.map(String) : [];

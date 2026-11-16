@@ -27,6 +27,14 @@ function autoModeForWidth(width) {
   return Number.isFinite(width) && width >= 520 ? 'led' : 'flap';
 }
 
+/* Integer setting with a fallback: non-numbers and non-finite
+   values take the fallback, everything else is clamped to range. */
+function clampInt(v, min, max, fallback) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(n)));
+}
+
 /* ---------------- fetching ---------------- */
 
 /* The site's own favicon (served from the feed's origin — no third
@@ -117,8 +125,13 @@ class FeedEngine {
         id: f && f.id, url: f && f.url, name: (f && f.name) || '',
         kind: f && f.kind === 'bamboo' ? 'ci' : (f && f.kind) || 'generic', // bamboo was absorbed into ci (1.2.0)
         enabled: !f || f.enabled !== false,
-        maxItems: f && f.maxItems ? f.maxItems : 4,
-        keepHours: f && f.keepHours ? f.keepHours : 24,
+        /* The schema ranges are advisory only, so clamp here: a
+           hand-edited settings.json can deliver anything, and an
+           unclamped maxItems / keepHours would defeat the snapshot
+           bounds the board's lightness rests on. Defaults match the
+           setup form's. */
+        maxItems: clampInt(f && f.maxItems, 1, 20, 10),
+        keepHours: clampInt(f && f.keepHours, 1, 168, 24),
         auth: (f && f.auth) || { type: 'none' },
         type: (f && f.type) || 'rss',
         target: (f && f.target && typeof f.target === 'object') ? f.target : {},
@@ -656,7 +669,10 @@ class BoardProvider {
     const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
     const ledScript = led
       ? `<script nonce="${nonce}">window.__SB_LED = ${JSON.stringify({
-        pitch: cfg.get('ledPitch', 3), hole: cfg.get('ledHole', 38), glow: cfg.get('ledGlow', true),
+        /* Schema ranges are advisory; a hand-edited value of 0 or
+           10000 would break the LED layout maths, so clamp to the
+           schema's own ranges before the renderer sees them. */
+        pitch: clampInt(cfg.get('ledPitch', 3), 2, 8, 3), hole: clampInt(cfg.get('ledHole', 38), 10, 70, 38), glow: cfg.get('ledGlow', true),
       })};</script>\n` : '';
     const body = stock
       ? `<div class="board" id="board">

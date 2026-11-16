@@ -89,6 +89,23 @@ test('parseDate handles ISO offsets and RFC 822 zones', () => {
   assert.equal(decodeEntities('a &unknown; b'), 'a &unknown; b');
 });
 
+test('a stray close tag does not evict a legitimate parent element', () => {
+  const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>Ch</title>
+    <item><title>First</title><link>https://example.com/1</link></bogus><guid>g1</guid></item>
+    <item><title>Second</title><guid>g2</guid></item>
+  </channel></rss>`;
+  const feed = parseFeed(xml);
+  assert.equal(feed.items.length, 2);
+  assert.equal(feed.items.find((i) => i.guid === 'g1').link, 'https://example.com/1');
+  assert.ok(feed.items.some((i) => i.guid === 'g2'));
+});
+
+test('numeric entities in the surrogate range are not decoded', () => {
+  assert.equal(decodeEntities('a&#xD800;b'), 'a&#xD800;b');
+  assert.equal(decodeEntities('a&#55296;b'), 'a&#55296;b');
+  assert.equal(decodeEntities('a&#x41;b'), 'aAb');
+});
+
 test('unsupported root throws', () => {
   assert.throws(() => parseFeed('<html><body>x</body></html>'), /unsupported/);
 });

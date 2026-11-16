@@ -16,7 +16,10 @@ function decodeEntities(s) {
     if (body[0] === '#') {
       const hex = body[1] === 'x' || body[1] === 'X';
       const code = parseInt(body.slice(hex ? 2 : 1), hex ? 16 : 10);
-      return Number.isFinite(code) && code <= 0x10FFFF ? String.fromCodePoint(code) : m;
+      /* Surrogate code points are not characters: decoding one
+         would bake a lone surrogate into the stored title. */
+      const ok = Number.isFinite(code) && code <= 0x10FFFF && !(code >= 0xD800 && code <= 0xDFFF);
+      return ok ? String.fromCodePoint(code) : m;
     }
     switch (body) {
       case 'amp': return '&';
@@ -59,7 +62,15 @@ function parseXml(xml) {
       i = end < 0 ? n : end + 1;
     } else if (xml.startsWith('</', lt)) {
       const end = xml.indexOf('>', lt + 2);
-      if (stack.length > 1) stack.pop();
+      const rawClose = end < 0 ? '' : xml.slice(lt + 2, end).trim();
+      /* Close the nearest matching open element (and anything left
+         open inside it); a close tag that matches nothing is ignored.
+         Popping blindly would let one stray close tag in a hostile
+         or sloppy feed evict a legitimate parent and scramble the
+         tree. */
+      for (let d = stack.length - 1; d >= 1; d--) {
+        if (stack[d].name === localName(rawClose)) { stack.length = d; break; }
+      }
       i = end < 0 ? n : end + 1;
     } else {
       const end = xml.indexOf('>', lt + 1);
