@@ -16,18 +16,6 @@ const PRESETS = {
 
 const PRESET_ORDER = ['errors-only', 'changes', 'operations', 'all'];
 
-/* A preset only ever offers what the adapter can serve. */
-function presetInterests(preset, capabilities) {
-  const base = PRESETS[preset] || [];
-  const caps = new Set(capabilities || []);
-  return base.filter((i) => caps.has(i));
-}
-
-function catalogFor(capabilities) {
-  const caps = new Set(capabilities || []);
-  return CATALOG.filter((i) => caps.has(i));
-}
-
 function slugify(text) {
   const s = String(text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
   return s || 'feed';
@@ -59,4 +47,4 @@ function normalizeBaseUrl(value) {
   return v;
 }
 
-module.exports = { CATALOG, PRESETS, PRESET_ORDER, presetInterests, catalogFor, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl };
+module.exports = { CATALOG, PRESETS, PRESET_ORDER, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl };

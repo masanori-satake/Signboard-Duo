@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.12.1] - 2026-11-16
+
+### Removed
+
+- Dead code from the QuickPick era: `presetInterests` / `catalogFor` in `src/wizard.js` were only used by the retired QuickPick wizard (the form applies presets itself). Audit result: no other leftovers — every declared command is registered, no orphaned localisation keys, and the remaining QuickPick uses are selection-only dialogs (token commands, feed picking), which is what QuickPick is for.
+
+### 日本語
+
+- QuickPick 時代の残骸を除去。`src/wizard.js` の `presetInterests` / `catalogFor` は廃止した QuickPick ウィザード専用だったため削除しました（プリセットの適用はフォーム側が行います）。精査の結果、他の残骸はありませんでした。宣言したコマンドはすべて登録済み、孤児になった文言キーもなし。残っている QuickPick の利用は、トークン系コマンドやフィード選択のような「選ぶだけ」の用途で、これは QuickPick の本来の領分です。
+
 ## [1.12.0] - 2026-11-16
 
 ### Added

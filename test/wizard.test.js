@@ -2,22 +2,9 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { presetInterests, catalogFor, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl } = require('../src/wizard');
+const { slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl } = require('../src/wizard');
 const bamboo = require('../src/bamboo');
 const github = require('../src/github');
-
-test('presets only offer what the adapter can serve', () => {
-  // Bamboo cannot serve 'queued', so the operations preset drops it.
-  assert.deepEqual(presetInterests('operations', bamboo.CAPABILITIES), ['failed', 'long']);
-  assert.deepEqual(presetInterests('operations', github.CAPABILITIES), ['failed', 'long', 'queued']);
-  assert.deepEqual(presetInterests('changes', bamboo.CAPABILITIES), ['failed', 'recovered']);
-  assert.deepEqual(presetInterests('nope', github.CAPABILITIES), []);
-});
-
-test('catalogFor filters the catalog by capability, in catalog order', () => {
-  assert.deepEqual(catalogFor(bamboo.CAPABILITIES), ['failed', 'recovered', 'streak', 'running', 'long', 'all']);
-  assert.deepEqual(catalogFor(github.CAPABILITIES), ['failed', 'recovered', 'streak', 'running', 'queued', 'long', 'all']);
-});
 
 test('slugify and uniqueFeedId produce valid, collision-free ids', () => {
   assert.equal(slugify('Signboard-Duo'), 'signboard-duo');
