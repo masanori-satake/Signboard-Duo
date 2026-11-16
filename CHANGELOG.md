@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.15.0] - 2026-11-17
+
+### Changed
+
+- **The setup form's save button is now "Apply changes", and the form stays usable.** Previously the button disabled itself permanently after the first save, so correcting a value meant reopening the form. It is now enabled exactly when there is something unapplied: in the edit form it stays disabled until a field changes, applies, and disables again until the next change. A form that just added a feed becomes that feed's edit form, so a further apply updates it instead of adding a duplicate.
+- **"All results" now shows what it contains.** While the all-results news item is checked, every individual news item shows as checked and disabled — all of them are included — and unchecking "all" makes them editable again. Saving still stores `all` on its own.
+
+### 日本語
+
+- **設定フォームの保存ボタンを「設定変更を適用する」に変え、適用後もフォームを使い続けられるようにしました。** 以前は一度保存するとボタンが二度と押せなくなり、値の直しにはフォームの開き直しが必要でした。今は、未適用の変更があるときだけ押せる形です（編集フォームでは変更するまで無効、適用すると再び無効に）。追加した直後のフォームはそのフィードの編集フォームになるので、続けて適用しても重複して追加されることはありません。
+- **「全結果」が何を含むかを表示するようにしました。** 「全結果」にチェックが入っている間、個別のニュース項目はすべてチェック済みかつ変更不可で表示されます（全部が含まれているため）。「全結果」のチェックを外すと、個別に編集できる状態に戻ります。保存される値は従来どおり `all` 単独です。
+
 ## [1.14.1] - 2026-11-16
 
 ### Changed

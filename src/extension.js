@@ -935,7 +935,7 @@ function setupHtml(webview, context, editFeed) {
 </fieldset>
 
 <div id="status"></div>
-<button id="save" type="button">${editing ? t('この内容で保存する', 'Save changes') : t('この内容で追加する', 'Add this feed')}</button>
+<button id="save" type="button">${editing ? t('設定変更を適用する', 'Apply changes') : t('この内容で追加する', 'Add this feed')}</button>
 ${editing ? `<div class="danger-zone">
 <div class="hint">${t('このフィードを盤面と設定から取り除きます。保存されているトークンがある場合は、削除後に一緒に消すか尋ねます。', 'Removes this feed from the board and the settings. If a token is stored for it, you will be asked about it after deletion.')}</div>
 <button id="deleteFeed" class="danger" type="button">${t('このフィードを削除', 'Delete this feed')}</button>
@@ -1104,7 +1104,11 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       next.splice(pos - 1, 0, entry);
       await cfg.update('feeds', next, vscode.ConfigurationTarget.Global);
       if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
-      post({ type: 'saved' });
+      /* The panel becomes this feed's edit form (design §17
+         supplement): a further apply updates it in place instead
+         of adding a duplicate. */
+      setupEditFeed = entry;
+      post({ type: 'saved', added: true });
       vscode.window.showInformationMessage(JA
         ? `Signboard-Duo: フィード「${entry.name}」を追加しました。`
         : `Signboard-Duo: feed "${entry.name}" added.`);

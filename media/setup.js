@@ -5,10 +5,23 @@
 const vscode = acquireVsCodeApi();
 const $ = (id) => document.getElementById(id);
 let CFG = null;
+let isEdit = false;
+let dirty = false;
 let pendingWf = null;
 let pendingProject = null;
 let pendingPlans = null;
 
+/* Apply model (design §17 supplement): the button applies the
+   changes and the form stays open. It is enabled exactly when
+   there is something unapplied — in add mode before the first
+   save, and in edit mode whenever a field differs from the last
+   applied state. Dirtiness is tracked from user input/change
+   events only; programmatic fills never fire those. */
+function setDirty(v) {
+  dirty = v;
+  const btn = $('save');
+  if (btn) btn.disabled = isEdit && !dirty;
+}
 function status(msg, kind) {
   const el = $('status');
   el.textContent = msg || '';
@@ -36,9 +49,25 @@ function rebuildInterests(checked) {
     cb.type = 'checkbox';
     cb.value = id;
     cb.checked = checked ? checked.includes(id) : id === 'failed' || id === 'recovered';
+    if (id === 'all') cb.addEventListener('change', syncAllLinkage);
     label.appendChild(cb);
     label.appendChild(document.createTextNode(' ' + (CFG.labels.interests[id] || id)));
     box.appendChild(label);
+  }
+  syncAllLinkage();
+}
+/* "All results" contains every individual result: while it is
+   checked, the individual boxes show as checked and disabled, so
+   the inclusion reads at a glance instead of looking unselected. */
+function syncAllLinkage() {
+  const box = $('interests');
+  if (!box) return;
+  const all = box.querySelector('input[value="all"]');
+  if (!all) return;
+  for (const cb of box.querySelectorAll('input[type=checkbox]')) {
+    if (cb === all) continue;
+    if (all.checked) { cb.checked = true; cb.disabled = true; }
+    else cb.disabled = false;
   }
 }
 function applyPreset() {
@@ -163,10 +192,12 @@ window.addEventListener('message', (ev) => {
     }
     posSel.value = m.position || slots;
     if (m.hasToken) $('deleteToken').classList.remove('hidden');
+    isEdit = !!m.edit;
     syncType();
     syncAuth();
     status('');
     if (m.edit) applyEdit(m.edit);
+    setDirty(false);
   } else if (m.type === 'projects') {
     const sel = $('project');
     sel.innerHTML = '';
@@ -209,12 +240,22 @@ window.addEventListener('message', (ev) => {
   } else if (m.type === 'error') {
     status(m.message, 'error');
   } else if (m.type === 'saved') {
-    status(CFG.ja ? '保存しました。このタブは閉じて構いません。' : 'Saved. You can close this tab.', 'ok');
-    $('save').disabled = true;
+    if (m.added) {
+      /* The panel now edits the feed it just added: further
+         applies update it instead of adding another. */
+      isEdit = true;
+      $('save').textContent = CFG.ja ? '設定変更を適用する' : 'Apply changes';
+      status(CFG.ja ? '追加しました。そのまま続けて編集できます。' : 'Added. You can keep editing here.', 'ok');
+    } else {
+      status(CFG.ja ? '適用しました。' : 'Applied.', 'ok');
+    }
+    setDirty(false);
   }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('input', () => setDirty(true));
+  document.addEventListener('change', () => setDirty(true));
   $('type').addEventListener('change', syncType);
   $('authType').addEventListener('change', syncAuth);
   $('preset').addEventListener('change', applyPreset);
@@ -238,7 +279,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   $('save').addEventListener('click', () => {
     const type = currentType();
-    const interests = type === 'rss' ? [] : checkedValues('interests');
+    let interests = type === 'rss' ? [] : checkedValues('interests');
+    /* "all" already contains every individual item; store it alone. */
+    if (interests.includes('all')) interests = ['all'];
     if (type !== 'rss' && !interests.length) {
       status(CFG.ja ? 'ニュース項目を1つ以上選んでください' : 'Pick at least one news item', 'error');
       return;
