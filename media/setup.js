@@ -110,6 +110,7 @@ function applyEdit(e) {
   $('maxItems').value = e.maxItems || 10;
   $('keepHours').value = e.keepHours || 24;
   $('enabled').checked = e.enabled !== false;
+  $('rotate').checked = e.rotate !== false;
   $('authHeader').value = e.authHeader || '';
   rebuildInterests(e.interests && e.interests.length ? e.interests : null);
   $('preset').value = 'custom';
@@ -150,6 +151,18 @@ window.addEventListener('message', (ev) => {
     oc.textContent = m.labels.presets.custom;
     presetSel.appendChild(oc);
     presetSel.value = 'changes';
+    const posSel = $('position');
+    posSel.innerHTML = '';
+    const names = m.feedNames || [];
+    const slots = m.edit ? names.length : names.length + 1;
+    for (let i = 1; i <= slots; i++) {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = names[i - 1] ? `${i}: ${names[i - 1]}` : `${i}: ${m.ja ? '（最後）' : '(end)'}`;
+      posSel.appendChild(o);
+    }
+    posSel.value = m.position || slots;
+    if (m.hasToken) $('deleteToken').classList.remove('hidden');
     syncType();
     syncAuth();
     status('');
@@ -189,6 +202,10 @@ window.addEventListener('message', (ev) => {
     pendingWf = null;
     if (!$('name').value) $('name').value = $('repo').value.trim();
     status('');
+  } else if (m.type === 'tokenDeleted') {
+    $('deleteToken').classList.add('hidden');
+    $('token').value = '';
+    status(CFG.ja ? 'トークンを削除しました。新しいトークンを入れて保存すると、そのまま登録し直せます。' : 'Token deleted. Type a new one and save to register it in place.', 'ok');
   } else if (m.type === 'error') {
     status(m.message, 'error');
   } else if (m.type === 'saved') {
@@ -227,7 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const data = { ...conn(), type, name: $('name').value.trim(), interests,
-      enabled: $('enabled').checked,
+      enabled: $('enabled').checked, rotate: $('rotate').checked,
+      position: Number($('position').value) || undefined,
       maxItems: Number($('maxItems').value) || 10, keepHours: Number($('keepHours').value) || 24, target: {} };
     if (data.type === 'rss') {
       data.kind = $('kind').value;
@@ -250,5 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   const del = $('deleteFeed');
   if (del) del.addEventListener('click', () => vscode.postMessage({ type: 'delete' }));
+  $('deleteToken').addEventListener('click', () => vscode.postMessage({ type: 'deleteToken' }));
   vscode.postMessage({ type: 'ready' });
 });

@@ -14,8 +14,8 @@ let STATUS_WORDS = {};
 function setLocale(lang) {
   LANG_JA = !lang || lang.toLowerCase().startsWith('ja');
   STATUS_WORDS = LANG_JA
-    ? { arrived: '到着', updated: '更新', failed: '欠航' }
-    : { arrived: 'ARRIVED', updated: 'UPDATED', failed: 'CANCELLED' };
+    ? { arrived: '到着', updated: '更新', failed: '欠航', outage: '不通' }
+    : { arrived: 'ARRIVED', updated: 'UPDATED', failed: 'CANCELLED', outage: 'BLOCKED' };
   document.getElementById('colName').textContent = LANG_JA ? '便名' : 'FLIGHT NAME';
   document.getElementById('colTime').textContent = LANG_JA ? '到着時刻' : 'ARRIVAL';
   document.getElementById('colRemark').textContent = LANG_JA ? '備考' : 'REMARKS';
@@ -196,7 +196,7 @@ const boardEl = document.getElementById('board');
 const platformEl = document.getElementById('platform');
 let platforms = [];
 let FETCHED_AT = null;
-let PINNED = false;
+let ROTATING = true;
 let PAGE_NEED_MS = CONFIG.pageRotateMs;
 let currentPage = 0;
 let lastPageChange = Date.now();
@@ -223,6 +223,7 @@ function stateNote(p) {
   if (p.state === 'nofeeds') return LANG_JA ? 'フィード未設定' : 'NO FEEDS';
   if (p.state === 'authError') return LANG_JA ? '運休（認証エラー）' : 'SUSPENDED (AUTH)';
   if (p.state === 'configError') return LANG_JA ? '設定エラー' : 'CONFIG ERROR';
+  if (p.state === 'outage') return LANG_JA ? '不通' : 'BLOCKED';
   if (p.state === 'stale') return LANG_JA ? '情報が古い場合があります' : 'STALE';
   if (p.state === 'error') return LANG_JA ? '取得エラー' : 'FETCH ERROR';
   if (p.state === 'loading') return LANG_JA ? '取得中' : 'LOADING';
@@ -232,6 +233,7 @@ function emptyTitle(p) {
   if (p.state === 'nofeeds') return LANG_JA ? '設定にフィードを追加してください' : 'ADD FEEDS IN SETTINGS';
   if (p.state === 'authError') return LANG_JA ? 'トークンが必要です' : 'TOKEN REQUIRED';
   if (p.state === 'configError') return LANG_JA ? 'フィード設定を確認してください' : 'CHECK FEED SETTINGS';
+  if (p.state === 'outage') return LANG_JA ? '回線が不通です' : 'LINE UNREACHABLE';
   if (p.state === 'error') return LANG_JA ? 'フィードを取得できません' : 'FEED UNAVAILABLE';
   return LANG_JA ? 'トピックはまだありません' : 'NO TOPICS YET';
 }
@@ -244,7 +246,7 @@ function buildPages() {
     const list = p.rows.length ? p.rows : [{
       key: p.no + ':empty',
       title: p.diag ? p.diag.title : emptyTitle(p), timeMs: null,
-      status: p.diag ? 'failed' : 'ontime',
+      status: p.state === 'outage' ? 'outage' : (p.diag ? 'failed' : 'ontime'),
       remark: p.diag ? p.diag.cause : '',
       url: p.diag ? p.diag.url : '', empty: true,
     }];
@@ -376,8 +378,19 @@ function render(pageChanged) {
     ? (LANG_JA ? topicCount + ' 件' : topicCount + (topicCount === 1 ? ' TOPIC' : ' TOPICS')) : '';
 }
 
+/* Auto-rotation visits rotation targets only (design §17): from the
+   current page, the next page whose platform opted in — or -1 when
+   no other target exists (a single target means no movement). */
+function nextTargetPage(pages, cur) {
+  for (let step = 1; step < pages.length; step++) {
+    const idx = (cur + step) % pages.length;
+    if (pages[idx].platform && pages[idx].platform.rotate !== false) return idx;
+  }
+  return -1;
+}
+
 function jumpToKey(key) {
-  if (PINNED) return;
+  if (!ROTATING) return;
   refreshPages();
   const idx = pagesCache.findIndex((pg) => pg.rows.some((r) => r.key === key));
   if (idx < 0 || idx === currentPage) return;
@@ -395,7 +408,7 @@ window.addEventListener('message', (ev) => {
     if (!focusDone) { focusDone = true; pendingFocusNo = msg.platformNo != null ? msg.platformNo : null; }
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
-    if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
+    if (typeof msg.rotating === 'boolean') ROTATING = msg.rotating;
     // A row stays flagged isNew in the payload until its feed is
     // fetched again, so an ungated scan would jump back to the same
     // "new" row on every unrelated state push. Jump only for rows
@@ -414,8 +427,8 @@ window.addEventListener('message', (ev) => {
       lastPageChange = Date.now();
       render(true);
     }
-  } else if (msg.type === 'pin') {
-    PINNED = !!msg.pinned;
+  } else if (msg.type === 'rotate') {
+    ROTATING = !!msg.rotating;
     lastPageChange = Date.now();
   }
 });
@@ -445,12 +458,19 @@ window.addEventListener('resize', () => {
 });
 
 setInterval(() => {
-  if (document.hidden || PINNED) return;
+  if (document.hidden || !ROTATING) return;
   const now = Date.now();
   if (now - lastPageChange < PAGE_NEED_MS || now - lastEventAt < CONFIG.pageRotateMs) return;
   refreshPages();
   if (pagesCache.length <= 1) return;
-  currentPage = (currentPage + 1) % pagesCache.length;
+  if (currentPage >= pagesCache.length) currentPage = 0;
+  /* Rotation runs only while the board sits on a target platform;
+     landing on a non-target (by hand) parks it there (§17). */
+  const cur = pagesCache[currentPage];
+  if (!cur || !cur.platform || cur.platform.rotate === false) return;
+  const next = nextTargetPage(pagesCache, currentPage);
+  if (next < 0) return;
+  currentPage = next;
   lastPageChange = now;
   render(true);
 }, 1000);

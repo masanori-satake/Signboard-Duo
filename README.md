@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.12.2-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.13.0-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.12.2**
+Current version: **v1.13.0**
 
 ---
 
@@ -132,10 +132,11 @@ Add feeds to `signboardDuo.feeds` in your `settings.json` — the [Starter Feeds
 #### 3. Switch the board and the theme
 - The **rightmost title-bar button** rotates flap → LED → stock board; its glyph always shows the current board.
 - The **palette button** cycles the colour theme (Duo Green / Lime / Ice).
-- The **previous / next platform** buttons move between feeds, and the **pin** button holds the current platform (auto-rotation and new-arrival jumps pause while pinned). Scrolling the mouse wheel over the LED board also moves platforms.
+- The **previous / next platform** buttons move between feeds, and the **rotate** button toggles auto-rotation. Each feed can opt out of rotation in its edit form; rotation visits opted-in feeds only, and parking on an opted-out feed (by hand) pauses it there. Scrolling the mouse wheel over the LED board also moves platforms.
 
 #### 4. Read the board
-- New topics arrive with a flap / LED flourish, and the board jumps to their platform (unless pinned).
+- New topics arrive with a flap / LED flourish, and the board jumps to their platform (unless auto-rotation is stopped).
+- If a feed cannot be reached twice in a row, its platform is shown as **blocked** with the last known topics — a blocked line is a topic of its own, not an error. When the feed answers again, a **recovered** row announces it, with how long the line was blocked.
 - Topics that leave the feed remain for the feed's `keepHours`, marked as updated when their title changes.
 - Click a row to open the topic in your browser.
 
@@ -207,15 +208,15 @@ Many sites publish RSS/Atom feeds without making a fuss about them. A few ways t
 | **Refresh Feeds Now** | `signboardDuo.refresh` | Fetch all feeds immediately |
 | **Previous Platform** | `signboardDuo.prevPlatform` | Move to the previous feed's platform |
 | **Next Platform** | `signboardDuo.nextPlatform` | Move to the next feed's platform |
-| **Pin This Platform** | `signboardDuo.pinPlatform` | Hold the current platform (pauses rotation and jumps) |
-| **Unpin Platform** | `signboardDuo.unpinPlatform` | Release the pin |
+| **Start Auto-Rotation** | `signboardDuo.startRotation` | Resume cycling through the feeds that opted in |
+| **Stop Auto-Rotation** | `signboardDuo.stopRotation` | Stay on the current platform (pauses rotation and jumps) |
 | **Set Feed Token** | `signboardDuo.setToken` | Store a feed's token in SecretStorage |
 | **Delete Feed Token** | `signboardDuo.deleteToken` | Remove a feed's stored token |
 | **Show Stored Tokens** | `signboardDuo.listTokens` | List the feeds that have a stored token (values are never shown) |
 | **Delete Unlinked Tokens** | `signboardDuo.deleteOrphanTokens` | Remove tokens whose feed is no longer in the settings |
 | **Delete All Tokens** | `signboardDuo.deleteAllTokens` | Remove every stored token at once |
 | **Add Feed** | `signboardDuo.addCiPlatform` | Set up a feed in a one-screen form — Bamboo / GitHub Actions (target, branch scope, news items) or a plain RSS feed (URL, kind, auth). No JSON editing, and the form survives trips to the browser. Also a **+** button on the board title bar |
-| **Edit Feed** | `signboardDuo.editInterests` | Edit the feed currently on the board in the same form — CI feeds (target, news items) and RSS feeds (URL, kind, auth, counts) alike. The title-bar button appears while a feed is displayed; from the Command Palette you pick the feed first. The form also carries the feed's **Delete** button (with a confirmation) |
+| **Edit Feed** | `signboardDuo.editInterests` | Edit the feed currently on the board in the same form — CI feeds (target, news items) and RSS feeds (URL, kind, auth, counts) alike. The title-bar button appears while a feed is displayed; from the Command Palette you pick the feed first. The form also carries the feed's **Delete** button (with a confirmation), a **position** selector for reordering, the auto-rotation opt-out, and a button to delete the stored token in place |
 
 ---
 
@@ -224,7 +225,7 @@ Many sites publish RSS/Atom feeds without making a fuss about them. A few ways t
 
 | Setting | Default | Description |
 | :--- | :--- | :--- |
-| `signboardDuo.feeds` | `[]` | Feeds shown as platforms (up to 20). Each feed: `id`, `name`, `url`, `kind` (`generic` / `ci` / `status` / `jma` / `stock`), `enabled`, `maxItems`, `keepHours`, `auth` (type only) |
+| `signboardDuo.feeds` | `[]` | Feeds shown as platforms (up to 20). Each feed: `id`, `name`, `url`, `kind` (`generic` / `ci` / `status` / `jma` / `stock`), `enabled`, `rotate` (auto-rotation opt-out), `maxItems`, `keepHours`, `auth` (type only) |
 | `signboardDuo.pollMinutes` | `15` | Feed polling interval in minutes (minimum 5) |
 | `signboardDuo.mode` | `flap` | Board style: `flap` / `led` / `stock`, or `auto` (flap below 540px, LED at 540px and wider) |
 | `signboardDuo.scrollLongText` | `true` | Scroll (LED) or flip through (flap) long titles instead of truncating them |
@@ -428,7 +429,7 @@ The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, 
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.12.2**
+現在のバージョン: **v1.13.0**
 
 ---
 
@@ -542,10 +543,11 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 #### 3. 盤面とテーマを切り替える
 - **タイトルバー右端のボタン** でフラップ → LED → 株価ボードとローテートします。グリフは常に現在の盤面を示します。
 - **パレットボタン** で配色テーマ（Duo Green / Lime / Ice）を切り替えます。
-- **前の番線／次の番線** ボタンでフィード間を移動し、**ピン** ボタンで現在の番線に固定します（固定中は自動送りと新着ジャンプが止まります）。LED 盤面ではマウスホイールでも番線を移動できます。
+- **前の番線／次の番線** ボタンでフィード間を移動し、**ローテート** ボタンで自動巡回の開始／停止を切り替えます。各フィードは編集フォームで巡回の対象から外せます。巡回は対象のフィードだけを回り、対象外のフィードに手動で移ると、そこで止まります。LED 盤面ではマウスホイールでも番線を移動できます。
 
 #### 4. 盤面を眺める
-- 新着トピックはフラップ／LED の演出で到着し、盤面はその番線へジャンプします（ピン留め中を除く）。
+- 新着トピックはフラップ／LED の演出で到着し、盤面はその番線へジャンプします（自動巡回を止めているときを除く）。
+- フィードに2回続けて届かないと、その番線は前回の到着情報を残したまま **不通** として表示されます。不通はエラーではなく、それ自体が1つのトピックです。フィードが応答を返すと、不通だった時間とともに **復旧** の行が出ます。
 - フィードから消えたトピックは、そのフィードの `keepHours` の間だけ残ります。タイトルが変わったトピックは「更新」と表示されます。
 - 行をクリックすると、トピックがブラウザで開きます。
 
@@ -635,15 +637,15 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 | **フィードを今すぐ更新** | `signboardDuo.refresh` | 全フィードをすぐに取得する |
 | **前の番線へ** | `signboardDuo.prevPlatform` | 前のフィードの番線へ移動する |
 | **次の番線へ** | `signboardDuo.nextPlatform` | 次のフィードの番線へ移動する |
-| **この番線をピン留め** | `signboardDuo.pinPlatform` | 現在の番線に固定する（自動送りとジャンプが止まる） |
-| **ピン留めを解除** | `signboardDuo.unpinPlatform` | ピン留めを外す |
+| **自動巡回を開始** | `signboardDuo.startRotation` | 対象のフィードを巡回する |
+| **自動巡回を停止** | `signboardDuo.stopRotation` | 現在の番線にとどまる（自動送りとジャンプが止まる） |
 | **フィードのトークンを設定** | `signboardDuo.setToken` | フィードのトークンを SecretStorage に保存する |
 | **フィードのトークンを削除** | `signboardDuo.deleteToken` | 保存したトークンを削除する |
 | **トークンの保存状況** | `signboardDuo.listTokens` | トークンが保存されているフィードの一覧を見る（値そのものは表示しません） |
 | **紐づいていないトークンを削除** | `signboardDuo.deleteOrphanTokens` | 設定から消えたフィードのトークンだけを削除する |
 | **すべてのトークンを削除** | `signboardDuo.deleteAllTokens` | 保存したトークンを一括で削除する |
 | **フィードを追加** | `signboardDuo.addCiPlatform` | フィードを1画面のフォームで設定する。Bamboo / GitHub Actions（対象・ブランチの範囲・ニュース項目）にも、通常の RSS フィード（URL・kind・認証）にも対応。JSON の手編集は不要で、ブラウザへ行って戻っても入力は残る。盤面のタイトルバーの **+** ボタンからも開ける |
-| **フィードを編集** | `signboardDuo.editInterests` | 表示中のフィードを、追加時と同じフォームで編集する。CI フィード（対象・ニュース項目）も RSS フィード（URL・kind・認証・件数等）も同じ形で変更できる。タイトルバーのボタンはフィードの表示中に現れる。コマンドパレットからはフィードを選んで開く。フォーム内には、そのフィードの**削除**ボタンもある（確認付き） |
+| **フィードを編集** | `signboardDuo.editInterests` | 表示中のフィードを、追加時と同じフォームで編集する。CI フィード（対象・ニュース項目）も RSS フィード（URL・kind・認証・件数等）も同じ形で変更できる。タイトルバーのボタンはフィードの表示中に現れる。コマンドパレットからはフィードを選んで開く。フォーム内には、そのフィードの**削除**ボタン（確認付き）のほか、順番の変更、自動巡回の対象から外すチェック、保存済みトークンのその場での削除もできる |
 
 ---
 
@@ -652,7 +654,7 @@ VSCodium、Gitpod、Eclipse Theia など、Open VSX を使う環境向けです�
 
 | 設定 | 既定値 | 説明 |
 | :--- | :--- | :--- |
-| `signboardDuo.feeds` | `[]` | 番線として表示するフィード（最大20件）。各フィードの項目は `id`、`name`、`url`、`kind`（`generic` / `ci` / `status` / `jma` / `stock`）、`enabled`、`maxItems`、`keepHours`、`auth`（方式のみ） |
+| `signboardDuo.feeds` | `[]` | 番線として表示するフィード（最大20件）。各フィードの項目は `id`、`name`、`url`、`kind`（`generic` / `ci` / `status` / `jma` / `stock`）、`enabled`、`rotate`（自動巡回の対象から外す）、`maxItems`、`keepHours`、`auth`（方式のみ） |
 | `signboardDuo.pollMinutes` | `15` | フィードの取得間隔（分、最小5） |
 | `signboardDuo.mode` | `flap` | 盤面スタイル：`flap` / `led` / `stock`、または `auto`（540px 未満はフラップ、540px 以上は LED） |
 | `signboardDuo.scrollLongText` | `true` | 長いタイトルを切り捨てず、LED ではスクロール、フラップでは区切りめくりで表示する |

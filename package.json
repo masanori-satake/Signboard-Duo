@@ -11,8 +11,8 @@
     "onCommand:signboardDuo.refresh",
     "onCommand:signboardDuo.prevPlatform",
     "onCommand:signboardDuo.nextPlatform",
-    "onCommand:signboardDuo.pinPlatform",
-    "onCommand:signboardDuo.unpinPlatform",
+    "onCommand:signboardDuo.startRotation",
+    "onCommand:signboardDuo.stopRotation",
     "onCommand:signboardDuo.cycleTheme",
     "onCommand:signboardDuo.showStock",
     "onCommand:signboardDuo.cycleMode",
@@ -86,16 +86,16 @@
         "title": "%command.nextPlatform.title%"
       },
       {
-        "command": "signboardDuo.pinPlatform",
+        "command": "signboardDuo.startRotation",
+        "title": "%command.startRotation.title%",
         "category": "Signboard-Duo",
-        "icon": "$(pin)",
-        "title": "%command.pinPlatform.title%"
+        "icon": "$(sync)"
       },
       {
-        "command": "signboardDuo.unpinPlatform",
+        "command": "signboardDuo.stopRotation",
+        "title": "%command.stopRotation.title%",
         "category": "Signboard-Duo",
-        "icon": "$(pinned)",
-        "title": "%command.unpinPlatform.title%"
+        "icon": "$(sync)"
       },
       {
         "command": "signboardDuo.cycleTheme",
@@ -294,6 +294,11 @@
               "url": {
                 "description": "%config.feeds.url.description%",
                 "type": "string"
+              },
+              "rotate": {
+                "type": "boolean",
+                "default": true,
+                "description": "%config.feeds.rotate.description%"
               }
             },
             "required": [
@@ -373,12 +378,12 @@
           "when": "never"
         },
         {
-          "command": "signboardDuo.pinPlatform",
-          "when": "!signboardDuo.pinned"
+          "command": "signboardDuo.startRotation",
+          "when": "!signboardDuo.rotating"
         },
         {
-          "command": "signboardDuo.unpinPlatform",
-          "when": "signboardDuo.pinned"
+          "command": "signboardDuo.stopRotation",
+          "when": "signboardDuo.rotating"
         }
       ],
       "view/title": [
@@ -388,13 +393,13 @@
           "group": "navigation@3"
         },
         {
-          "command": "signboardDuo.pinPlatform",
-          "when": "view == signboardDuo.board && !signboardDuo.pinned",
+          "command": "signboardDuo.startRotation",
+          "when": "view == signboardDuo.board && !signboardDuo.rotating",
           "group": "navigation@4"
         },
         {
-          "command": "signboardDuo.unpinPlatform",
-          "when": "view == signboardDuo.board && signboardDuo.pinned",
+          "command": "signboardDuo.stopRotation",
+          "when": "view == signboardDuo.board && signboardDuo.rotating",
           "group": "navigation@4"
         },
         {
@@ -470,5 +475,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.12.2"
+  "version": "1.13.0"
 }

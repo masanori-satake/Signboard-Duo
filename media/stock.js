@@ -24,7 +24,7 @@ function plainPerPage() {
 
 let platforms = [];
 let FETCHED_AT = null;
-let PINNED = false;
+let ROTATING = true;
 let LANG_JA = false;
 let currentPage = 0;
 let lastPageChange = Date.now();
@@ -63,6 +63,17 @@ function el(tag, cls, text) {
   return e;
 }
 
+/* Auto-rotation visits rotation targets only (design §17): from the
+   current page, the next page whose platform opted in — or -1 when
+   no other target exists (a single target means no movement). */
+function nextTargetPage(pages, cur) {
+  for (let step = 1; step < pages.length; step++) {
+    const idx = (cur + step) % pages.length;
+    if (pages[idx].platform && pages[idx].platform.rotate !== false) return idx;
+  }
+  return -1;
+}
+
 function buildPages() {
   const pages = [];
   for (const p of platforms) {
@@ -84,6 +95,7 @@ function buildPages() {
 function stateNote(p) {
   if (p.state === 'authError') return LANG_JA ? '（認証エラーのため停止中）' : ' (suspended: auth)';
   if (p.state === 'configError') return LANG_JA ? '（設定を確認してください）' : ' (check settings)';
+  if (p.state === 'outage') return LANG_JA ? '（回線が不通です）' : ' (line unreachable)';
   if (p.state === 'stale' || p.state === 'error') return LANG_JA ? '（接続が不安定です）' : ' (connection unstable)';
   if (p.state === 'nofeeds') return LANG_JA ? '（フィード未設定）' : ' (no feeds configured)';
   return '';
@@ -192,9 +204,16 @@ function gotoPage(idx, pages) {
 setInterval(() => {
   if (document.hidden) return;
   clockEl.textContent = clockNow();
-  if (PINNED || Date.now() - lastPageChange < ROTATE_MS) return;
+  if (!ROTATING || Date.now() - lastPageChange < ROTATE_MS) return;
   const pages = buildPages();
-  if (pages.length > 1) gotoPage(currentPage + 1, pages);
+  if (pages.length <= 1) return;
+  if (currentPage >= pages.length) currentPage = 0;
+  /* Rotation runs only while the board sits on a target platform
+     and moves to the next target (design §17). */
+  const cur = pages[currentPage];
+  if (!cur || !cur.platform || cur.platform.rotate === false) return;
+  const next = nextTargetPage(pages, currentPage);
+  if (next >= 0) gotoPage(next, pages);
 }, 500);
 
 let wheelAt = 0;
@@ -214,7 +233,7 @@ window.addEventListener('message', (ev) => {
     LANG_JA = String(msg.lang || '').toLowerCase().startsWith('ja');
     document.body.dataset.theme = msg.theme || 'duo';
     FETCHED_AT = msg.fetchedAt || null;
-    if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
+    if (typeof msg.rotating === 'boolean') ROTATING = msg.rotating;
     platforms = msg.platforms || [];
     if (!focusDone) { focusDone = true; pendingFocusNo = msg.platformNo != null ? msg.platformNo : null; }
     document.getElementById('jokeBadge').textContent = LANG_JA ? '売買できません' : 'No trading';
@@ -222,8 +241,8 @@ window.addEventListener('message', (ev) => {
   } else if (msg.type === 'nav') {
     const pages = buildPages();
     if (pages.length > 1) gotoPage(currentPage + msg.dir, pages);
-  } else if (msg.type === 'pin') {
-    PINNED = !!msg.pinned;
+  } else if (msg.type === 'rotate') {
+    ROTATING = !!msg.rotating;
     lastPageChange = Date.now();
   }
 });

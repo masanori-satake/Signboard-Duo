@@ -13,8 +13,6 @@
   "command.refresh.title": "Refresh Feeds Now",
   "command.prevPlatform.title": "Previous Platform",
   "command.nextPlatform.title": "Next Platform",
-  "command.pinPlatform.title": "Pin This Platform",
-  "command.unpinPlatform.title": "Unpin Platform",
   "command.cycleTheme.title": "Switch Colour Theme",
   "command.cycleMode.title": "Switch Board Style",
   "command.cycleModeFlap.title": "Switch Board Style",
@@ -48,5 +46,8 @@
   "config.pollMinutes.description": "Feed polling interval in minutes.",
   "config.scrollLongText.description": "Scroll (LED) or flip through (flap) long titles instead of truncating them.",
   "command.addCiPlatform": "Add Feed",
-  "command.editInterests": "Edit Feed"
+  "command.editInterests": "Edit Feed",
+  "command.startRotation.title": "Start Auto-Rotation",
+  "command.stopRotation.title": "Stop Auto-Rotation",
+  "config.feeds.rotate.description": "Include this feed in auto-rotation. When off, the board only shows this feed when you navigate to it manually."
 }

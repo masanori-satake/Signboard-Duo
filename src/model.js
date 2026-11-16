@@ -101,10 +101,13 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
 
 /* Platform display state: authError and configError dominate; a platform
    with a successful fetch in the past but repeated failures since is
-   `stale` (rows remain, shown dimmed) rather than an error. */
+   `stale` (rows remain, shown dimmed) rather than an error. An active
+   outage (design §18) outranks error/stale: the line is blocked, and
+   that is a topic on the board, not a fetch error. */
 function platformState(feed, now, pollMs) {
   if (feed.configError) return 'configError';
   if (feed.lastStatus === 401 || feed.lastStatus === 403) return 'authError';
+  if (feed.outage && feed.outage.active) return 'outage';
   if (!feed.lastOkAt) return feed.lastErrorAt ? 'error' : 'loading';
   if (feed.lastErrorAt && feed.lastErrorAt > feed.lastOkAt &&
       now - feed.lastOkAt > CONFIG.staleAfterPolls * pollMs) return 'stale';
@@ -112,4 +115,47 @@ function platformState(feed, now, pollMs) {
   return 'ok';
 }
 
-module.exports = { CONFIG, numberPlatforms, mergeFeedRows, platformState };
+/* ---------------- outage (design §18) ---------------- */
+
+/* Only "cannot reach it at all" failures count towards an outage:
+   name resolution, connection, timeout and proxy-leg failures, plus
+   HTTP 5xx (the server is up but failing as a whole). Auth failures
+   are the user's to fix, and format / TLS / other HTTP failures mean
+   the server did answer — neither is a blocked line. */
+const OUTAGE_SYMPTOMS = new Set(['dns', 'connect', 'timeout', 'proxy']);
+const OUTAGE_THRESHOLD = 2; // consecutive failures before the line is declared blocked
+
+function isOutageFailure(symptom, detail) {
+  if (OUTAGE_SYMPTOMS.has(symptom)) return true;
+  if (symptom === 'http') {
+    const n = Number(detail);
+    return Number.isFinite(n) && n >= 500 && n <= 599;
+  }
+  return false;
+}
+
+/* Advance the per-feed outage state by one fetch outcome.
+   prev: { streak, since, active } (since = first failure of the
+   current streak). A success after an active outage reports
+   `recovered: { downMs }` exactly once. A failure of a different
+   kind ends the streak silently (the board then shows that failure
+   instead). */
+function nextOutage(prev, ok, symptom, detail, now) {
+  const p = prev && typeof prev === 'object'
+    ? { streak: prev.streak | 0, since: prev.since || null, active: !!prev.active }
+    : { streak: 0, since: null, active: false };
+  if (ok) {
+    return {
+      state: { streak: 0, since: null, active: false },
+      recovered: p.active ? { downMs: p.since ? Math.max(0, now - p.since) : 0, since: p.since } : null,
+    };
+  }
+  if (!isOutageFailure(symptom, detail)) {
+    return { state: { streak: 0, since: null, active: false }, recovered: null };
+  }
+  const streak = p.streak + 1;
+  const since = p.since || now;
+  return { state: { streak, since, active: streak >= OUTAGE_THRESHOLD }, recovered: null };
+}
+
+module.exports = { CONFIG, numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage, OUTAGE_THRESHOLD };

@@ -45,6 +45,11 @@ function loopTickerSegs() {
     segs = LANG_JA
       ? [{ t: '本日も' }, lineSeg, { t: 'のご利用ありがとうございます。フィード設定を確認してください。' }]
       : [{ t: 'Thank you for using the ' }, lineSeg, { t: '. Please check the feed settings.' }];
+  } else if (p.state === 'outage') {
+    const mins = p.downSince ? Math.max(1, Math.round((Date.now() - p.downSince) / 60000)) : null;
+    segs = LANG_JA
+      ? [{ t: '本日も' }, lineSeg, { t: 'のご利用ありがとうございます。現在、回線不通のため運転を見合わせています' + (mins ? `（${mins}分前から）` : '') + '。前回の到着情報を表示しています。' }]
+      : [{ t: 'Thank you for using the ' }, lineSeg, { t: '. The line is blocked' + (mins ? ` (for ${mins} min)` : '') + '; showing the previous arrivals.' }];
   } else if (p.state === 'stale' || p.state === 'error') {
     segs = LANG_JA
       ? [{ t: '本日も' }, lineSeg, { t: 'のご利用ありがとうございます。接続が不安定です。前回の到着情報を表示しています。' }]
@@ -80,7 +85,7 @@ function applyParams() {
 }
 
 let platforms = [];
-let PINNED = false;
+let ROTATING = true;
 let SET_NEED_MS = SET_SWITCH_MS;
 let rowsBoxEl = null;
 let tickerEl = null;
@@ -101,6 +106,7 @@ function stateNote(p) {
   if (p.state === 'nofeeds') return LANG_JA ? 'フィード未設定' : 'NO FEEDS';
   if (p.state === 'authError') return LANG_JA ? '運休（認証エラー）' : 'SUSPENDED (AUTH)';
   if (p.state === 'configError') return LANG_JA ? '設定エラー' : 'CONFIG ERROR';
+  if (p.state === 'outage') return LANG_JA ? '不通' : 'LINE BLOCKED';
   if (p.state === 'stale') return LANG_JA ? '情報が古い場合があります' : 'STALE';
   if (p.state === 'error') return LANG_JA ? '取得エラー' : 'FETCH ERROR';
   if (p.state === 'loading') return LANG_JA ? '取得中' : 'LOADING';
@@ -110,6 +116,7 @@ function emptyTitle(p) {
   if (p.state === 'nofeeds') return LANG_JA ? '設定にフィードを追加してください' : 'ADD FEEDS IN SETTINGS';
   if (p.state === 'authError') return LANG_JA ? 'トークンが必要です' : 'TOKEN REQUIRED';
   if (p.state === 'configError') return LANG_JA ? 'フィード設定を確認してください' : 'CHECK FEED SETTINGS';
+  if (p.state === 'outage') return LANG_JA ? '回線が不通です' : 'LINE UNREACHABLE';
   if (p.state === 'error') return LANG_JA ? 'フィードを取得できません' : 'FEED UNAVAILABLE';
   return LANG_JA ? 'トピックはまだありません' : 'NO TOPICS YET';
 }
@@ -122,7 +129,7 @@ function buildSets() {
     const list = p.rows.length ? p.rows : [{
       key: p.no + ':empty',
       title: p.diag ? p.diag.title : emptyTitle(p), timeMs: null,
-      status: p.diag ? 'failed' : 'ontime',
+      status: p.state === 'outage' ? 'outage' : (p.diag ? 'failed' : 'ontime'),
       remark: p.diag ? p.diag.cause : '',
       url: p.diag ? p.diag.url : '', empty: true,
     }];
@@ -134,7 +141,7 @@ function buildSets() {
 let setsCache = [];
 function refreshSets() { setsCache = buildSets(); }
 function jumpToKey(key) {
-  if (PINNED) return;
+  if (!ROTATING) return;
   refreshSets();
   const idx = setsCache.findIndex((s) => s.rows.some((r) => r.key === key));
   if (idx < 0 || idx === currentSet) return;
@@ -149,6 +156,7 @@ function announce(text) {
   renderTickerText();
 }
 function statusOf(r) {
+  if (r.status === 'outage') return [LANG_JA ? '不通' : 'BLOCKED', 'st-delay'];
   if (r.status === 'failed') return [LANG_JA ? '運休' : 'CANCELLED', 'st-delay'];
   if (r.status === 'updated') return [LANG_JA ? '更新' : 'UPDATED', 'st-next'];
   if (r.status === 'arrived' || r.isNew) return [LANG_JA ? '到着' : 'ARRIVED', 'st-arrived'];
@@ -316,11 +324,18 @@ function tickClock() {
 setInterval(() => {
   if (document.hidden) return;
   const now = Date.now();
-  if (!PINNED && setsCache.length > 1 && now - lastSetChange >= SET_NEED_MS && now - lastEventAt >= SET_SWITCH_MS) {
-    currentSet = (currentSet + 1) % setsCache.length;
-    lastSetChange = now;
-    buildRows();
-    if (tickerMode === 'loop') { tickerSegs = loopTickerSegs(); renderTickerText(); }
+  if (ROTATING && setsCache.length > 1 && now - lastSetChange >= SET_NEED_MS && now - lastEventAt >= SET_SWITCH_MS) {
+    /* Rotation runs only while the board sits on a target platform
+       and moves to the next target (design §17). */
+    const cur = setsCache[currentSet];
+    const next = cur && cur.platform && cur.platform.rotate !== false
+      ? nextTargetSet(setsCache, currentSet) : -1;
+    if (next >= 0) {
+      currentSet = next;
+      lastSetChange = now;
+      buildRows();
+      if (tickerMode === 'loop') { tickerSegs = loopTickerSegs(); renderTickerText(); }
+    }
   }
   const els = scrollEls();
   if (els.length) {
@@ -364,7 +379,7 @@ window.addEventListener('message', (ev) => {
     document.body.dataset.theme = msg.theme || 'duo';
     SCROLL = msg.scroll !== false;
     FETCHED_AT = msg.fetchedAt || null;
-    if (typeof msg.pinned === 'boolean') PINNED = msg.pinned;
+    if (typeof msg.rotating === 'boolean') ROTATING = msg.rotating;
     const before = prevByKey;
     platforms = msg.platforms || [];
     buildAll();
@@ -390,11 +405,22 @@ window.addEventListener('message', (ev) => {
     for (const p of platforms) for (const r of p.rows) prevByKey.set(r.key, r);
   } else if (msg.type === 'nav') {
     navSet(msg.dir);
-  } else if (msg.type === 'pin') {
-    PINNED = !!msg.pinned;
+  } else if (msg.type === 'rotate') {
+    ROTATING = !!msg.rotating;
     lastSetChange = Date.now();
   }
 });
+
+/* Auto-rotation visits rotation targets only (design §17): from the
+   current set, the next set whose platform opted in — or -1 when no
+   other target exists (a single target means no movement). */
+function nextTargetSet(sets, cur) {
+  for (let step = 1; step < sets.length; step++) {
+    const idx = (cur + step) % sets.length;
+    if (sets[idx].platform && sets[idx].platform.rotate !== false) return idx;
+  }
+  return -1;
+}
 
 function navSet(dir) {
   refreshSets();

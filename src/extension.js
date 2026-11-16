@@ -10,7 +10,7 @@
 const vscode = require('vscode');
 const { parseFeed, parseQuotes, ciVerdict } = require('./feedparse');
 const { fetchOnce, classifyError, proxyForUrl } = require('./net');
-const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
+const { numberPlatforms, mergeFeedRows, platformState, nextOutage } = require('./model');
 const { TokenStore, orphanIds } = require('./tokens');
 const bamboo = require('./bamboo');
 const github = require('./github');
@@ -96,6 +96,7 @@ class FeedEngine {
         lastModified: f.lastModified || null,
         feedTitle: f.feedTitle || '',
         lastOkAt: f.lastOkAt || null,
+        outage: f.outage || { streak: 0, since: null, active: false },
         rows: [...f.snapshot.values()].map((r) => ({ ...r, isNew: false, updated: false })),
       };
     }
@@ -121,6 +122,8 @@ class FeedEngine {
         type: (f && f.type) || 'rss',
         target: (f && f.target && typeof f.target === 'object') ? f.target : {},
         interests: (f && Array.isArray(f.interests)) ? f.interests.filter((x) => typeof x === 'string') : null,
+        rotate: !f || f.rotate !== false,
+        outage: { streak: 0, since: null, active: false },
         configError: false, lastStatus: null, lastOkAt: null, lastErrorAt: null, lastError: null,
         feedTitle: '', snapshot: new Map(), rows: [],
         etag: null, lastModified: null,
@@ -140,6 +143,13 @@ class FeedEngine {
         rec.lastModified = typeof sv.lastModified === 'string' ? sv.lastModified : null;
         rec.feedTitle = typeof sv.feedTitle === 'string' ? sv.feedTitle : '';
         rec.lastOkAt = Number.isFinite(sv.lastOkAt) ? sv.lastOkAt : null;
+        if (sv.outage && typeof sv.outage === 'object') {
+          rec.outage = {
+            streak: sv.outage.streak | 0,
+            since: Number.isFinite(sv.outage.since) ? sv.outage.since : null,
+            active: !!sv.outage.active,
+          };
+        }
         const rows = Array.isArray(sv.rows)
           ? sv.rows.filter((r) => r && typeof r.key === 'string' && Number.isFinite(r.timeMs) && Number.isFinite(r.firstSeenAt))
           : [];
@@ -236,7 +246,10 @@ class FeedEngine {
     try {
       this.pxCfg = this.proxyConfig();
       for (const rec of this.feeds) {
-        if (rec.enabled && !rec.configError) await this.refreshOne(rec);
+        if (rec.enabled && !rec.configError) {
+          await this.refreshOne(rec);
+          this.noteOutcome(rec, Date.now());
+        }
       }
       if (this.dirty) { this.dirty = false; await this.persist(); }
       this.onChange();
@@ -370,6 +383,44 @@ class FeedEngine {
     }
   }
 
+  /* Outage bookkeeping (design §18): refreshOne leaves the outcome in
+     the record — success clears lastError, every failure path sets
+     it — so the streak machine is fed from here, once per cycle. */
+  noteOutcome(rec, now) {
+    const ok = !rec.lastError;
+    const { state, recovered } = nextOutage(
+      rec.outage, ok,
+      ok ? null : rec.lastError.symptom, ok ? null : rec.lastError.detail, now);
+    if (JSON.stringify(state) !== JSON.stringify(rec.outage)) {
+      rec.outage = state;
+      this.dirty = true;
+    }
+    if (recovered) this.addRecoveryRow(rec, recovered, now);
+  }
+
+  /* A blocked line that answers again earns one recovery row, worded
+     like news and aged like any other row (design §18). */
+  addRecoveryRow(rec, recovered, now) {
+    const mins = Math.max(1, Math.round((recovered.downMs || 0) / 60000));
+    const h = Math.floor(mins / 60);
+    const dur = h >= 1
+      ? (JA ? `約${h}時間${mins % 60 ? `${mins % 60}分` : ''}` : `about ${h} h${mins % 60 ? ` ${mins % 60} min` : ''}`)
+      : (JA ? `約${mins}分` : `about ${mins} min`);
+    const item = {
+      guid: `recovered:${recovered.since || now}`,
+      title: rec.name || rec.feedTitle || rec.id,
+      link: '',
+      remark: JA ? `復旧しました（${dur}間不通でした）` : `Back online (the line was blocked for ${dur})`,
+      timeMs: now,
+    };
+    const merged = mergeFeedRows(rec.id, [item], rec.snapshot, now, {
+      maxItems: rec.maxItems, keepHours: rec.keepHours,
+    });
+    rec.snapshot = merged.snapshot;
+    rec.rows = merged.rows.map((r) => ({ ...r, status: this.rowStatus(rec, r) }));
+    this.dirty = true;
+  }
+
   /* Failed CI runs show as cancelled, however they arrived: RSS ci
      feeds carry ciFailed from ciVerdict (feedparse.js), and the
      REST adapters set the same flag in their buildRows. */
@@ -402,7 +453,7 @@ class FeedEngine {
       .map(({ p, rec }) => {
         const state = rec ? platformState(rec, now, poll) : 'loading';
         let diag = null;
-        if (rec && (state === 'error' || state === 'stale' || state === 'authError' || state === 'configError')) {
+        if (rec && (state === 'error' || state === 'stale' || state === 'authError' || state === 'configError' || state === 'outage')) {
           const symptom = (rec.lastError && rec.lastError.symptom) ||
             (state === 'configError' ? 'config' : state === 'authError' ? 'feed-auth' : 'connect');
           diag = diagFor(symptom, rec.lastError && rec.lastError.detail);
@@ -414,6 +465,8 @@ class FeedEngine {
           favicon: rec ? faviconOf(rec.url) : '',
           state,
           diag,
+          rotate: rec ? rec.rotate !== false : true,
+          downSince: rec && rec.outage && rec.outage.active ? rec.outage.since : null,
           lastOkAt: rec && rec.lastOkAt ? rec.lastOkAt : null,
           rows: (rec ? rec.rows : []).map((r) => ({
             key: r.key, title: r.title, timeMs: r.timeMs,
@@ -458,7 +511,7 @@ class BoardProvider {
     this.tick = null;
     this.autoRenderer = 'flap';
     this.onRendererChange = null;
-    this.pinned = false;
+    this.rotating = true;
     this.theme = context.globalState.get('duoTheme', 'duo');
     this.currentPlatformNo = 1;
   }
@@ -499,10 +552,13 @@ class BoardProvider {
     if (this.view) this.view.webview.postMessage({ type: 'nav', dir });
   }
 
-  setPinned(v) {
-    this.pinned = !!v;
-    vscode.commands.executeCommand('setContext', 'signboardDuo.pinned', this.pinned);
-    if (this.view) this.view.webview.postMessage({ type: 'pin', pinned: this.pinned });
+  /* Pin and auto-rotation were the same idea wearing two names
+     (design §17): one toggle, shown with a rotate glyph. Rotation
+     visits only the feeds that opted in (feed.rotate). */
+  setRotating(v) {
+    this.rotating = !!v;
+    vscode.commands.executeCommand('setContext', 'signboardDuo.rotating', this.rotating);
+    if (this.view) this.view.webview.postMessage({ type: 'rotate', rotating: this.rotating });
     this.push(true);
   }
 
@@ -567,7 +623,7 @@ class BoardProvider {
     const platforms = this.engine.platformsPayload();
     const mode = this.configuredMode();
     const scroll = vscode.workspace.getConfiguration(CONFIG_NS).get('scrollLongText', true);
-    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), pinned: this.pinned, theme: this.theme, platformNo: this.currentPlatformNo };
+    const payload = { type: 'state', platforms, lang: vscode.env.language, mode, scroll, fetchedAt: this.engine.lastFetchedAt(), rotating: this.rotating, theme: this.theme, platformNo: this.currentPlatformNo };
     this.syncCurrentContext();
     const signature = JSON.stringify(payload);
     if (!force && signature === this.lastSignature) return;
@@ -794,6 +850,7 @@ function setupHtml(webview, context, editFeed) {
 <div id="tokenRow">
   <label class="row">${t('トークン', 'Token')}</label>
   <input type="password" id="token">
+  <button id="deleteToken" class="secondary hidden" type="button">${t('保存されているトークンを削除', 'Delete the stored token')}</button>
   <div class="hint">${t('一覧の読み込みと、このフィードのトークン保存に使います。空のまま保存し、後で「フィードのトークンを設定」から入れても構いません。設定ファイルには書かれません。', 'Used to load the lists below and stored as this feed token. You may save with it empty and set it later via Set Feed Token. It is never written to the settings file.')}</div>
 </div>
 </fieldset>
@@ -863,6 +920,9 @@ function setupHtml(webview, context, editFeed) {
 <span class="inline-num"><label class="row">${t('最大行数', 'Max rows')}</label><input type="number" id="maxItems" value="10" min="1" max="20"></span>
 <span class="inline-num"><label class="row">${t('保持時間（時間）', 'Keep hours')}</label><input type="number" id="keepHours" value="24" min="1" max="168"></span>
 <label class="row"><input type="checkbox" id="enabled" checked> ${t('有効', 'Enabled')}</label>
+<label class="row"><input type="checkbox" id="rotate" checked> ${t('自動巡回の対象にする', 'Include in auto-rotation')}</label>
+<label class="row">${t('順番', 'Position')}</label>
+<select id="position"></select>
 </fieldset>
 
 <div id="status"></div>
@@ -900,8 +960,13 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
   try {
     if (msg.type === 'ready') {
       const pick = (labels) => Object.fromEntries(Object.entries(labels).map(([k, v]) => [k, JA ? v[0] : v[1]]));
+      const allFeeds = vscode.workspace.getConfiguration(CONFIG_NS).get('feeds', []) || [];
+      const editIdx = setupEditFeed ? allFeeds.findIndex((f) => f && f.id === setupEditFeed.id) : -1;
       post({
         type: 'init', ja: JA,
+        hasToken: setupEditFeed ? await tokens.has(setupEditFeed.id) : false,
+        feedNames: allFeeds.map((f) => (f && (f.name || f.id)) || ''),
+        position: setupEditFeed ? (editIdx >= 0 ? editIdx + 1 : allFeeds.length) : allFeeds.length + 1,
         edit: setupEditFeed ? {
           id: setupEditFeed.id, type: setupEditFeed.type || 'rss',
           url: setupEditFeed.url || '',
@@ -914,12 +979,22 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
           target: setupEditFeed.target || {},
           kind: setupEditFeed.kind || 'generic',
           enabled: setupEditFeed.enabled !== false,
+          rotate: setupEditFeed.rotate !== false,
           interests: Array.isArray(setupEditFeed.interests) ? setupEditFeed.interests : null,
         } : null,
         caps: { 'github-actions': github.CAPABILITIES, 'bamboo-rest': bamboo.CAPABILITIES },
         presets: wizard.PRESETS, presetOrder: wizard.PRESET_ORDER, catalog: wizard.CATALOG,
         labels: { interests: pick(INTEREST_LABELS), presets: pick(PRESET_LABELS) },
       });
+      return;
+    }
+    if (msg.type === 'deleteToken') {
+      /* In-form token retirement (design §17): delete in place, then
+         a new token can be typed and saved without leaving the form —
+         a token swap completes on this one screen. */
+      if (!setupEditFeed) return;
+      await tokens.delete(setupEditFeed.id);
+      post({ type: 'tokenDeleted' });
       return;
     }
     if (msg.type === 'loadProjects') {
@@ -985,6 +1060,7 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       const fields = {
         name: d.name || defaultName, url: base, auth,
         enabled: d.enabled !== false,
+        rotate: d.rotate !== false,
         maxItems: Math.min(20, Math.max(1, Number(d.maxItems) || 10)),
         keepHours: Math.min(168, Math.max(1, Number(d.keepHours) || 24)),
         ...(isRss
@@ -993,10 +1069,16 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       };
       if (setupEditFeed) {
         const id = setupEditFeed.id;
-        const oldRaw = feeds.find((f) => f && f.id === id) || {};
+        const oldIdx = feeds.findIndex((f) => f && f.id === id);
+        const oldRaw = oldIdx >= 0 ? feeds[oldIdx] : {};
         const entry = { ...oldRaw, ...fields, id, type: oldRaw.type || d.type };
         if ((entry.type || 'rss') === 'rss') { delete entry.target; delete entry.interests; }
-        await cfg.update('feeds', feeds.map((f) => (f && f.id === id ? entry : f)), vscode.ConfigurationTarget.Global);
+        /* Position (design §17): re-insert at the chosen 1-based
+           slot; the feeds around it shift. Same slot = no move. */
+        const rest = feeds.filter((f) => !(f && f.id === id));
+        const pos = Math.min(rest.length + 1, Math.max(1, Number(d.position) || (oldIdx >= 0 ? oldIdx + 1 : rest.length + 1)));
+        rest.splice(pos - 1, 0, entry);
+        await cfg.update('feeds', rest, vscode.ConfigurationTarget.Global);
         if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
         else if (entry.auth.type === 'none' && (await tokens.has(id))) await tokens.delete(id);
         post({ type: 'saved' });
@@ -1008,7 +1090,10 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
       }
       const id = wizard.uniqueFeedId(idBase, feeds.map((f) => f && f.id));
       const entry = { id, type: d.type, ...fields };
-      await cfg.update('feeds', [...feeds, entry], vscode.ConfigurationTarget.Global);
+      const pos = Math.min(feeds.length + 1, Math.max(1, Number(d.position) || feeds.length + 1));
+      const next = [...feeds];
+      next.splice(pos - 1, 0, entry);
+      await cfg.update('feeds', next, vscode.ConfigurationTarget.Global);
       if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
       post({ type: 'saved' });
       vscode.window.showInformationMessage(JA
@@ -1106,8 +1191,8 @@ function activate(context) {
     vscode.commands.registerCommand('signboardDuo.cycleModeFlap', () => provider.cycleMode()),
     vscode.commands.registerCommand('signboardDuo.cycleModeLed', () => provider.cycleMode()),
     vscode.commands.registerCommand('signboardDuo.cycleModeStock', () => provider.cycleMode()),
-    vscode.commands.registerCommand('signboardDuo.pinPlatform', () => provider.setPinned(true)),
-    vscode.commands.registerCommand('signboardDuo.unpinPlatform', () => provider.setPinned(false)),
+    vscode.commands.registerCommand('signboardDuo.startRotation', () => provider.setRotating(true)),
+    vscode.commands.registerCommand('signboardDuo.stopRotation', () => provider.setRotating(false)),
     vscode.commands.registerCommand('signboardDuo.setToken', async (presetId) => {
       const rec = await pickAuthFeed(engine, presetId);
       if (!rec) return;
@@ -1227,7 +1312,7 @@ function activate(context) {
     { dispose: () => engine.dispose() }
   );
   syncModeContext();
-  vscode.commands.executeCommand('setContext', 'signboardDuo.pinned', false);
+  vscode.commands.executeCommand('setContext', 'signboardDuo.rotating', true);
   vscode.commands.executeCommand('setContext', 'signboardDuo.hasCurrentFeed', false);
   engine.start();
 }

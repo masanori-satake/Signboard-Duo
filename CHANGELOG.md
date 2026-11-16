@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.13.0] - 2026-11-16
+
+### Added
+
+- **Blocked lines and recovery rows**: when a feed cannot be reached twice in a row (name resolution, connection, timeout, proxy, or HTTP 5xx), its platform is shown as **blocked** — LED `不通` / flap `BLOCKED` — with the last known topics, instead of a plain fetch error. Auth, format and other HTTP failures are not treated as blockages. When the feed answers again, one **recovered** row announces it with the blocked duration. The streak survives restarts.
+- **Auto-rotation, replacing the pin**: the pin button is gone; one rotate-glyph toggle starts/stops auto-rotation. Each feed has a **Include in auto-rotation** checkbox in its form (`rotate` in settings). Rotation visits opted-in feeds only; moving by hand to an opted-out feed parks the board there, and moving back to an opted-in feed resumes from it. A single opted-in feed means no movement.
+- **Delete the stored token inside the edit form**: when a token is stored for the feed being edited, a **Delete the stored token** button sits next to the token field. Delete and re-register without leaving the form — a token swap completes on one screen.
+- **Position selector in the feed form**: pick the slot the feed should occupy; the feeds around it shift. Works for both adding and editing.
+
+### Removed
+
+- Commands `signboardDuo.pinPlatform` / `signboardDuo.unpinPlatform` (superseded by `signboardDuo.startRotation` / `signboardDuo.stopRotation`).
+
+### 日本語
+
+- **不通と復旧行**：フィードに2回続けて届かない場合（名前解決・接続・タイムアウト・プロキシ・HTTP 5xx）、その番線を単なる取得エラーではなく **不通**（LED「不通」／フラップ「BLOCKED」）として、前回の到着情報を残して表示します。認証・形式・その他の HTTP 失敗は不通に数えません。フィードが応答を返すと、不通だった時間とともに **復旧** の行が1本出ます。連続失敗の数えは再起動をまたいで保持されます。
+- **ピンを廃し、自動巡回に集約**：ピンボタンをなくし、ローテートのグリフのトグル1つで自動巡回を開始／停止します。各フィードのフォームに「自動巡回の対象にする」チェック（設定では `rotate`）を追加。巡回は対象のフィードだけを回り、対象外へ手動で移るとそこで止まり、対象に戻るとそこから再開します。対象が1つだけなら動きません。
+- **編集フォームでトークン削除**：編集対象のフィードにトークンが保存されていれば、トークン欄の隣に「保存されているトークンを削除」ボタンが出ます。削除して入れ直すまでがフォームで完結し、トークン交換が1画面で済みます。
+- **フォームに順番プルダウン**：フィードの位置を選んで挿入できます（追加・編集の両方）。周りのフィードは前後にずれます。
+
 ## [1.12.2] - 2026-11-16
 
 ### Changed

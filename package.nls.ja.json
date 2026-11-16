@@ -13,8 +13,6 @@
   "command.refresh.title": "フィードを今すぐ更新",
   "command.prevPlatform.title": "前の番線へ",
   "command.nextPlatform.title": "次の番線へ",
-  "command.pinPlatform.title": "この番線をピン留め",
-  "command.unpinPlatform.title": "ピン留めを解除",
   "command.cycleTheme.title": "配色テーマを切り替え",
   "command.cycleMode.title": "盤面スタイルを切り替え",
   "command.cycleModeFlap.title": "盤面スタイルを切り替え",
@@ -48,5 +46,8 @@
   "config.pollMinutes.description": "フィードの取得間隔（分）。",
   "config.scrollLongText.description": "長いタイトルを切り捨てず、LED ではスクロール、フラップでは区切りめくりで表示します。",
   "command.addCiPlatform": "フィードを追加",
-  "command.editInterests": "フィードを編集"
+  "command.editInterests": "フィードを編集",
+  "command.startRotation.title": "自動巡回を開始",
+  "command.stopRotation.title": "自動巡回を停止",
+  "config.feeds.rotate.description": "このフィードを自動巡回の対象にします。オフの場合、このフィードは手動で移動したときだけ表示されます。"
 }

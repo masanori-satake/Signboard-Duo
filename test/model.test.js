@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { numberPlatforms, mergeFeedRows, platformState } = require('../src/model');
+const { numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage } = require('../src/model');
 
 const H = 60 * 60 * 1000;
 
@@ -50,6 +50,48 @@ test('maxItems caps rows, newest first; ancient items are ignored', () => {
   items.push({ guid: 'old', title: 'Ancient', link: '', timeMs: now - 40 * 24 * H, remark: '' });
   const { rows } = mergeFeedRows('f', items, null, now, { maxItems: 3, keepHours: 24 });
   assert.deepEqual(rows.map((r) => r.title), ['T1', 'T2', 'T3']);
+});
+
+test('isOutageFailure: only unreachable-class failures count (§18)', () => {
+  for (const s of ['dns', 'connect', 'timeout', 'proxy']) assert.equal(isOutageFailure(s, ''), true, s);
+  assert.equal(isOutageFailure('http', '500'), true);
+  assert.equal(isOutageFailure('http', '503'), true);
+  assert.equal(isOutageFailure('http', '404'), false);
+  assert.equal(isOutageFailure('http', ''), false);
+  for (const s of ['feed-auth', 'format', 'tls', 'proxy-auth', 'config']) assert.equal(isOutageFailure(s, ''), false, s);
+});
+
+test('nextOutage: two consecutive unreachable failures declare an outage; one success recovers once', () => {
+  const t0 = 1_000_000;
+  let r = nextOutage(null, false, 'timeout', '', t0);
+  assert.deepEqual(r.state, { streak: 1, since: t0, active: false });
+  assert.equal(r.recovered, null);
+  r = nextOutage(r.state, false, 'connect', '', t0 + 1000);
+  assert.deepEqual(r.state, { streak: 2, since: t0, active: true });
+  r = nextOutage(r.state, false, 'timeout', '', t0 + 2000);
+  assert.equal(r.state.active, true);
+  assert.equal(r.state.since, t0);
+  const rec = nextOutage(r.state, true, null, null, t0 + 62_000);
+  assert.deepEqual(rec.state, { streak: 0, since: null, active: false });
+  assert.equal(rec.recovered.downMs, 62_000);
+  assert.equal(rec.recovered.since, t0);
+  // A success without an active outage reports nothing.
+  assert.equal(nextOutage(rec.state, true, null, null, t0 + 63_000).recovered, null);
+  // A different failure kind ends the streak silently.
+  const broken = nextOutage({ streak: 1, since: t0, active: false }, false, 'format', '', t0 + 3000);
+  assert.deepEqual(broken.state, { streak: 0, since: null, active: false });
+  // Auth failures never build an outage.
+  const auth = nextOutage(nextOutage(null, false, 'feed-auth', '', t0).state, false, 'feed-auth', '', t0 + 1);
+  assert.equal(auth.state.active, false);
+});
+
+test('platformState: an active outage outranks error/stale but not auth/config', () => {
+  const poll = 15 * 60 * 1000;
+  const t0 = 1_000_000;
+  const feed = { lastOkAt: t0, lastErrorAt: t0 + 1, outage: { streak: 2, since: t0, active: true } };
+  assert.equal(platformState(feed, t0 + 3 * poll, poll), 'outage');
+  assert.equal(platformState({ ...feed, lastStatus: 401 }, t0 + 3 * poll, poll), 'authError');
+  assert.equal(platformState({ ...feed, outage: { streak: 1, since: t0, active: false } }, t0 + poll, poll), 'error');
 });
 
 test('platformState: auth errors dominate, staleness needs missed polls', () => {
