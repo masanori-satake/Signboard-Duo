@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.15.0-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.16.0-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -18,7 +18,7 @@
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.15.0**
+Current version: **v1.16.0**
 
 ---
 
@@ -429,7 +429,7 @@ The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, 
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.15.0**
+現在のバージョン: **v1.16.0**
 
 ---
 

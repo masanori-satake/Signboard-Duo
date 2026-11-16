@@ -7,22 +7,43 @@ body {
   max-width: 640px;
 }
 h1 { font-size: 1.3em; margin: 0 0 4px; }
-p.lead { color: var(--vscode-descriptionForeground); margin: 0 0 16px; }
-fieldset {
+p.lead { color: var(--vscode-descriptionForeground); margin: 0 0 18px; line-height: 1.5; }
+
+/* Category cards: a tinted block per category, a large heading
+   with a rule under it, and a one-line description of what the
+   category decides — so the category boundaries and what belongs
+   to each read at a glance. */
+.card {
+  background: var(--vscode-editorWidget-background, var(--vscode-sideBar-background));
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 4px;
-  margin: 0 0 14px;
-  padding: 10px 12px 12px;
+  border-radius: 6px;
+  margin: 0 0 18px;
+  padding: 14px 16px 16px;
 }
-legend { padding: 0 4px; font-weight: 600; }
-label.row { display: block; margin: 8px 0 2px; }
-.hint { color: var(--vscode-descriptionForeground); font-size: 0.92em; }
+.card h2 {
+  font-size: 1.12em;
+  font-weight: 700;
+  margin: 0 0 4px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+.sec-desc {
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.92em;
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+
+/* Field labels sit close above their input and read as labels;
+   hints sit closer to their field than to the next one. */
+label.row { display: block; font-weight: 600; font-size: 0.95em; margin: 13px 0 3px; }
+.hint { color: var(--vscode-descriptionForeground); font-size: 0.88em; line-height: 1.5; margin: 1px 0 10px; }
 input[type="text"], input[type="password"] { max-width: 520px; }
 select { width: 340px; max-width: 100%; }
 input[type="text"], input[type="password"], input[type="number"], select {
   width: 100%;
   box-sizing: border-box;
-  margin: 2px 0 6px;
+  margin: 2px 0 3px;
   padding: 5px 7px;
   color: var(--vscode-input-foreground);
   background: var(--vscode-input-background);
@@ -46,9 +67,13 @@ button.secondary {
 }
 button.secondary:hover { background: var(--vscode-button-secondaryHoverBackground); }
 button:disabled { opacity: 0.5; cursor: default; }
-.checks { margin: 4px 0; }
+.checks { margin: 4px 0 8px; line-height: 1.55; }
 .checks label { display: inline-block; margin: 2px 14px 2px 0; }
+.radios { line-height: 1.55; }
 .radios label { display: inline-block; margin: 2px 14px 2px 0; }
+
+.form-footer { border-top: 1px solid var(--vscode-panel-border); padding-top: 6px; }
+.form-footer #save { padding: 8px 20px; font-weight: 600; }
 #status { min-height: 1.2em; margin: 10px 0; }
 #status.error { color: var(--vscode-errorForeground); }
 #status.ok { color: var(--vscode-charts-green); }

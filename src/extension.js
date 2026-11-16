@@ -827,10 +827,11 @@ function setupHtml(webview, context, editFeed) {
 </head>
 <body>
 <h1>${editing ? t('フィードを編集', 'Edit Feed') : t('フィードを追加', 'Add Feed')}</h1>
-<p class="lead">${t('すべての項目が1画面にあります。ブラウザへ URL をコピーしに行ったり、トークンを取りに行ったりして戻ってきても、入力はそのまま残ります。', 'Everything is on one screen. Leave to copy a URL or fetch a token and come back — the form stays as you left it.')}</p>
+<p class="lead">${t('すべての項目を1画面で設定できます。途中でブラウザなどに切り替えても、入力はそのまま残ります。', 'Everything is set on one screen. Switch away to another app and come back — the form stays as you left it.')}</p>
 
-<fieldset>
-<legend>${t('接続', 'Connection')}</legend>
+<section class="card">
+<h2>${t('接続', 'Connection')}</h2>
+<p class="sec-desc">${t('フィードの取得先と認証を決めます。', 'Where the feed is fetched from, and how it authenticates.')}</p>
 <label class="row">${t('フィードの種類', 'Feed type')}</label>
 <select id="type">
   <option value="rss">RSS</option>
@@ -843,10 +844,10 @@ function setupHtml(webview, context, editFeed) {
 <div class="hint">${t('ブラウザのアドレスバーの URL をそのまま貼っても、ベース URL に切り詰めます。', 'A pasted browser URL is trimmed back to the base URL.')}</div>
 <label class="row">${t('認証方式', 'Auth type')}</label>
 <select id="authType">
-  <option value="bearer">bearer</option>
-  <option value="basic">basic</option>
-  <option value="header">header</option>
-  <option value="none">none</option>
+  <option value="bearer">${t('Bearer トークン', 'Bearer <redacted>')}</option>
+  <option value="basic">${t('Basic 認証', 'Basic auth')}</option>
+  <option value="header">${t('カスタムヘッダー', 'Custom header')}</option>
+  <option value="none">${t('認証なし', 'None')}</option>
 </select>
 <div id="authHeaderRow" class="hidden">
   <label class="row">${t('ヘッダ名', 'Header name')}</label>
@@ -860,18 +861,19 @@ function setupHtml(webview, context, editFeed) {
   <label class="row">${t('トークン', 'Token')}</label>
   <input type="password" id="token">
   <button id="deleteToken" class="secondary hidden" type="button">${t('保存されているトークンを削除', 'Delete the stored token')}</button>
-  <div class="hint">${t('一覧の読み込みと、このフィードのトークン保存に使います。空のまま保存し、後で「フィードのトークンを設定」から入れても構いません。設定ファイルには書かれません。', 'Used to load the lists below and stored as this feed token. You may save with it empty and set it later via Set Feed Token. It is never written to the settings file.')}</div>
+  <div class="hint">${t('下の一覧の読み込みに使います。適用すると、このフィードのトークンとして保管されます（設定ファイルには書かれません）。空のままにして、後から入れても構いません。', 'Used to load the lists below. When applied, it is stored as this feed\'s token (never in the settings file). You can leave it empty and set it later.')}</div>
 </div>
-</fieldset>
+</section>
 
-<fieldset id="githubSection">
-<legend>GitHub Actions</legend>
+<section class="card" id="githubSection">
+<h2>GitHub Actions</h2>
+<p class="sec-desc">${t('監視するリポジトリとワークフローを決めます。', 'The repository and workflows to watch.')}</p>
 <label class="row">${t('リポジトリ', 'Repository')}</label>
 <input type="text" id="repo" placeholder="owner/name">
 <div class="hint">${t('ブラウザの URL（https://github.com/owner/repo）を貼っても読み替えます。', 'A browser URL (https://github.com/owner/repo) is accepted too.')}</div>
 <button id="loadWorkflows" class="secondary" type="button">${t('ワークフローを読み込む', 'Load workflows')}</button>
 <div id="workflowsRow" class="hidden">
-  <label class="row">${t('監視するワークフロー（未選択なら全部）', 'Workflows to watch (none checked = all)')}</label>
+  <label class="row">${t('ワークフロー（何も選ばなければ全部が対象）', 'Workflows (none checked = all of them)')}</label>
   <div class="checks" id="workflows"></div>
 </div>
 <label class="row">${t('ブランチの範囲', 'Branch scope')}</label>
@@ -880,17 +882,18 @@ function setupHtml(webview, context, editFeed) {
   <label><input type="radio" name="branchScope" value="include"> ${t('ブランチも含む', 'Include branches')}</label>
   <label><input type="radio" name="branchScope" value="only"> ${t('ブランチのみ', 'Branches only')}</label>
 </div>
-</fieldset>
+</section>
 
-<fieldset id="bambooSection" class="hidden">
-<legend>Bamboo (REST)</legend>
+<section class="card hidden" id="bambooSection">
+<h2>Bamboo (REST)</h2>
+<p class="sec-desc">${t('監視するプロジェクトとプランを決めます。', 'The project and plans to watch.')}</p>
 <button id="loadProjects" class="secondary" type="button">${t('プロジェクトを読み込む', 'Load projects')}</button>
 <div id="bambooTarget" class="hidden">
   <label class="row">${t('プロジェクト', 'Project')}</label>
   <select id="project"></select>
-  <label class="row">${t('監視の粒度', 'Granularity')}</label>
+  <label class="row">${t('対象の決め方', 'How to choose targets')}</label>
   <select id="granularity">
-    <option value="project">${t('プロジェクト全体（全プラン）', 'Whole project (all plans)')}</option>
+    <option value="project">${t('プロジェクト全体（すべてのプラン）', 'Whole project (all plans)')}</option>
     <option value="plans">${t('プランを選ぶ', 'Pick plans')}</option>
   </select>
   <button id="loadPlans" class="secondary hidden" type="button">${t('プランを読み込む', 'Load plans')}</button>
@@ -899,11 +902,12 @@ function setupHtml(webview, context, editFeed) {
     <div class="checks" id="plans"></div>
   </div>
 </div>
-</fieldset>
+</section>
 
-<fieldset id="rssSection" class="hidden">
-<legend>${t('RSS フィード', 'RSS feed')}</legend>
-<label class="row">${t('フィードの種類 (kind)', 'Feed kind')}</label>
+<section class="card hidden" id="rssSection">
+<h2>${t('RSS フィード', 'RSS feed')}</h2>
+<p class="sec-desc">${t('RSS の内容をどう解釈するかを決めます。', 'How the feed contents are read.')}</p>
+<label class="row">${t('RSS の解釈', 'Feed kind')}</label>
 <select id="kind">
   <option value="generic">generic — ${t('通常', 'plain RSS / Atom')}</option>
   <option value="ci">ci — ${t('CI の結果（タイトルから判定）', 'CI results, verdict read off the title')}</option>
@@ -911,31 +915,35 @@ function setupHtml(webview, context, editFeed) {
   <option value="jma">jma — ${t('気象庁', 'JMA weather')}</option>
   <option value="stock">stock — ${t('株価 (JSON)', 'stock quotes (JSON)')}</option>
 </select>
-<div class="hint">${t('上の「API ベース URL」欄に、フィードの URL そのものを入力します。', 'Enter the feed URL itself in the URL field above.')}</div>
-</fieldset>
+<div class="hint">${t('フィードの URL は、上の「接続」にある URL 欄に入力します。', 'Enter the feed URL itself in the URL field under Connection above.')}</div>
+</section>
 
-<fieldset id="interestsSection">
-<legend>${t('ニュース項目', 'News items')}</legend>
+<section class="card" id="interestsSection">
+<h2>${t('ニュース項目', 'News items')}</h2>
+<p class="sec-desc">${t('どの結果を盤面に載せるかを決めます。', 'Which results become rows on the board.')}</p>
 <label class="row">${t('プリセット', 'Preset')}</label>
 <select id="preset"></select>
 <div class="checks" id="interests"></div>
-<div class="hint">${t('その CI が提供できない項目は表示されません。チェックを変えるとプリセットは「カスタム」になります。', 'Items the CI cannot serve are not shown. Changing a checkbox switches the preset to Custom.')}</div>
-</fieldset>
+<div class="hint">${t('その CI が扱えない項目は表示されません。チェックを変えると、プリセットは「カスタム」になります。', 'Items the CI cannot serve are not shown. Changing a checkbox switches the preset to Custom.')}</div>
+</section>
 
-<fieldset>
-<legend>${t('仕上げ', 'Finish')}</legend>
+<section class="card">
+<h2>${t('名前と表示', 'Name and display')}</h2>
+<p class="sec-desc">${t('盤面での名前と、行の残し方を決めます。', 'The name on the board, and how rows are kept.')}</p>
 <label class="row">${t('フィードの名前', 'Feed name')}</label>
 <input type="text" id="name">
 <span class="inline-num"><label class="row">${t('最大行数', 'Max rows')}</label><input type="number" id="maxItems" value="10" min="1" max="20"></span>
 <span class="inline-num"><label class="row">${t('保持時間（時間）', 'Keep hours')}</label><input type="number" id="keepHours" value="24" min="1" max="168"></span>
-<label class="row"><input type="checkbox" id="enabled" checked> ${t('有効', 'Enabled')}</label>
+<label class="row"><input type="checkbox" id="enabled" checked> ${t('このフィードを有効にする', 'Enable this feed')}</label>
 <label class="row"><input type="checkbox" id="rotate" checked> ${t('自動巡回の対象にする', 'Include in auto-rotation')}</label>
 <label class="row">${t('順番', 'Position')}</label>
 <select id="position"></select>
-</fieldset>
+</section>
 
+<div class="form-footer">
 <div id="status"></div>
 <button id="save" type="button">${editing ? t('設定変更を適用する', 'Apply changes') : t('この内容で追加する', 'Add this feed')}</button>
+</div>
 ${editing ? `<div class="danger-zone">
 <div class="hint">${t('このフィードを盤面と設定から取り除きます。保存されているトークンがある場合は、削除後に一緒に消すか尋ねます。', 'Removes this feed from the board and the settings. If a token is stored for it, you will be asked about it after deletion.')}</div>
 <button id="deleteFeed" class="danger" type="button">${t('このフィードを削除', 'Delete this feed')}</button>

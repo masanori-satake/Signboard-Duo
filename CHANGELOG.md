@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.16.0] - 2026-11-17
+
+### Changed
+
+- **The setup form is rebuilt around visible categories.** Each category is now a card with a large heading, a rule under it, and a one-line description of what it decides; field labels are smaller and bolder, hints smaller and lighter and closer to their field, so what belongs where reads at a glance. Categories were also renamed and reworded in Japanese: "Finish" is now "Name and display", the RSS kind is "How the feed is read", the auth choices carry their English terms with a Japanese gloss ("Bearer トークン", "Basic 認証", "カスタムヘッダー", "認証なし") so no mapping has to be guessed, and stiff or over-long hints were rewritten shorter.
+
+### 日本語
+
+- **設定フォームを、カテゴリーが見える形に作り直しました。** カテゴリーごとにカード化し、大きな見出し＋下線＋「ここで決めること」の1行説明を付けました。項目ラベルは小さく太く、ヒントはさらに小さく薄くして対象の欄に寄せ、どこからどこまでが1つのカテゴリーか、どのヒントがどの欄のものかが一目で分かるようにしています。あわせて日本語も見直しました：「仕上げ」は「名前と表示」に、RSS の kind は「RSS の解釈」に改め、認証方式は英語の語を残した「Bearer トークン」「Basic 認証」「カスタムヘッダー」「認証なし」とし、対応関係を考えなくて済む形にしました。硬い・長いヒント類も短く書き直しています。
+
 ## [1.15.0] - 2026-11-17
 
 ### Changed
