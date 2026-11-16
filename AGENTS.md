@@ -31,6 +31,7 @@
 - `src/bamboo.js` — 純粋モジュール：Bamboo REST アダプタ（URL 構築、応答の解釈、interests から行への変換。対応カタログは CAPABILITIES で宣言。設計書 §14／§16）
 - `src/github.js` — 純粋モジュール：GitHub Actions REST アダプタ（repo＝project、workflow＝plan に対応付け。queued にも対応）
 - `src/wizard.js` — 純粋モジュール：CI セットアップウィザードの補助（ニュースカタログ、プリセット、フィード ID 生成。設計書 §16）
+- `media/setup.js` / `setup.css` — CI フィード追加の1画面フォーム（Webview。入力は保持され、離席しても消えない）
 - `media/board.js` / `board.css` — フラップ盤面（Signboard-Solo から fork）
 - `media/led.js` / `led.css` — LED盤面（マスク方式、Signboard-Solo から fork）
 - `media/stock.js` / `stock.css` — 株価盤面（区画ごとに役割と色を分ける証券ボード方式。kind: "stock" の JSON 相場フィード用）

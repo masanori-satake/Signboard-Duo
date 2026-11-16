@@ -41,4 +41,22 @@ function uniqueFeedId(base, existingIds) {
   return `${base}-${n}`;
 }
 
-module.exports = { CATALOG, PRESETS, PRESET_ORDER, presetInterests, catalogFor, slugify, uniqueFeedId };
+/* Accept a pasted browser URL for a repository
+   (https://github.com/owner/repo/...) as well as plain owner/name. */
+function normalizeRepoInput(value) {
+  const v = String(value || '').trim();
+  const m = v.match(/^https?:\/\/[^/]+\/([^/\s]+)\/([^/\s#?]+)/);
+  if (m) return `${m[1]}/${m[2].replace(/\.git$/, '')}`;
+  return v;
+}
+
+/* Accept a pasted Bamboo page URL as the API base: a URL that
+   reaches into /rest/api/ is cut back to the context root. */
+function normalizeBaseUrl(value) {
+  let v = String(value || '').trim().replace(/\/+$/, '');
+  const idx = v.indexOf('/rest/api/');
+  if (idx > 0) v = v.slice(0, idx);
+  return v;
+}
+
+module.exports = { CATALOG, PRESETS, PRESET_ORDER, presetInterests, catalogFor, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl };

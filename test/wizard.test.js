@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { presetInterests, catalogFor, slugify, uniqueFeedId } = require('../src/wizard');
+const { presetInterests, catalogFor, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl } = require('../src/wizard');
 const bamboo = require('../src/bamboo');
 const github = require('../src/github');
 
@@ -25,6 +25,16 @@ test('slugify and uniqueFeedId produce valid, collision-free ids', () => {
   assert.equal(slugify(''), 'feed');
   assert.equal(uniqueFeedId('github-x', ['github-y']), 'github-x');
   assert.equal(uniqueFeedId('github-x', ['github-x', 'github-x-2']), 'github-x-3');
+});
+
+test('pasted browser URLs are normalised', () => {
+  assert.equal(normalizeRepoInput('owner/repo'), 'owner/repo');
+  assert.equal(normalizeRepoInput('https://github.com/owner/repo'), 'owner/repo');
+  assert.equal(normalizeRepoInput('https://github.com/owner/repo/actions/workflows/ci.yml'), 'owner/repo');
+  assert.equal(normalizeRepoInput('https://ghe.example.com/owner/repo.git'), 'owner/repo');
+  assert.equal(normalizeBaseUrl('https://bamboo.example.com/bamboo/'), 'https://bamboo.example.com/bamboo');
+  assert.equal(normalizeBaseUrl('https://bamboo.example.com/bamboo/rest/api/latest/plan/ABC'), 'https://bamboo.example.com/bamboo');
+  assert.equal(normalizeBaseUrl('https://api.github.com'), 'https://api.github.com');
 });
 
 test('browse helpers parse project and workflow lists', () => {
