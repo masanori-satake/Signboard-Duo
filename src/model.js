@@ -158,4 +158,14 @@ function nextOutage(prev, ok, symptom, detail, now) {
   return { state: { streak, since, active: streak >= OUTAGE_THRESHOLD }, recovered: null };
 }
 
-module.exports = { CONFIG, numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage, OUTAGE_THRESHOLD };
+/* News-item selection comparison (design §16 supplement): interests
+   decide which fetched runs become rows, so changing the selection
+   invalidates the rows the old selection produced. Compared as sets;
+   null (an RSS feed, or a REST feed that never had the field) only
+   equals null. */
+function interestsChanged(prev, next) {
+  const key = (v) => (Array.isArray(v) ? [...new Set(v)].sort().join(',') : '');
+  return key(prev) !== key(next);
+}
+
+module.exports = { CONFIG, numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage, OUTAGE_THRESHOLD, interestsChanged };

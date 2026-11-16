@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.14.0] - 2026-11-16
+
+### Changed
+
+- **Changing a feed's news items now resets that feed's rows.** `interests` decide which fetched runs become rows, so rows left over from a previous selection used to age out over `keepHours` — which read as "the change did not take" (an all-green board kept showing old successes after switching to `failed` only). The board now rebuilds under the new selection from the next fetch.
+
+### 日本語
+
+- **ニュース項目を変更すると、そのフィードの行をリセットするようにしました。** `interests` は取得したランのうちどれを行にするかを決めるものなので、以前の選択で載った行が `keepHours` いっぱい残り続け、「設定が効いていない」ように見えました（`all` から `failed` のみに変えても、古い成功の行が残る等）。変更後の盤面は、次回の取得から新しい選択だけで組み直されます。
+
 ## [1.13.0] - 2026-11-16
 
 ### Added

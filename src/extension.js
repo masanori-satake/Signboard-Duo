@@ -10,7 +10,7 @@
 const vscode = require('vscode');
 const { parseFeed, parseQuotes, ciVerdict } = require('./feedparse');
 const { fetchOnce, classifyError, proxyForUrl } = require('./net');
-const { numberPlatforms, mergeFeedRows, platformState, nextOutage } = require('./model');
+const { numberPlatforms, mergeFeedRows, platformState, nextOutage, interestsChanged } = require('./model');
 const { TokenStore, orphanIds } = require('./tokens');
 const bamboo = require('./bamboo');
 const github = require('./github');
@@ -106,6 +106,7 @@ class FeedEngine {
 
   loadConfig() {
     const prevIds = new Set(this.feeds.map((f) => f.id).filter((id) => typeof id === 'string'));
+    const prevInterests = new Map(this.feeds.map((f) => [f.id, f.interests]));
     const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
     const raw = cfg.get('feeds', []) || [];
     const seen = new Set();
@@ -137,7 +138,15 @@ class FeedEngine {
       else if (rec.type === 'github-actions'
         && !(typeof rec.target.repo === 'string' && /^[^/\s]+\/[^/\s]+$/.test(rec.target.repo))) rec.configError = true;
       seen.add(rec.id);
-      const sv = this.saved[rec.id];
+      /* A changed news-item selection resets the feed's rows
+         (design §16 supplement): the rows on the board were produced
+         by the old selection, and letting them age out over keepHours
+         reads as "the change did not take". The next fetch rebuilds
+         the board under the new selection alone. */
+      const selectionChanged = prevInterests.has(rec.id)
+        && interestsChanged(prevInterests.get(rec.id), rec.interests);
+      if (selectionChanged) this.log(`feed ${rec.id}: news items changed; rows reset`);
+      const sv = selectionChanged ? null : this.saved[rec.id];
       if (sv && typeof sv === 'object') {
         rec.etag = typeof sv.etag === 'string' ? sv.etag : null;
         rec.lastModified = typeof sv.lastModified === 'string' ? sv.lastModified : null;

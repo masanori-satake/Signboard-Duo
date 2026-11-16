@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage } = require('../src/model');
+const { numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage, interestsChanged } = require('../src/model');
 
 const H = 60 * 60 * 1000;
 
@@ -50,6 +50,19 @@ test('maxItems caps rows, newest first; ancient items are ignored', () => {
   items.push({ guid: 'old', title: 'Ancient', link: '', timeMs: now - 40 * 24 * H, remark: '' });
   const { rows } = mergeFeedRows('f', items, null, now, { maxItems: 3, keepHours: 24 });
   assert.deepEqual(rows.map((r) => r.title), ['T1', 'T2', 'T3']);
+});
+
+test('interestsChanged: set comparison, null only equals null', () => {
+  assert.equal(interestsChanged(['failed'], ['failed']), false);
+  assert.equal(interestsChanged(['failed', 'recovered'], ['recovered', 'failed']), false);
+  assert.equal(interestsChanged(['all'], ['failed']), true);
+  assert.equal(interestsChanged(['failed'], ['failed', 'recovered']), true);
+  assert.equal(interestsChanged(null, null), false);
+  assert.equal(interestsChanged(null, ['failed']), true);
+  assert.equal(interestsChanged(['failed'], null), true);
+  assert.equal(interestsChanged(undefined, []), false);
+  assert.equal(interestsChanged(null, []), false);
+  assert.equal(interestsChanged([], []), false);
 });
 
 test('isOutageFailure: only unreachable-class failures count (§18)', () => {
