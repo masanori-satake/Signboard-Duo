@@ -27,6 +27,7 @@
 - `src/model.js` — 純粋モジュール：番線・行の組み立て、新着／更新検出、保持期限、番線の状態判定
 - `src/feedparse.js` — 純粋モジュール：RSS 1.0 / RSS 2.0 / Atom の正規化パーサ（外部実体は解決しない）
 - `src/net.js` — 純粋モジュール：取得層（直接／プロキシ経由、CONNECT トンネル、絶対期限、失敗の症状分類）
+- `src/tokens.js` — 純粋モジュール：フィードトークンの台帳（SecretStorage はキー列挙ができないため、ID のみの一覧を併せ持ち、保存状況の確認・孤児トークンの削除・一括削除を可能にする）
 - `media/board.js` / `board.css` — フラップ盤面（Signboard-Solo から fork）
 - `media/led.js` / `led.css` — LED盤面（マスク方式、Signboard-Solo から fork）
 - `media/stock.js` / `stock.css` — 株価盤面（区画ごとに役割と色を分ける証券ボード方式。kind: "stock" の JSON 相場フィード用）

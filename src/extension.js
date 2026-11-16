@@ -11,6 +11,7 @@ const vscode = require('vscode');
 const { parseFeed, parseQuotes, ciVerdict } = require('./feedparse');
 const { fetchOnce, classifyError, proxyForUrl } = require('./net');
 const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
+const { TokenStore, orphanIds } = require('./tokens');
 
 const CONFIG_NS = 'signboardDuo';
 const JA = (vscode.env.language || '').toLowerCase().startsWith('ja');
@@ -100,6 +101,7 @@ class FeedEngine {
   }
 
   loadConfig() {
+    const prevIds = new Set(this.feeds.map((f) => f.id).filter((id) => typeof id === 'string'));
     const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
     const raw = cfg.get('feeds', []) || [];
     const seen = new Set();
@@ -137,6 +139,14 @@ class FeedEngine {
     });
     this.feeds = records;
     this.platforms = numberPlatforms(records);
+    /* Feeds that left the settings may leave a token behind in
+       SecretStorage. Report them so the user can retire the token
+       together with the feed (deletion order must not matter). */
+    if (this.onFeedsRemoved && prevIds.size) {
+      const nowIds = new Set(records.map((r) => r.id));
+      const removed = [...prevIds].filter((id) => !nowIds.has(id));
+      if (removed.length) this.onFeedsRemoved(removed);
+    }
   }
 
   pollMs() {
@@ -583,6 +593,26 @@ function activate(context) {
   USER_AGENT = `Signboard-Duo/${context.extension.packageJSON.version} (+https://marketplace.visualstudio.com/)`;
   let provider;
   const engine = new FeedEngine(context, () => { if (provider) provider.push(true); });
+  const tokens = new TokenStore(context.secrets);
+  engine.onFeedsRemoved = async (removedIds) => {
+    const withTokens = [];
+    for (const id of removedIds) if (await tokens.has(id)) withTokens.push(id);
+    if (!withTokens.length) return;
+    const delLabel = JA ? 'トークンも削除' : 'Delete the token(s) too';
+    const keepLabel = JA ? '残す' : 'Keep';
+    const pick = await vscode.window.showInformationMessage(
+      JA
+        ? `Signboard-Duo: 設定から消えたフィード（${withTokens.join(', ')}）のトークンが残っています。`
+        : `Signboard-Duo: token(s) remain for feed(s) no longer in the settings (${withTokens.join(', ')}).`,
+      delLabel, keepLabel
+    );
+    if (pick === delLabel) {
+      await tokens.deleteMany(withTokens);
+      vscode.window.showInformationMessage(JA
+        ? 'Signboard-Duo: トークンを削除しました。'
+        : 'Signboard-Duo: token(s) deleted.');
+    }
+  };
   provider = new BoardProvider(context, engine);
   provider.onRendererChange = syncModeContext;
   context.subscriptions.push(
@@ -612,19 +642,106 @@ function activate(context) {
         password: true, ignoreFocusOut: true,
       });
       if (value) {
-        await context.secrets.store(`feed-token:${rec.id}`, value);
+        await tokens.set(rec.id, value);
         engine.authPrompted.delete(rec.id);
         await engine.refreshOne(rec);
         provider.push(true);
       }
     }),
     vscode.commands.registerCommand('signboardDuo.deleteToken', async () => {
-      const rec = await pickAuthFeed(engine, null);
-      if (!rec) return;
-      await context.secrets.delete(`feed-token:${rec.id}`);
+      const configuredIds = engine.feeds.map((f) => f.id);
+      const index = await tokens.adopt(configuredIds);
+      const items = [];
+      for (const f of engine.feeds.filter((x) => x.auth && x.auth.type && x.auth.type !== 'none')) {
+        items.push({
+          label: f.id,
+          description: (await tokens.has(f.id))
+            ? (JA ? 'トークン保存済み' : 'token stored')
+            : (JA ? 'トークンなし' : 'no token'),
+          id: f.id,
+        });
+      }
+      for (const id of orphanIds(index, configuredIds)) {
+        items.push({
+          label: id,
+          description: JA ? '設定にないフィード（トークンのみ残存）' : 'not in settings (token only)',
+          id,
+        });
+      }
+      const manualLabel = JA ? 'ID を直接入力して削除…' : 'Enter a feed ID manually…';
+      items.push({ label: manualLabel, description: '', manual: true });
+      const pick = await vscode.window.showQuickPick(items, {
+        placeHolder: JA ? 'トークンを削除するフィード' : 'Feed whose token to delete',
+      });
+      if (!pick) return;
+      let id = pick.id;
+      if (pick.manual) {
+        id = await vscode.window.showInputBox({ prompt: JA ? 'フィードの ID' : 'Feed ID' });
+        if (!id) return;
+      }
+      await tokens.delete(id);
       vscode.window.showInformationMessage(JA
-        ? `Signboard-Duo: フィード "${rec.id}" のトークンを削除しました。`
-        : `Signboard-Duo: token for "${rec.id}" deleted.`);
+        ? `Signboard-Duo: フィード "${id}" のトークンを削除しました。`
+        : `Signboard-Duo: token for "${id}" deleted.`);
+    }),
+    vscode.commands.registerCommand('signboardDuo.listTokens', async () => {
+      const configuredIds = engine.feeds.map((f) => f.id);
+      const index = await tokens.adopt(configuredIds);
+      if (!index.length) {
+        vscode.window.showInformationMessage(JA
+          ? 'Signboard-Duo: 保存されているトークンはありません。'
+          : 'Signboard-Duo: no tokens are stored.');
+        return;
+      }
+      const conf = new Set(configuredIds);
+      const lines = index.map((id) => (conf.has(id) ? id : (JA ? `${id}（設定にありません）` : `${id} (not in settings)`)));
+      vscode.window.showInformationMessage((JA
+        ? 'Signboard-Duo: トークン保存済みのフィード: '
+        : 'Signboard-Duo: feeds with a stored token: ') + lines.join(', '));
+    }),
+    vscode.commands.registerCommand('signboardDuo.deleteOrphanTokens', async () => {
+      const configuredIds = engine.feeds.map((f) => f.id);
+      const index = await tokens.adopt(configuredIds);
+      const orphans = orphanIds(index, configuredIds);
+      if (!orphans.length) {
+        vscode.window.showInformationMessage(JA
+          ? 'Signboard-Duo: 紐づいていないトークンはありません。'
+          : 'Signboard-Duo: there are no unlinked tokens.');
+        return;
+      }
+      const delLabel = JA ? '削除する' : 'Delete';
+      const pick = await vscode.window.showWarningMessage(
+        JA
+          ? `Signboard-Duo: 設定にないフィードのトークン（${orphans.join(', ')}）を削除しますか？`
+          : `Signboard-Duo: delete token(s) for feed(s) no longer in the settings (${orphans.join(', ')})?`,
+        { modal: true }, delLabel
+      );
+      if (pick !== delLabel) return;
+      await tokens.deleteMany(orphans);
+      vscode.window.showInformationMessage(JA
+        ? 'Signboard-Duo: 紐づいていないトークンを削除しました。'
+        : 'Signboard-Duo: unlinked token(s) deleted.');
+    }),
+    vscode.commands.registerCommand('signboardDuo.deleteAllTokens', async () => {
+      const index = await tokens.adopt(engine.feeds.map((f) => f.id));
+      if (!index.length) {
+        vscode.window.showInformationMessage(JA
+          ? 'Signboard-Duo: 保存されているトークンはありません。'
+          : 'Signboard-Duo: no tokens are stored.');
+        return;
+      }
+      const delLabel = JA ? 'すべて削除する' : 'Delete all';
+      const pick = await vscode.window.showWarningMessage(
+        JA
+          ? `Signboard-Duo: 保存されているすべてのトークン（${index.length} 件）を削除しますか？`
+          : `Signboard-Duo: delete all stored tokens (${index.length})?`,
+        { modal: true }, delLabel
+      );
+      if (pick !== delLabel) return;
+      await tokens.deleteMany(index);
+      vscode.window.showInformationMessage(JA
+        ? 'Signboard-Duo: すべてのトークンを削除しました。'
+        : 'Signboard-Duo: all tokens deleted.');
     }),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration(`${CONFIG_NS}.mode`)) syncModeContext();

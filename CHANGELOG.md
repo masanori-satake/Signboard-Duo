@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0] - 2026-11-16
+
+- Added: token lifecycle management. **Show Stored Tokens** lists the feeds that hold a token (values are never shown); removing a feed from the settings now offers to delete its token too; **Delete Unlinked Tokens** retires tokens whose feeds are gone, and **Delete All Tokens** wipes every stored token at once. Deleting a settings entry and deleting its token now work in either order — previously, a token whose feed was removed from the settings first could no longer be deleted at all
+
+- 追加：トークンのライフサイクル管理。**トークンの保存状況**で保存先のフィード一覧を確認でき（値そのものは表示しない）、設定からフィードを消したときはトークンも一緒に消すか尋ねる。**紐づいていないトークンを削除**で設定から消えたフィードのトークンだけを、**すべてのトークンを削除**で一括を削除できる。設定の削除とトークンの削除がどちらが先でもよくなった（従来は、先に設定から消したフィードのトークンは二度と消せなかった）
+
 ## [1.3.13] - 2026-11-16
 
 - Improved: `ci` verdicts now also read Bamboo's mid-title phrases — a real feed (verified 2026-11-16) puts "was SUCCESSFUL" / "has FAILED" in the middle of the title with text on both sides, where the trailing-phrase rules missed the success case. The verdict is read and the title is kept whole
