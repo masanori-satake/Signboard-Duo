@@ -40,7 +40,7 @@
   "config.mode.description": "盤面スタイル：フラップ／LED／株価ボード。auto は幅で切り替わり、540px 未満はフラップ、540px 以上は LED です。",
   "config.mode.auto": "幅による自動切替（540px未満はフラップ、540px以上は LED）",
   "config.mode.flap": "空港のフラップ式到着案内板",
-  "config.mode.led": "駅のLEDドットマトリクス発車標",
+  "config.mode.led": "駅のLEDドットマトリクスボード",
   "config.mode.stock": "証券ボード風の株価ボード",
   "config.ledPitch.description": "LED盤面のドット間隔（px）。",
   "config.ledHole.description": "LED盤面の穴の大きさ（％）。",

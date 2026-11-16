@@ -1,6 +1,6 @@
 # Signboard-Duo
 
-[![Version](https://img.shields.io/badge/version-v1.12.1-blue.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-v1.12.2-blue.svg)](package.json)
 [![Visual Studio Marketplace](https://vsmarketplacebadges.dev/version/masanori-satake.signboard-duo.svg?label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=masanori-satake.signboard-duo)
 [![Open VSX](https://img.shields.io/open-vsx/v/masanori-satake/signboard-duo?label=Open%20VSX)](https://open-vsx.org/extension/masanori-satake/signboard-duo)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/masanori-satake/Signboard-Duo)](https://github.com/masanori-satake/Signboard-Duo/releases)
@@ -14,18 +14,18 @@
 <a id="english"></a>
 ## English
 
-**Signboard-Duo** is a VS Code extension that shows your RSS & Atom feeds — and CI results — on the boards of Signboard-Solo: an airport split-flap board, a station LED board, and a securities-style stock board, in a section of the Explorer. Each feed is a platform (a gate, a track), and every topic arrives like a plane or a train.
+**Signboard-Duo** is a VS Code extension that puts your feeds and your builds on one board. RSS/Atom feeds and live CI state — GitHub Actions and Bamboo, read over REST — sit side by side on the same board (an airport split-flap board, a station LED board, or a securities-style stock board) in a section of the Explorer. Articles, failures, recoveries and queues: everything becomes a row on the board, each feed a platform (a gate, a track), every topic arriving like a plane or a train.
 
 It is the first "-Duo": where a "-Solo" is complete on its own and fully local, a "-Duo" works by pairing with something else — here, the feeds you choose. The pairing stays minimal: read-only polling of the URLs you configure, nothing more.
 
-Current version: **v1.12.1**
+Current version: **v1.12.2**
 
 ---
 
 <a id="en-screenshots"></a>
 ### 📸 Screenshots
 
-**LED board** — a station departure board behind a dot mask. Long headlines scroll so they can be read to the end, and the announcement line at the bottom highlights the line name, the arrival count and the last fetched time.
+**LED board** — a station board behind a dot mask. Long headlines scroll so they can be read to the end, and the announcement line at the bottom highlights the line name, the arrival count and the last fetched time.
 
 <img src="images/led-board.png" alt="LED board" width="388">
 
@@ -424,18 +424,18 @@ The feed entry itself is invalid: `id` must match `^[a-z0-9-]+$` and be unique, 
 <a id="japanese"></a>
 ## Japanese (日本語)
 
-**Signboard-Duo** は、RSS / Atom フィードや CI の結果を、Signboard-Solo の盤面——空港のフラップ盤、駅の LED 盤、証券ボード風の株価ボード——で眺める VS Code 拡張です。エクスプローラーのセクションに常駐します。フィードが「番線／ゲート」、届いたトピックが「電車／飛行機」になります。
+**Signboard-Duo** は、フィードとビルドを1つのボードで眺める VS Code 拡張です。RSS/Atom フィードと CI のライブ状態（GitHub Actions と Bamboo を REST で取得）が、同じボード——空港のフラップ盤、駅の LED 盤、証券ボード風の株価ボード——に横並びで表示されます。エクスプローラーのセクションに常駐します。記事も、失敗も、回復も、待機も、全部が1つのボードの行になり、フィードが「番線／ゲート」、届いたトピックが「電車／飛行機」になります。
 
 初の「-Duo」です。「-Solo」が単体完結・完全ローカルなのに対して、「-Duo」は何かと組んで初めて成り立ちます。ここでの相手は、あなたが選んだフィードです。連携は最小限に留めます。設定した URL への読み取り専用のポーリング、それだけです。
 
-現在のバージョン: **v1.12.1**
+現在のバージョン: **v1.12.2**
 
 ---
 
 <a id="ja-screenshots"></a>
 ### 📸 スクリーンショット
 
-**LED ボード** ─ 駅の発車標をドットマスク越しに。長い見出しは最後まで読めるように流れ、最下行の案内では線名・到着件数・最終取得時刻が色を変えて点滅します。
+**LED ボード** ─ 駅のボードをドットマスク越しに。長い見出しは最後まで読めるように流れ、最下行の案内では線名・到着件数・最終取得時刻が色を変えて点滅します。
 
 <img src="images/led-board.png" alt="LED ボード" width="388">
 

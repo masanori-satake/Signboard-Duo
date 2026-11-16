@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.12.2] - 2026-11-16
+
+### Changed
+
+- README lead rewritten to foreground what is unique: RSS/Atom feeds and live CI state (GitHub Actions / Bamboo over REST) side by side on one board. Wording unified on "board".
+- Feed form polish: the type field is labelled **Feed type** (not "CI type"), the RSS option reads just "RSS", selects and inputs no longer stretch the full form width, and in edit mode the type is shown as fixed text instead of a select that looks changeable.
+
+### 日本語
+
+- README のリードを、RSS/Atom フィードと CI のライブ状態（GitHub Actions / Bamboo を REST で取得）が同じボードに横並びになるという独自性が前に出る文面に書き換えました。用語は「ボード」に統一。
+- フォームの調整：種類のラベルを「フィードの種類」に変更、RSS の選択肢は「RSS」とだけ表示、プルダウンや入力欄がフォーム幅いっぱいに伸びないようにし、編集時は種類をプルダウンではなく固定のテキストで表示するようにしました。
+
 ## [1.12.1] - 2026-11-16
 
 ### Removed

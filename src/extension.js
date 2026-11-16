@@ -766,12 +766,13 @@ function setupHtml(webview, context, editFeed) {
 
 <fieldset>
 <legend>${t('接続', 'Connection')}</legend>
-<label class="row">${t('CI の種類', 'Kind of CI')}</label>
+<label class="row">${t('フィードの種類', 'Feed type')}</label>
 <select id="type">
-  <option value="rss">${t('RSS フィード', 'RSS feed')}</option>
+  <option value="rss">RSS</option>
   <option value="github-actions">GitHub Actions</option>
   <option value="bamboo-rest">Bamboo (REST)</option>
 </select>
+<span id="typeFixed" class="hidden"></span>
 <label class="row" id="baseLabel">${t('API ベース URL', 'API base URL')}</label>
 <input type="text" id="base" placeholder="https://bamboo.example.com/bamboo">
 <div class="hint">${t('ブラウザのアドレスバーの URL をそのまま貼っても、ベース URL に切り詰めます。', 'A pasted browser URL is trimmed back to the base URL.')}</div>

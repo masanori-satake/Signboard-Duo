@@ -97,7 +97,10 @@ function checkPending(containerId, values) {
 }
 function applyEdit(e) {
   $('type').value = e.type;
-  $('type').disabled = true;
+  $('type').classList.add('hidden');
+  const fixed = $('typeFixed');
+  fixed.textContent = $('type').selectedOptions[0] ? $('type').selectedOptions[0].textContent : e.type;
+  fixed.classList.remove('hidden');
   syncType();
   $('base').value = e.url || '';
   $('authType').value = e.authType || 'none';

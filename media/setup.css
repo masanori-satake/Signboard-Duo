@@ -17,6 +17,8 @@ fieldset {
 legend { padding: 0 4px; font-weight: 600; }
 label.row { display: block; margin: 8px 0 2px; }
 .hint { color: var(--vscode-descriptionForeground); font-size: 0.92em; }
+input[type="text"], input[type="password"] { max-width: 520px; }
+select { width: 340px; max-width: 100%; }
 input[type="text"], input[type="password"], input[type="number"], select {
   width: 100%;
   box-sizing: border-box;
@@ -65,3 +67,6 @@ button.danger {
   padding: 7px 16px;
 }
 button.danger:hover { background: var(--vscode-inputValidation-errorBackground); }
+
+#typeFixed { display: inline-block; padding: 5px 1px; font-weight: 600; }
+#typeFixed.hidden { display: none; }
