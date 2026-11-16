@@ -12,6 +12,7 @@ const { parseFeed, parseQuotes, ciVerdict } = require('./feedparse');
 const { fetchOnce, classifyError, proxyForUrl } = require('./net');
 const { numberPlatforms, mergeFeedRows, platformState } = require('./model');
 const { TokenStore, orphanIds } = require('./tokens');
+const bamboo = require('./bamboo');
 
 const CONFIG_NS = 'signboardDuo';
 const JA = (vscode.env.language || '').toLowerCase().startsWith('ja');
@@ -115,6 +116,9 @@ class FeedEngine {
         maxItems: f && f.maxItems ? f.maxItems : 4,
         keepHours: f && f.keepHours ? f.keepHours : 24,
         auth: (f && f.auth) || { type: 'none' },
+        type: (f && f.type) || 'rss',
+        target: (f && f.target && typeof f.target === 'object') ? f.target : {},
+        interests: (f && Array.isArray(f.interests)) ? f.interests.filter((x) => typeof x === 'string') : null,
         configError: false, lastStatus: null, lastOkAt: null, lastErrorAt: null, lastError: null,
         feedTitle: '', snapshot: new Map(), rows: [],
         etag: null, lastModified: null,
@@ -122,6 +126,9 @@ class FeedEngine {
       if (!rec.id || !rec.url || !/^[a-z0-9-]+$/.test(rec.id)) rec.configError = true;
       else if (seen.has(rec.id)) { rec.configError = true; this.log(`feeds: duplicate id "${rec.id}"`); }
       else if (!/^https?:\/\//.test(rec.url)) rec.configError = true;
+      else if (rec.type === 'bamboo-rest'
+        && !(typeof rec.target.project === 'string' && rec.target.project)
+        && !(Array.isArray(rec.target.plans) && rec.target.plans.length)) rec.configError = true;
       seen.add(rec.id);
       const sv = this.saved[rec.id];
       if (sv && typeof sv === 'object') {
@@ -245,6 +252,7 @@ class FeedEngine {
         this.maybePromptToken(rec);
         return;
       }
+      if (rec.type === 'bamboo-rest') { await this.refreshBamboo(rec, authH, now); return; }
       const headers = { 'User-Agent': USER_AGENT, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml', ...authH };
       if (rec.etag) headers['If-None-Match'] = rec.etag;
       if (rec.lastModified) headers['If-Modified-Since'] = rec.lastModified;
@@ -305,6 +313,76 @@ class FeedEngine {
       rec.lastErrorAt = now;
       rec.lastStatus = rec.lastStatus || 0;
       if (!rec.lastError) rec.lastError = { symptom: classifyError(err, false), detail: '' };
+      this.log(`feed ${rec.id}: ${err && err.message ? err.message : err}`);
+    }
+  }
+
+  /* REST adapter path (design §14/§16): transport stays here — auth
+     headers, proxy, deadlines, the symptom taxonomy — while the
+     adapter module owns URLs and response interpretation. One plan
+     failing does not sink the platform; if every plan fails, the
+     first error speaks for the platform. */
+  async refreshBamboo(rec, authH, now) {
+    const headers = { 'User-Agent': USER_AGENT, Accept: 'application/json', ...authH };
+    const credNames = Object.keys(authH);
+    const fail = (symptom, detail) => { const e = new Error(symptom); e.symptom = symptom; e.detail = detail || ''; return e; };
+    const fetchJson = async (url) => {
+      const res = await fetchOnce(url, headers, credNames, MAX_REDIRECTS, Date.now() + FETCH_DEADLINE_MS, this.pxCfg);
+      rec.lastStatus = res.status;
+      if (res.status === 401 || res.status === 403) throw fail('feed-auth', String(res.status));
+      if (res.status !== 200 || res.body == null) throw fail('http', String(res.status));
+      try { return JSON.parse(res.body); } catch (e) { throw fail('format', ''); }
+    };
+    try {
+      let planKeys = Array.isArray(rec.target.plans) ? rec.target.plans.filter((k) => typeof k === 'string') : [];
+      if (rec.target.project) {
+        const proj = await fetchJson(bamboo.projectUrl(rec.url, rec.target.project));
+        if (!planKeys.length) planKeys = bamboo.parseProjectPlans(proj).map((p) => p.key);
+        if (proj && typeof proj.name === 'string' && proj.name) rec.feedTitle = proj.name;
+      }
+      planKeys = [...new Set(planKeys)].slice(0, 20);
+      const labels = {
+        running: JA ? '実行中' : 'running',
+        long: JA ? '長時間実行中' : 'long-running',
+        recovered: JA ? '回復' : 'recovered',
+        streak: (n) => (JA ? `${n}回連続失敗` : `${n} failed in a row`),
+      };
+      const items = [];
+      let firstErr = null;
+      let okCount = 0;
+      for (const key of planKeys) {
+        try {
+          const json = await fetchJson(bamboo.planResultsUrl(rec.url, key, 5));
+          const { planName, results } = bamboo.parsePlanResults(json);
+          okCount++;
+          if (planKeys.length === 1 && planName) rec.feedTitle = planName;
+          items.push(...bamboo.buildRows({
+            planKey: key, planName, results,
+            interests: rec.interests, nowMs: now,
+            longMinutes: rec.target.longMinutes, labels,
+          }));
+        } catch (e) { if (!firstErr) firstErr = e; }
+      }
+      if (!okCount && firstErr) throw firstErr;
+      const merged = mergeFeedRows(rec.id, items, rec.snapshot, now, {
+        maxItems: rec.maxItems, keepHours: rec.keepHours,
+      });
+      rec.snapshot = merged.snapshot;
+      rec.rows = merged.rows.map((r) => ({ ...r, status: this.rowStatus(rec, r) }));
+      rec.lastOkAt = now;
+      rec.lastError = null;
+      this.dirty = true;
+    } catch (err) {
+      rec.lastErrorAt = now;
+      if (err && err.symptom) {
+        rec.lastError = { symptom: err.symptom, detail: err.detail || '' };
+        if (err.symptom === 'feed-auth') this.maybePromptToken(rec);
+      } else {
+        rec.lastError = {
+          symptom: classifyError(err, !!proxyForUrl(rec.url, this.pxCfg)),
+          detail: err && err.code ? String(err.code) : '',
+        };
+      }
       this.log(`feed ${rec.id}: ${err && err.message ? err.message : err}`);
     }
   }

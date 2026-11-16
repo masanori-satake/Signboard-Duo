@@ -28,6 +28,7 @@
 - `src/feedparse.js` — 純粋モジュール：RSS 1.0 / RSS 2.0 / Atom の正規化パーサ（外部実体は解決しない）
 - `src/net.js` — 純粋モジュール：取得層（直接／プロキシ経由、CONNECT トンネル、絶対期限、失敗の症状分類）
 - `src/tokens.js` — 純粋モジュール：フィードトークンの台帳（SecretStorage はキー列挙ができないため、ID のみの一覧を併せ持ち、保存状況の確認・孤児トークンの削除・一括削除を可能にする）
+- `src/bamboo.js` — 純粋モジュール：Bamboo REST アダプタ（URL 構築、応答の解釈、interests から行への変換。対応カタログは CAPABILITIES で宣言。設計書 §14／§16）
 - `media/board.js` / `board.css` — フラップ盤面（Signboard-Solo から fork）
 - `media/led.js` / `led.css` — LED盤面（マスク方式、Signboard-Solo から fork）
 - `media/stock.js` / `stock.css` — 株価盤面（区画ごとに役割と色を分ける証券ボード方式。kind: "stock" の JSON 相場フィード用）

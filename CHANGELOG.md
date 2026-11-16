@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.0] - 2026-11-16
+
+- Added: the first REST adapter — **Bamboo over REST** (`"type": "bamboo-rest"`), for Bamboo servers whose RSS is unavailable (e.g. behind single sign-on, where the RSS layer refuses programmatic auth but the REST API accepts a PAT). A platform targets a project (all its plans aggregated, one row per plan) and/or explicit plans, and `interests` chooses what becomes news: `failed`, `recovered`, `streak`, `running`, `long`, `all` (default `failed` + `recovered`). Transport, auth, proxy handling and failure diagnosis are shared with RSS feeds. Plan branches are not expanded yet
+
+- 追加：最初の REST アダプタ、**Bamboo REST**（`"type": "bamboo-rest"`）。SSO 運用などで RSS が使えない Bamboo（RSS 層はプログラム認証を拒むが、REST は PAT を受ける）向け。対象はプロジェクト（配下の全プランを1番線に集約、行はプラン毎の最新だけ）とプランの明示で、`interests` で何をニュースにするか選べる（`failed`、`recovered`、`streak`、`running`、`long`、`all`。既定は `failed` ＋ `recovered`）。取得・認証・プロキシ・症状診断は RSS と共通。プランブランチの展開はまだ行わない
+
 ## [1.4.0] - 2026-11-16
 
 - Added: token lifecycle management. **Show Stored Tokens** lists the feeds that hold a token (values are never shown); removing a feed from the settings now offers to delete its token too; **Delete Unlinked Tokens** retires tokens whose feeds are gone, and **Delete All Tokens** wipes every stored token at once. Deleting a settings entry and deleting its token now work in either order — previously, a token whose feed was removed from the settings first could no longer be deleted at all

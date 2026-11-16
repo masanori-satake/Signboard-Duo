@@ -170,6 +170,61 @@
                 "description": "%config.feeds.enabled.description%",
                 "type": "boolean"
               },
+              "interests": {
+                "description": "%config.feeds.interests.description%",
+                "items": {
+                  "enum": [
+                    "failed",
+                    "recovered",
+                    "streak",
+                    "running",
+                    "all",
+                    "long",
+                    "queued",
+                    "first"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "target": {
+                "description": "%config.feeds.target.description%",
+                "properties": {
+                  "branches": {
+                    "default": "mainline",
+                    "enum": [
+                      "mainline",
+                      "include",
+                      "only"
+                    ],
+                    "type": "string"
+                  },
+                  "longMinutes": {
+                    "default": 60,
+                    "minimum": 5,
+                    "type": "number"
+                  },
+                  "plans": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "project": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "type": {
+                "default": "rss",
+                "description": "%config.feeds.type.description%",
+                "enum": [
+                  "rss",
+                  "bamboo-rest"
+                ],
+                "type": "string"
+              },
               "id": {
                 "description": "%config.feeds.id.description%",
                 "pattern": "^[a-z0-9-]+$",
@@ -375,11 +430,11 @@
   "name": "signboard-duo",
   "publisher": "masanori-satake",
   "scripts": {
-    "check": "node --check src/extension.js && node --check src/model.js && node --check src/feedparse.js && node --check src/net.js && node --check src/tokens.js",
+    "check": "node --check src/extension.js && node --check src/model.js && node --check src/feedparse.js && node --check src/net.js && node --check src/tokens.js && node --check src/bamboo.js",
     "package": "vsce package",
     "test": "node --test",
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.4.0"
+  "version": "1.5.0"
 }
