@@ -40,6 +40,17 @@ test('storedTokenApplies requires the same normalised base', () => {
   assert.equal(storedTokenApplies(undefined, undefined), false);
 });
 
+/* Regression (PR #1 review): after an edit-save repoints a feed
+   from server A to server B, the host compares against the SAVED
+   entry's url (setupEditFeed is re-synced on save). With the saved
+   url at B, the stored token — already updated to B's — applies
+   to B's loads and never to A's. */
+test('storedTokenApplies after repointing A to B applies to B only', () => {
+  const savedUrlAfterEdit = 'https://b.example.com/bamboo';
+  assert.equal(storedTokenApplies('https://b.example.com/bamboo', savedUrlAfterEdit), true);
+  assert.equal(storedTokenApplies('https://a.example.com/bamboo', savedUrlAfterEdit), false);
+});
+
 test('browse helpers parse project and workflow lists', () => {
   assert.deepEqual(
     bamboo.parseProjects({ projects: { size: 1, project: [{ key: 'OFF', name: 'Office' }, { name: 'x' }] } }),

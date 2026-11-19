@@ -1203,6 +1203,11 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
         await cfg.update('feeds', rest, vscode.ConfigurationTarget.Global);
         if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
         else if (entry.auth.type === 'none' && (await tokens.has(id))) await tokens.delete(id);
+        /* Keep the form's edit target in sync with what was just
+           saved: storedTokenApplies compares against setupEditFeed.url,
+           so leaving the pre-edit entry here would keep matching the
+           OLD server while the stored token is already the new one. */
+        setupEditFeed = entry;
         post({ type: 'saved' });
         vscode.window.showInformationMessage(JA
           ? `Signboard-Duo: フィード「${entry.name}」を更新しました。`

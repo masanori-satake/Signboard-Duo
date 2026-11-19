@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.5] - 2026-11-20
+
+### Fixed
+
+- **After repointing an edited feed at another server, the stored token could still be sent to the old server.** The 1.18.4 change compares the form's base URL against the URL the token was saved for, but the edit form kept comparing against the pre-edit entry: after saving a feed whose URL changed from A to B (with B's token), pointing the form back at A matched the stale entry and B's token was sent to A. The edit form's target is now re-synced to the saved entry on every edit-save, so the comparison always uses the URL that was actually saved.
+
+### 日本語
+
+- **編集したフィードを別サーバーへ向け替えた後、保存済みトークンが旧サーバーへ送られうる問題を直しました。** 1.18.4 の変更は「トークンの保存先 URL」とフォームの URL を比べるものですが、編集フォーム側の比較対象が編集前のエントリのままでした。URL を A から B に変えて B のトークンと一緒に保存した後、フォームを A に戻すと古いエントリに一致してしまい、B のトークンが A へ送られていました。編集保存のたびにフォームの対象を保存済みエントリに同期し直すようにし、比較は常に実際に保存された URL で行われます。
+
 ## [1.18.4] - 2026-11-20
 
 ### Fixed
