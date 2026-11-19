@@ -63,4 +63,22 @@ function storedTokenApplies(formBase, savedUrl) {
   return !!a && !!b && a === b;
 }
 
-module.exports = { CATALOG, PRESETS, PRESET_ORDER, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl, storedTokenApplies };
+/* Whether an edit-save must drop the feed's stored token instead
+   of carrying it over. Tokens are keyed by feed id, not by URL,
+   so repointing a feed at another server while leaving the token
+   field empty would silently carry the old server's token to the
+   new one — and once the edit form is re-synced to the saved
+   entry, storedTokenApplies would happily match it there. A token
+   typed into the form replaces the stored one on save, and the
+   auth-type "none" case is deleted by its own branch, so the
+   drop applies only to: destination changed, token field empty,
+   auth still in use. */
+function shouldDropStoredToken(savedUrl, formBase, tokenField, authType) {
+  if (tokenField) return false;
+  if (!authType || authType === 'none') return false;
+  const a = normalizeBaseUrl(savedUrl);
+  const b = normalizeBaseUrl(formBase);
+  return !!a && !!b && a !== b;
+}
+
+module.exports = { CATALOG, PRESETS, PRESET_ORDER, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl, storedTokenApplies, shouldDropStoredToken };

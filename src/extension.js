@@ -1200,6 +1200,21 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
         const rest = feeds.filter((f) => !(f && f.id === id));
         const pos = Math.min(rest.length + 1, Math.max(1, Number(d.position) || (oldIdx >= 0 ? oldIdx + 1 : rest.length + 1)));
         rest.splice(pos - 1, 0, entry);
+        /* Repointing the feed at another server with the token
+           field left empty must not carry the old server's token
+           over (tokens are keyed by feed id, not URL). Drop it
+           BEFORE the settings update; if the drop fails, abort
+           the save rather than persist a feed whose stored token
+           now belongs to a different server. */
+        if (wizard.shouldDropStoredToken(oldRaw.url, entry.url, d.token, entry.auth.type) && (await tokens.has(id))) {
+          try {
+            await tokens.delete(id);
+          } catch (e) {
+            throw new Error(JA
+              ? '保存済みトークンを削除できなかったため、保存を中止しました。'
+              : 'Could not delete the stored token, so the save was aborted.');
+          }
+        }
         await cfg.update('feeds', rest, vscode.ConfigurationTarget.Global);
         if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
         else if (entry.auth.type === 'none' && (await tokens.has(id))) await tokens.delete(id);

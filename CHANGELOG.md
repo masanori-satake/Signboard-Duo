@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.6] - 2026-11-20
+
+### Fixed
+
+- **Repointing a feed at another server with the token field left empty no longer carries the old server's token over.** Stored tokens are keyed by feed id, not by URL, so an edit-save that changed the destination kept the previous server's token under the same id — where the 1.18.4/1.18.5 fill-in check would then match it against the new server. When an edit-save changes the destination and no new token is typed, the stored token is now deleted before the settings update; if the deletion fails, the save is aborted with an error. Saving with the destination unchanged keeps the stored token, and typing a new token replaces it, as before.
+
+### 日本語
+
+- **フィードを別サーバーへ向け替えてトークン欄を空のまま保存しても、旧サーバーのトークンが引き継がれないようにしました。** 保存済みトークンはフィード ID に紐づいており URL には紐づいていないため、保存先を変える編集保存では旧サーバーのトークンが同じ ID のまま残り、1.18.4／1.18.5 の補完チェックが新サーバーに対して一致してしまう状態でした。保存先が変わり、かつ新しいトークンが入力されていない場合は、設定の更新前に保存済みトークンを削除します。削除に失敗した場合はエラーを出して保存自体を中止します。保存先が同じならトークンは保持され、新しいトークンを入力すれば置き換わる、従来の動作はそのままです。
+
 ## [1.18.5] - 2026-11-20
 
 ### Fixed
