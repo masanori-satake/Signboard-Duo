@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.18.4] - 2026-11-20
+
+### Fixed
+
+- **A feed full of non-matching close tags could freeze the whole editor.** The XML parser matched each close tag by scanning the entire open-element stack, so a feed of n opened elements followed by n closes that match nothing cost quadratic time — measured 81 s at 273 KB, well inside the 1 MB body cap. Open elements are now indexed by name, the match lookup is O(1), and parsing stays linear (the audit shape above now parses in well under a second). Well-formed feeds parse exactly as before.
+- **A stored token could be sent to a different server while editing a feed.** When an existing CI feed is edited and the token field is left empty, the setup form fills in the stored token for project / plan / workflow loads. That fill-in now applies only while the form's base URL still names the server the token was saved for; after the form is repointed at another instance, loads go out without the token and a 401 surfaces as an error instead of silently sending the old server's token to the new one.
+
+### 日本語
+
+- **不一致な閉じタグだらけのフィードでエディタ全体が固まる問題を直しました。** XML パーサが閉じタグの対応を探すたびに、開いている要素のスタック全体を走査していたため、「n 個の開始タグ＋対応しない n 個の閉じタグ」で二乗時間になっていました（本文上限 1MB の内側で、273KB で実測 81 秒）。開いている要素を名前で索引化し、対応付けを O(1) にして解析全体を線形に保ちます（上記の形状は1秒未満で解析できます）。正しいフィードの解析結果は従来どおりです。
+- **フィード編集中、保存済みトークンが別サーバーへ送られうる問題を直しました。** 既存の CI フィードを編集し、トークン欄を空のままプロジェクト／プラン／ワークフローを読み込むと、保存済みトークンが自動で補われます。この補完は、フォームのベース URL がトークンの保存先サーバーを指している場合に限るようにしました。フォームを別インスタンスへ向け替えた後はトークンなしで読み込み、認証が必要なら 401 がエラーとして表示されます（旧サーバーのトークンが無言で新サーバーへ送られることはありません）。
+
 ## [1.18.3] - 2026-11-17
 
 ### Fixed

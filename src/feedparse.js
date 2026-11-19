@@ -38,6 +38,17 @@ function decodeEntities(s) {
 function parseXml(xml) {
   const root = { name: '#root', attrs: {}, children: [], segs: [] };
   const stack = [root];
+  /* Open elements indexed by name: name -> ascending stack
+     positions, mirroring the stack exactly (a close tag removes
+     its element and everything above it from both). A close tag
+     used to scan the whole stack for its match, so a feed of n
+     opens followed by n non-matching closes cost O(n^2) —
+     measured 81 s at 273 KB, well inside the 1 MB body cap:
+     one hostile or compromised feed could freeze the extension
+     host for minutes. With the index the match lookup is O(1),
+     and each element leaves the index exactly once (when it is
+     popped), so the whole parse stays linear. */
+  const openByName = new Map();
   const top = () => stack[stack.length - 1];
   let i = 0;
   const n = xml.length;
@@ -62,14 +73,24 @@ function parseXml(xml) {
       i = end < 0 ? n : end + 1;
     } else if (xml.startsWith('</', lt)) {
       const end = xml.indexOf('>', lt + 2);
-      const rawClose = end < 0 ? '' : xml.slice(lt + 2, end).trim();
+      /* The local name is computed once, here — never inside a scan. */
+      const closeName = localName(end < 0 ? '' : xml.slice(lt + 2, end).trim());
       /* Close the nearest matching open element (and anything left
          open inside it); a close tag that matches nothing is ignored.
          Popping blindly would let one stray close tag in a hostile
          or sloppy feed evict a legitimate parent and scramble the
-         tree. */
-      for (let d = stack.length - 1; d >= 1; d--) {
-        if (stack[d].name === localName(rawClose)) { stack.length = d; break; }
+         tree. The popped elements leave the name index in the same
+         pass: their entries are the topmost of their names' lists,
+         because the popped range is a suffix of the stack. */
+      const list = openByName.get(closeName);
+      if (list && list.length) {
+        const target = list[list.length - 1];
+        for (let d = stack.length - 1; d >= target; d--) {
+          const l = openByName.get(stack[d].name);
+          l.pop();
+          if (!l.length) openByName.delete(stack[d].name);
+        }
+        stack.length = target;
       }
       i = end < 0 ? n : end + 1;
     } else {
@@ -82,7 +103,11 @@ function parseXml(xml) {
       const rawName = sp < 0 ? inner : inner.slice(0, sp);
       const node = { name: localName(rawName), attrs: parseAttrs(sp < 0 ? '' : inner.slice(sp + 1)), children: [], segs: [] };
       top().children.push(node);
-      if (!selfClose) stack.push(node);
+      if (!selfClose) {
+        const l = openByName.get(node.name);
+        if (l) l.push(stack.length); else openByName.set(node.name, [stack.length]);
+        stack.push(node);
+      }
       i = end + 1;
     }
   }

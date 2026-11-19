@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl } = require('../src/wizard');
+const { slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl, storedTokenApplies } = require('../src/wizard');
 const bamboo = require('../src/bamboo');
 const github = require('../src/github');
 
@@ -22,6 +22,22 @@ test('pasted browser URLs are normalised', () => {
   assert.equal(normalizeBaseUrl('https://bamboo.example.com/bamboo/'), 'https://bamboo.example.com/bamboo');
   assert.equal(normalizeBaseUrl('https://bamboo.example.com/bamboo/rest/api/latest/plan/ABC'), 'https://bamboo.example.com/bamboo');
   assert.equal(normalizeBaseUrl('https://api.github.com'), 'https://api.github.com');
+});
+
+/* Audit 2026-11-20 F2: the stored token may only be filled in
+   while the setup form still points at the server it was saved
+   for — never after the form is repointed at another instance. */
+test('storedTokenApplies requires the same normalised base', () => {
+  assert.equal(storedTokenApplies('https://bamboo.example.com/bamboo', 'https://bamboo.example.com/bamboo'), true);
+  assert.equal(storedTokenApplies('https://bamboo.example.com/bamboo/', 'https://bamboo.example.com/bamboo'), true);
+  assert.equal(storedTokenApplies('https://bamboo.example.com/bamboo/rest/api/latest/plan/ABC', 'https://bamboo.example.com/bamboo'), true);
+  assert.equal(storedTokenApplies('https://api.github.com', 'https://api.github.com'), true);
+  assert.equal(storedTokenApplies('https://other.example.com/bamboo', 'https://bamboo.example.com/bamboo'), false);
+  assert.equal(storedTokenApplies('http://bamboo.example.com/bamboo', 'https://bamboo.example.com/bamboo'), false);
+  assert.equal(storedTokenApplies('https://ghe.example.com/api/v3', 'https://api.github.com'), false);
+  assert.equal(storedTokenApplies('', 'https://bamboo.example.com/bamboo'), false);
+  assert.equal(storedTokenApplies('https://bamboo.example.com/bamboo', ''), false);
+  assert.equal(storedTokenApplies(undefined, undefined), false);
 });
 
 test('browse helpers parse project and workflow lists', () => {

@@ -47,4 +47,20 @@ function normalizeBaseUrl(value) {
   return v;
 }
 
-module.exports = { CATALOG, PRESETS, PRESET_ORDER, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl };
+/* Whether the setup form still points at the server a feed's
+   stored token was saved for. While an existing feed is edited,
+   the form's base URL is a free field: if the user repoints it
+   at another instance and loads a project / plan / workflow
+   list, the stored token must not ride along to the new server
+   — the token field reads empty, so the send would be silent.
+   Both sides go through normalizeBaseUrl, the same
+   normalisation the save path applies before storing a feed's
+   url, so a trailing slash or a pasted /rest/api/ page URL on
+   either side still counts as the same server. */
+function storedTokenApplies(formBase, savedUrl) {
+  const a = normalizeBaseUrl(formBase);
+  const b = normalizeBaseUrl(savedUrl);
+  return !!a && !!b && a === b;
+}
+
+module.exports = { CATALOG, PRESETS, PRESET_ORDER, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl, storedTokenApplies };

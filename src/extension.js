@@ -1054,7 +1054,13 @@ ${editing ? `<div class="danger-zone">
 
 async function setupAuthHeadersFor(engine, adapterType, c) {
   let conn = c;
-  if (conn && !conn.token && setupEditFeed && setupEditFeed.id) {
+  /* The stored token is filled in only while the form's base URL
+     still names the server it was saved for (storedTokenApplies).
+     Repointing the form at another instance must not silently
+     send the old server's token there: the load then goes out
+     without a token, and a 401 surfaces as an error instead. */
+  if (conn && !conn.token && setupEditFeed && setupEditFeed.id
+      && wizard.storedTokenApplies(conn.base, setupEditFeed.url)) {
     const stored = await engine.context.secrets.get(`feed-token:${setupEditFeed.id}`);
     if (stored) conn = { ...conn, token: stored };
   }
