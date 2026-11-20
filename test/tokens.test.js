@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { TokenStore, parseIndex, orphanIds } = require('../src/tokens');
+const { TokenStore, parseIndex, orphanIds, INDEX_KEY } = require('../src/tokens');
 
 function fakeSecrets() {
   const map = new Map();
@@ -50,6 +50,40 @@ test('deleteMany removes tokens and prunes the index once', async () => {
   assert.deepEqual(await store.ids(), ['b']);
   assert.equal(await store.has('a'), false);
   assert.equal(await store.has('b'), true);
+});
+
+test('get returns the stored token value', async () => {
+  const store = new TokenStore(fakeSecrets());
+  assert.equal(await store.get('bamboo'), undefined);
+  await store.set('bamboo', 'secret-1');
+  assert.equal(await store.get('bamboo'), 'secret-1');
+});
+
+test('delete restores the token when the index update fails', async () => {
+  const secrets = fakeSecrets();
+  const store = new TokenStore(secrets);
+  await store.set('bamboo', 'secret-1');
+  // From here on, writing the index fails while secret writes work.
+  const realStore = secrets.store;
+  secrets.store = async (k, v) => {
+    if (k === INDEX_KEY) throw new Error('index write failed');
+    return realStore(k, v);
+  };
+  await assert.rejects(store.delete('bamboo'), /index write failed/);
+  // The secret was already dropped, so it must be put back.
+  assert.equal(await store.get('bamboo'), 'secret-1');
+  assert.equal(await store.has('bamboo'), true);
+  assert.deepEqual(await store.ids(), ['bamboo']);
+});
+
+test('delete leaves the token when the secret itself cannot be deleted', async () => {
+  const secrets = fakeSecrets();
+  const store = new TokenStore(secrets);
+  await store.set('bamboo', 'secret-1');
+  secrets.delete = async () => { throw new Error('secret delete failed'); };
+  await assert.rejects(store.delete('bamboo'), /secret delete failed/);
+  assert.equal(await store.get('bamboo'), 'secret-1');
+  assert.deepEqual(await store.ids(), ['bamboo']);
 });
 
 test('adopt indexes pre-existing tokens of configured feeds only', async () => {

@@ -144,6 +144,39 @@ test('unsupported root throws', () => {
   assert.throws(() => parseFeed('<html><body>x</body></html>'), /unsupported/);
 });
 
+/* Audit 2026-11-20 F1: the close-tag match used to scan the whole
+   open-element stack, so n opens followed by n non-matching closes
+   cost O(n^2) — measured 81 s at 273 KB, inside the 1 MB body cap.
+   The name index keeps it linear; this shape must stay fast and
+   the tree must come out intact. */
+test('a flood of non-matching close tags stays fast', () => {
+  const n = 40000;
+  const xml = '<rss version="2.0"><channel><title>T</title>'
+    + '<a>'.repeat(n) + '</b>'.repeat(n) + '</a>'.repeat(n)
+    + '<item><title>hello</title></item></channel></rss>';
+  const t0 = Date.now();
+  const feed = parseFeed(xml);
+  const elapsed = Date.now() - t0;
+  assert.equal(feed.title, 'T');
+  assert.equal(feed.items.length, 1);
+  assert.equal(feed.items[0].title, 'hello');
+  assert.ok(elapsed < 5000, `parse took ${elapsed} ms`);
+});
+
+test('close tags still close the nearest match and ignore strays', () => {
+  // </item> implicitly closes the unclosed <description> inside it.
+  const implicit = parseFeed('<rss><channel><title>T</title>'
+    + '<item><title>one</title><description>d</item>'
+    + '<item><title>two</title></item></channel></rss>');
+  assert.deepEqual(implicit.items.map((i) => i.title), ['one', 'two']);
+  // A close tag for an element that is not open must not evict a
+  // legitimate parent, even after positions in the stack are reused.
+  const stray = parseFeed('<rss><channel><title>T</title>'
+    + '<item><title>one</title></item></description>'
+    + '<item><title>two</title></item></channel></rss>');
+  assert.deepEqual(stray.items.map((i) => i.title), ['one', 'two']);
+});
+
 test('ciVerdict reads Jenkins-style parenthesised results', () => {
   assert.deepEqual(ciVerdict('my-job #123 (SUCCESS)'), { failed: false, title: 'my-job #123' });
   assert.deepEqual(ciVerdict('my-job #124 (FAILURE)'), { failed: true, title: 'my-job #124' });

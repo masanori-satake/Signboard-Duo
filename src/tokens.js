@@ -41,6 +41,8 @@ class TokenStore {
 
   async has(id) { return (await this.secrets.get(this.key(id))) != null; }
 
+  async get(id) { return this.secrets.get(this.key(id)); }
+
   async set(id, value) {
     await this.secrets.store(this.key(id), value);
     const ids = await this.ids();
@@ -48,9 +50,21 @@ class TokenStore {
   }
 
   async delete(id) {
+    /* Read the secret before dropping it: if the index update below
+       fails, the secret must go back — otherwise the caller aborts
+       with the token already gone while the settings still point
+       at the server it authenticated against. */
+    const previous = await this.secrets.get(this.key(id));
     await this.secrets.delete(this.key(id));
-    const ids = await this.ids();
-    if (ids.includes(id)) await this.writeIds(ids.filter((x) => x !== id));
+    try {
+      const ids = await this.ids();
+      if (ids.includes(id)) await this.writeIds(ids.filter((x) => x !== id));
+    } catch (e) {
+      if (previous != null) {
+        try { await this.secrets.store(this.key(id), previous); } catch (_) { /* restore failed; the index error still surfaces */ }
+      }
+      throw e;
+    }
   }
 
   async deleteMany(idsToDelete) {

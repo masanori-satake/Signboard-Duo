@@ -47,4 +47,38 @@ function normalizeBaseUrl(value) {
   return v;
 }
 
-module.exports = { CATALOG, PRESETS, PRESET_ORDER, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl };
+/* Whether the setup form still points at the server a feed's
+   stored token was saved for. While an existing feed is edited,
+   the form's base URL is a free field: if the user repoints it
+   at another instance and loads a project / plan / workflow
+   list, the stored token must not ride along to the new server
+   — the token field reads empty, so the send would be silent.
+   Both sides go through normalizeBaseUrl, the same
+   normalisation the save path applies before storing a feed's
+   url, so a trailing slash or a pasted /rest/api/ page URL on
+   either side still counts as the same server. */
+function storedTokenApplies(formBase, savedUrl) {
+  const a = normalizeBaseUrl(formBase);
+  const b = normalizeBaseUrl(savedUrl);
+  return !!a && !!b && a === b;
+}
+
+/* Whether an edit-save must drop the feed's stored token instead
+   of carrying it over. Tokens are keyed by feed id, not by URL,
+   so repointing a feed at another server while leaving the token
+   field empty would silently carry the old server's token to the
+   new one — and once the edit form is re-synced to the saved
+   entry, storedTokenApplies would happily match it there. A token
+   typed into the form replaces the stored one on save, and the
+   auth-type "none" case is deleted by its own branch, so the
+   drop applies only to: destination changed, token field empty,
+   auth still in use. */
+function shouldDropStoredToken(savedUrl, formBase, tokenField, authType) {
+  if (tokenField) return false;
+  if (!authType || authType === 'none') return false;
+  const a = normalizeBaseUrl(savedUrl);
+  const b = normalizeBaseUrl(formBase);
+  return !!a && !!b && a !== b;
+}
+
+module.exports = { CATALOG, PRESETS, PRESET_ORDER, slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl, storedTokenApplies, shouldDropStoredToken };

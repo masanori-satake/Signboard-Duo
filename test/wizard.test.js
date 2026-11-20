@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl } = require('../src/wizard');
+const { slugify, uniqueFeedId, normalizeRepoInput, normalizeBaseUrl, storedTokenApplies, shouldDropStoredToken } = require('../src/wizard');
 const bamboo = require('../src/bamboo');
 const github = require('../src/github');
 
@@ -22,6 +22,52 @@ test('pasted browser URLs are normalised', () => {
   assert.equal(normalizeBaseUrl('https://bamboo.example.com/bamboo/'), 'https://bamboo.example.com/bamboo');
   assert.equal(normalizeBaseUrl('https://bamboo.example.com/bamboo/rest/api/latest/plan/ABC'), 'https://bamboo.example.com/bamboo');
   assert.equal(normalizeBaseUrl('https://api.github.com'), 'https://api.github.com');
+});
+
+/* Audit 2026-11-20 F2: the stored token may only be filled in
+   while the setup form still points at the server it was saved
+   for — never after the form is repointed at another instance. */
+test('storedTokenApplies requires the same normalised base', () => {
+  assert.equal(storedTokenApplies('https://bamboo.example.com/bamboo', 'https://bamboo.example.com/bamboo'), true);
+  assert.equal(storedTokenApplies('https://bamboo.example.com/bamboo/', 'https://bamboo.example.com/bamboo'), true);
+  assert.equal(storedTokenApplies('https://bamboo.example.com/bamboo/rest/api/latest/plan/ABC', 'https://bamboo.example.com/bamboo'), true);
+  assert.equal(storedTokenApplies('https://api.github.com', 'https://api.github.com'), true);
+  assert.equal(storedTokenApplies('https://other.example.com/bamboo', 'https://bamboo.example.com/bamboo'), false);
+  assert.equal(storedTokenApplies('http://bamboo.example.com/bamboo', 'https://bamboo.example.com/bamboo'), false);
+  assert.equal(storedTokenApplies('https://ghe.example.com/api/v3', 'https://api.github.com'), false);
+  assert.equal(storedTokenApplies('', 'https://bamboo.example.com/bamboo'), false);
+  assert.equal(storedTokenApplies('https://bamboo.example.com/bamboo', ''), false);
+  assert.equal(storedTokenApplies(undefined, undefined), false);
+});
+
+/* Regression (PR #1 review): after an edit-save repoints a feed
+   from server A to server B, the host compares against the SAVED
+   entry's url (setupEditFeed is re-synced on save). With the saved
+   url at B, the stored token — already updated to B's — applies
+   to B's loads and never to A's. */
+test('storedTokenApplies after repointing A to B applies to B only', () => {
+  const savedUrlAfterEdit = 'https://b.example.com/bamboo';
+  assert.equal(storedTokenApplies('https://b.example.com/bamboo', savedUrlAfterEdit), true);
+  assert.equal(storedTokenApplies('https://a.example.com/bamboo', savedUrlAfterEdit), false);
+});
+
+/* The other half of the repoint case (PR #1 review, second
+   round): when the save itself repoints the feed and the token
+   field is empty, the stored token belongs to the OLD server and
+   must be dropped instead of carried over to the new one. */
+test('shouldDropStoredToken drops only on repoint with empty token field', () => {
+  const A = 'https://a.example.com/bamboo';
+  const B = 'https://b.example.com/bamboo';
+  assert.equal(shouldDropStoredToken(A, B, '', 'bearer'), true);
+  assert.equal(shouldDropStoredToken(A, B, '', 'basic'), true);
+  assert.equal(shouldDropStoredToken(A, B, '', 'header'), true);
+  assert.equal(shouldDropStoredToken(A, A, '', 'bearer'), false);
+  assert.equal(shouldDropStoredToken(A, 'https://a.example.com/bamboo/', '', 'bearer'), false);
+  assert.equal(shouldDropStoredToken(A, 'https://a.example.com/bamboo/rest/api/latest/plan/ABC', '', 'bearer'), false);
+  assert.equal(shouldDropStoredToken(A, B, 'new-token', 'bearer'), false);
+  assert.equal(shouldDropStoredToken(A, B, '', 'none'), false);
+  assert.equal(shouldDropStoredToken(A, B, '', ''), false);
+  assert.equal(shouldDropStoredToken('', B, '', 'bearer'), false);
 });
 
 test('browse helpers parse project and workflow lists', () => {

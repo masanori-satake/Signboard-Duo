@@ -1054,7 +1054,13 @@ ${editing ? `<div class="danger-zone">
 
 async function setupAuthHeadersFor(engine, adapterType, c) {
   let conn = c;
-  if (conn && !conn.token && setupEditFeed && setupEditFeed.id) {
+  /* The stored token is filled in only while the form's base URL
+     still names the server it was saved for (storedTokenApplies).
+     Repointing the form at another instance must not silently
+     send the old server's token there: the load then goes out
+     without a token, and a 401 surfaces as an error instead. */
+  if (conn && !conn.token && setupEditFeed && setupEditFeed.id
+      && wizard.storedTokenApplies(conn.base, setupEditFeed.url)) {
     const stored = await engine.context.secrets.get(`feed-token:${setupEditFeed.id}`);
     if (stored) conn = { ...conn, token: stored };
   }
@@ -1071,7 +1077,33 @@ function setupAuthHeaders(adapterType, c) {
   return h;
 }
 
+/* Saves for the same feed must not run concurrently. An edit-save
+   drops the stored token before the settings update and restores it
+   if that update fails; if a second save repoints the same feed while
+   the first is still awaiting its update, the first save's restore
+   would put the old server's token back under an id whose settings
+   now point at the new server. Chain saves per feed id so each one
+   reads the settings the previous save left behind. A new feed gets
+   a fresh id, so only edit-saves queue here. */
+const saveChains = new Map();
+
 async function handleSetupMessage(panel, engine, tokens, msg) {
+  if (msg.type === 'save' && setupEditFeed) {
+    const id = setupEditFeed.id;
+    const prev = saveChains.get(id) || Promise.resolve();
+    const run = prev.catch(() => {}).then(() => handleSetupMessageInner(panel, engine, tokens, msg));
+    saveChains.set(id, run);
+    try {
+      await run;
+    } finally {
+      if (saveChains.get(id) === run) saveChains.delete(id);
+    }
+    return;
+  }
+  await handleSetupMessageInner(panel, engine, tokens, msg);
+}
+
+async function handleSetupMessageInner(panel, engine, tokens, msg) {
   const post = (m) => panel.webview.postMessage(m);
   try {
     if (msg.type === 'ready') {
@@ -1194,9 +1226,50 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
         const rest = feeds.filter((f) => !(f && f.id === id));
         const pos = Math.min(rest.length + 1, Math.max(1, Number(d.position) || (oldIdx >= 0 ? oldIdx + 1 : rest.length + 1)));
         rest.splice(pos - 1, 0, entry);
-        await cfg.update('feeds', rest, vscode.ConfigurationTarget.Global);
+        /* Repointing the feed at another server with the token
+           field left empty must not carry the old server's token
+           over (tokens are keyed by feed id, not URL). Drop it
+           BEFORE the settings update; if the drop fails, abort
+           the save rather than persist a feed whose stored token
+           now belongs to a different server. */
+        /* Keep the dropped value until the update succeeds: if the
+           update is rejected, the settings still point at the old
+           server, so the token must go back — otherwise the old
+           feed is left without the authentication it had. */
+        let droppedToken = null;
+        if (wizard.shouldDropStoredToken(oldRaw.url, entry.url, d.token, entry.auth.type) && (await tokens.has(id))) {
+          droppedToken = await tokens.get(id);
+          try {
+            await tokens.delete(id);
+          } catch (e) {
+            throw new Error(JA
+              ? '保存済みトークンを削除できなかったため、保存を中止しました。'
+              : 'Could not delete the stored token, so the save was aborted.');
+          }
+        }
+        try {
+          await cfg.update('feeds', rest, vscode.ConfigurationTarget.Global);
+        } catch (e) {
+          if (droppedToken != null) {
+            try {
+              await tokens.set(id, droppedToken);
+            } catch (restoreErr) {
+              const msg = JA
+                ? '設定の保存に失敗し、削除したトークンの復元にも失敗しました。トークンを再入力してください。'
+                : 'Saving the settings failed, and restoring the deleted token failed too. Please re-enter the token.';
+              vscode.window.showErrorMessage(msg);
+              throw new Error(msg);
+            }
+          }
+          throw e;
+        }
         if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
         else if (entry.auth.type === 'none' && (await tokens.has(id))) await tokens.delete(id);
+        /* Keep the form's edit target in sync with what was just
+           saved: storedTokenApplies compares against setupEditFeed.url,
+           so leaving the pre-edit entry here would keep matching the
+           OLD server while the stored token is already the new one. */
+        setupEditFeed = entry;
         post({ type: 'saved' });
         vscode.window.showInformationMessage(JA
           ? `Signboard-Duo: フィード「${entry.name}」を更新しました。`
@@ -1439,4 +1512,6 @@ function activate(context) {
 
 function deactivate() {}
 
-module.exports = { activate, deactivate };
+/* Test seam: the setup-form handlers are exercised by
+   test/setup-save.test.js with a stubbed `vscode` module. */
+module.exports = { activate, deactivate, _test: { handleSetupMessage, openSetupPanel } };

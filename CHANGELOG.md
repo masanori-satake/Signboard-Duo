@@ -1,5 +1,57 @@
 # Changelog
 
+## [1.18.8] - 2026-11-20
+
+### Fixed
+
+- **Saves of the same feed are now serialized.** The edit-save drops the stored token before the settings update and restores it if the update fails (1.18.7); with two saves of one feed running concurrently, the second save could repoint the feed while the first was still awaiting its update, and the first save's restore then put the old server's token back under an id whose settings now pointed at the new server. Saves for the same feed id now run one after another, so each save reads the settings the previous save left behind.
+
+### 日本語
+
+- **同じフィードの保存を直列化しました。** 編集保存は設定の更新前に保存済みトークンを削除し、更新が失敗したら復元します（1.18.7）。同じフィードの保存が並行すると、2回目の保存がフィードを向け替えたあとに1回目の保存の復元が走り、旧サーバーのトークンが新しい接続先の ID に戻ってしまうことがありました。同じフィード ID の保存は順番に実行されるようになり、各保存は直前の保存が残した設定を読みます。
+
+## [1.18.7] - 2026-11-20
+
+### Fixed
+
+- **If saving a repointed feed fails, the dropped token is now restored.** Repointing a feed at another server with the token field left empty drops the stored token before the settings update (1.18.6); when that update was rejected, the settings kept pointing at the old server while its token was already gone, leaving the old feed unable to authenticate until the token was re-entered. The old token is now kept until the update succeeds and restored if the update fails. `TokenStore.delete` is hardened the same way: if its index update fails after the secret is dropped, the secret is put back before the error surfaces. If restoring the token also fails, the user is told to re-enter it instead of failing silently.
+
+### 日本語
+
+- **フィードを向け替えた保存が失敗したとき、削除したトークンを復元するようにしました。** 保存先を別サーバーへ変えてトークン欄を空で保存すると、設定の更新前に保存済みトークンを削除します（1.18.6）。設定の更新が拒否されると、設定は旧サーバーのままトークンだけが消え、旧サーバーのフィードはトークンを再入力するまで認証できない状態でした。削除したトークンは設定の更新が成功するまで保持し、更新が失敗したら復元します。`TokenStore.delete` も同じ作りにし、秘密値を削除した後の索引の更新に失敗した場合は、エラーを返す前に秘密値を戻します。復元自体にも失敗した場合は、黙って失敗せず、トークンの再入力を促す通知を出します。
+
+## [1.18.6] - 2026-11-20
+
+### Fixed
+
+- **Repointing a feed at another server with the token field left empty no longer carries the old server's token over.** Stored tokens are keyed by feed id, not by URL, so an edit-save that changed the destination kept the previous server's token under the same id — where the 1.18.4/1.18.5 fill-in check would then match it against the new server. When an edit-save changes the destination and no new token is typed, the stored token is now deleted before the settings update; if the deletion fails, the save is aborted with an error. Saving with the destination unchanged keeps the stored token, and typing a new token replaces it, as before.
+
+### 日本語
+
+- **フィードを別サーバーへ向け替えてトークン欄を空のまま保存しても、旧サーバーのトークンが引き継がれないようにしました。** 保存済みトークンはフィード ID に紐づいており URL には紐づいていないため、保存先を変える編集保存では旧サーバーのトークンが同じ ID のまま残り、1.18.4／1.18.5 の補完チェックが新サーバーに対して一致してしまう状態でした。保存先が変わり、かつ新しいトークンが入力されていない場合は、設定の更新前に保存済みトークンを削除します。削除に失敗した場合はエラーを出して保存自体を中止します。保存先が同じならトークンは保持され、新しいトークンを入力すれば置き換わる、従来の動作はそのままです。
+
+## [1.18.5] - 2026-11-20
+
+### Fixed
+
+- **After repointing an edited feed at another server, the stored token could still be sent to the old server.** The 1.18.4 change compares the form's base URL against the URL the token was saved for, but the edit form kept comparing against the pre-edit entry: after saving a feed whose URL changed from A to B (with B's token), pointing the form back at A matched the stale entry and B's token was sent to A. The edit form's target is now re-synced to the saved entry on every edit-save, so the comparison always uses the URL that was actually saved.
+
+### 日本語
+
+- **編集したフィードを別サーバーへ向け替えた後、保存済みトークンが旧サーバーへ送られうる問題を直しました。** 1.18.4 の変更は「トークンの保存先 URL」とフォームの URL を比べるものですが、編集フォーム側の比較対象が編集前のエントリのままでした。URL を A から B に変えて B のトークンと一緒に保存した後、フォームを A に戻すと古いエントリに一致してしまい、B のトークンが A へ送られていました。編集保存のたびにフォームの対象を保存済みエントリに同期し直すようにし、比較は常に実際に保存された URL で行われます。
+
+## [1.18.4] - 2026-11-20
+
+### Fixed
+
+- **A feed full of non-matching close tags could freeze the whole editor.** The XML parser matched each close tag by scanning the entire open-element stack, so a feed of n opened elements followed by n closes that match nothing cost quadratic time — measured 81 s at 273 KB, well inside the 1 MB body cap. Open elements are now indexed by name, the match lookup is O(1), and parsing stays linear (the audit shape above now parses in well under a second). Well-formed feeds parse exactly as before.
+- **A stored token could be sent to a different server while editing a feed.** When an existing CI feed is edited and the token field is left empty, the setup form fills in the stored token for project / plan / workflow loads. That fill-in now applies only while the form's base URL still names the server the token was saved for; after the form is repointed at another instance, loads go out without the token and a 401 surfaces as an error instead of silently sending the old server's token to the new one.
+
+### 日本語
+
+- **不一致な閉じタグだらけのフィードでエディタ全体が固まる問題を直しました。** XML パーサが閉じタグの対応を探すたびに、開いている要素のスタック全体を走査していたため、「n 個の開始タグ＋対応しない n 個の閉じタグ」で二乗時間になっていました（本文上限 1MB の内側で、273KB で実測 81 秒）。開いている要素を名前で索引化し、対応付けを O(1) にして解析全体を線形に保ちます（上記の形状は1秒未満で解析できます）。正しいフィードの解析結果は従来どおりです。
+- **フィード編集中、保存済みトークンが別サーバーへ送られうる問題を直しました。** 既存の CI フィードを編集し、トークン欄を空のままプロジェクト／プラン／ワークフローを読み込むと、保存済みトークンが自動で補われます。この補完は、フォームのベース URL がトークンの保存先サーバーを指している場合に限るようにしました。フォームを別インスタンスへ向け替えた後はトークンなしで読み込み、認証が必要なら 401 がエラーとして表示されます（旧サーバーのトークンが無言で新サーバーへ送られることはありません）。
+
 ## [1.18.3] - 2026-11-17
 
 ### Fixed
