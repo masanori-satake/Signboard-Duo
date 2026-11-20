@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.7] - 2026-11-20
+
+### Fixed
+
+- **If saving a repointed feed fails, the dropped token is now restored.** Repointing a feed at another server with the token field left empty drops the stored token before the settings update (1.18.6); when that update was rejected, the settings kept pointing at the old server while its token was already gone, leaving the old feed unable to authenticate until the token was re-entered. The old token is now kept until the update succeeds and restored if the update fails. `TokenStore.delete` is hardened the same way: if its index update fails after the secret is dropped, the secret is put back before the error surfaces. If restoring the token also fails, the user is told to re-enter it instead of failing silently.
+
+### 日本語
+
+- **フィードを向け替えた保存が失敗したとき、削除したトークンを復元するようにしました。** 保存先を別サーバーへ変えてトークン欄を空で保存すると、設定の更新前に保存済みトークンを削除します（1.18.6）。設定の更新が拒否されると、設定は旧サーバーのままトークンだけが消え、旧サーバーのフィードはトークンを再入力するまで認証できない状態でした。削除したトークンは設定の更新が成功するまで保持し、更新が失敗したら復元します。`TokenStore.delete` も同じ作りにし、秘密値を削除した後の索引の更新に失敗した場合は、エラーを返す前に秘密値を戻します。復元自体にも失敗した場合は、黙って失敗せず、トークンの再入力を促す通知を出します。
+
 ## [1.18.6] - 2026-11-20
 
 ### Fixed

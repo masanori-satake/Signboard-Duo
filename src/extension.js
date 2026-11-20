@@ -1206,7 +1206,13 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
            BEFORE the settings update; if the drop fails, abort
            the save rather than persist a feed whose stored token
            now belongs to a different server. */
+        /* Keep the dropped value until the update succeeds: if the
+           update is rejected, the settings still point at the old
+           server, so the token must go back — otherwise the old
+           feed is left without the authentication it had. */
+        let droppedToken = null;
         if (wizard.shouldDropStoredToken(oldRaw.url, entry.url, d.token, entry.auth.type) && (await tokens.has(id))) {
+          droppedToken = await tokens.get(id);
           try {
             await tokens.delete(id);
           } catch (e) {
@@ -1215,7 +1221,22 @@ async function handleSetupMessage(panel, engine, tokens, msg) {
               : 'Could not delete the stored token, so the save was aborted.');
           }
         }
-        await cfg.update('feeds', rest, vscode.ConfigurationTarget.Global);
+        try {
+          await cfg.update('feeds', rest, vscode.ConfigurationTarget.Global);
+        } catch (e) {
+          if (droppedToken != null) {
+            try {
+              await tokens.set(id, droppedToken);
+            } catch (restoreErr) {
+              const msg = JA
+                ? '設定の保存に失敗し、削除したトークンの復元にも失敗しました。トークンを再入力してください。'
+                : 'Saving the settings failed, and restoring the deleted token failed too. Please re-enter the token.';
+              vscode.window.showErrorMessage(msg);
+              throw new Error(msg);
+            }
+          }
+          throw e;
+        }
         if (d.token && entry.auth.type !== 'none') await tokens.set(id, d.token);
         else if (entry.auth.type === 'none' && (await tokens.has(id))) await tokens.delete(id);
         /* Keep the form's edit target in sync with what was just
@@ -1465,4 +1486,6 @@ function activate(context) {
 
 function deactivate() {}
 
-module.exports = { activate, deactivate };
+/* Test seam: the setup-form handlers are exercised by
+   test/setup-save.test.js with a stubbed `vscode` module. */
+module.exports = { activate, deactivate, _test: { handleSetupMessage, openSetupPanel } };
