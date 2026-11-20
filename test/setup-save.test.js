@@ -44,6 +44,9 @@ function makeConfig(initialFeeds) {
   };
   const cfg = {
     failUpdate: false,
+    failFirstUpdate: false,
+    blockFirstUpdate: null,
+    _firstUpdateDone: false,
     infoMessages: [],
     errorMessages: [],
     posted,
@@ -55,6 +58,11 @@ function makeConfig(initialFeeds) {
     get(key) { return key === 'feeds' ? current : undefined; },
     async update(key, value) {
       if (cfg.failUpdate) throw new Error('settings update rejected');
+      if (cfg.failFirstUpdate && !cfg._firstUpdateDone) {
+        cfg._firstUpdateDone = true;
+        if (cfg.blockFirstUpdate) await cfg.blockFirstUpdate;
+        throw new Error('settings update rejected');
+      }
       if (key === 'feeds') current = value;
     },
   };
@@ -152,3 +160,29 @@ test('a failed token restore is notified instead of going silent', async () => {
   assert.equal(cfg.posted.filter((m) => m.type === 'error').length, 1);
   assert.match(cfg.posted.find((m) => m.type === 'error').message, /restoring the deleted token failed/);
 });
+
+test('concurrent saves of the same feed are serialized: a failed first save must not restore its token onto the second save destination', async () => {
+  const { tokens, cfg } = await setup();
+  // The first settings update blocks until the test releases it, so the
+  // second save is definitely in flight while the first is pending.
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  cfg.failFirstUpdate = true;
+  cfg.blockFirstUpdate = gate;
+  const panel = cfg.panel;
+  const engine = { refreshAll: async () => {} };
+  const p1 = handleSetupMessage(panel, engine, tokens, saveMessage());
+  const p2 = handleSetupMessage(panel, engine, tokens, saveMessage());
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  release();
+  await Promise.all([p1, p2]);
+  // S1 failed and restored the token while the settings still pointed
+  // at the old server; S2 then dropped it again when repointing. The
+  // old token must not end up stored against the new destination.
+  assert.equal(await tokens.has('feed-a'), false);
+  assert.deepEqual(cfg.inspect('feeds').globalValue.map((f) => f.url), [NEW_URL]);
+  assert.equal(cfg.posted.filter((m) => m.type === 'error').length, 1);
+  assert.equal(cfg.posted.filter((m) => m.type === 'saved').length, 1);
+});
+
+

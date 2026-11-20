@@ -1077,7 +1077,33 @@ function setupAuthHeaders(adapterType, c) {
   return h;
 }
 
+/* Saves for the same feed must not run concurrently. An edit-save
+   drops the stored token before the settings update and restores it
+   if that update fails; if a second save repoints the same feed while
+   the first is still awaiting its update, the first save's restore
+   would put the old server's token back under an id whose settings
+   now point at the new server. Chain saves per feed id so each one
+   reads the settings the previous save left behind. A new feed gets
+   a fresh id, so only edit-saves queue here. */
+const saveChains = new Map();
+
 async function handleSetupMessage(panel, engine, tokens, msg) {
+  if (msg.type === 'save' && setupEditFeed) {
+    const id = setupEditFeed.id;
+    const prev = saveChains.get(id) || Promise.resolve();
+    const run = prev.catch(() => {}).then(() => handleSetupMessageInner(panel, engine, tokens, msg));
+    saveChains.set(id, run);
+    try {
+      await run;
+    } finally {
+      if (saveChains.get(id) === run) saveChains.delete(id);
+    }
+    return;
+  }
+  await handleSetupMessageInner(panel, engine, tokens, msg);
+}
+
+async function handleSetupMessageInner(panel, engine, tokens, msg) {
   const post = (m) => panel.webview.postMessage(m);
   try {
     if (msg.type === 'ready') {

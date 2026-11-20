@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.8] - 2026-11-20
+
+### Fixed
+
+- **Saves of the same feed are now serialized.** The edit-save drops the stored token before the settings update and restores it if the update fails (1.18.7); with two saves of one feed running concurrently, the second save could repoint the feed while the first was still awaiting its update, and the first save's restore then put the old server's token back under an id whose settings now pointed at the new server. Saves for the same feed id now run one after another, so each save reads the settings the previous save left behind.
+
+### 日本語
+
+- **同じフィードの保存を直列化しました。** 編集保存は設定の更新前に保存済みトークンを削除し、更新が失敗したら復元します（1.18.7）。同じフィードの保存が並行すると、2回目の保存がフィードを向け替えたあとに1回目の保存の復元が走り、旧サーバーのトークンが新しい接続先の ID に戻ってしまうことがありました。同じフィード ID の保存は順番に実行されるようになり、各保存は直前の保存が残した設定を読みます。
+
 ## [1.18.7] - 2026-11-20
 
 ### Fixed
