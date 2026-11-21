@@ -8,6 +8,7 @@
    Feed tokens live in SecretStorage, never in settings. */
 
 const vscode = require('vscode');
+const crypto = require('crypto');
 const { parseFeed, parseQuotes, ciVerdict } = require('./feedparse');
 const { fetchOnce, classifyError, proxyForUrl } = require('./net');
 const { numberPlatforms, mergeFeedRows, platformState, nextOutage, interestsChanged } = require('./model');
@@ -34,6 +35,15 @@ function clampInt(v, min, max, fallback) {
   const n = Number(v);
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, Math.round(n)));
+}
+
+/* CSP nonce for the Webviews: the nonce is the last line of the
+   CSP, so it comes from a cryptographic source — a timestamp /
+   Math.random value would be guessable by anything that manages
+   to get markup in front of the renderer. Node's stdlib only, so
+   the zero-dependency rule holds. */
+function makeNonce() {
+  return crypto.randomBytes(16).toString('base64');
 }
 
 /* ---------------- fetching ---------------- */
@@ -180,11 +190,17 @@ class FeedEngine {
         && !/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(String(rec.auth.headerName))) rec.configError = true;
       else if (seen.has(rec.id)) { rec.configError = true; this.log(`feeds: duplicate id "${rec.id}"`); }
       else if (!/^https?:\/\//.test(rec.url)) rec.configError = true;
+      /* A configured token would travel in cleartext over plain
+         http. Http-only servers in other environments are a
+         supported case, but not with credentials attached: surface
+         it as a config error the board can explain instead of
+         silently sending the secret unencrypted. */
+      else if (rec.auth && rec.auth.type && rec.auth.type !== 'none' && /^http:\/\//.test(rec.url)) rec.configError = true;
       else if (rec.type === 'bamboo-rest'
         && !(typeof rec.target.project === 'string' && rec.target.project)
         && !(Array.isArray(rec.target.plans) && rec.target.plans.length)) rec.configError = true;
       else if (rec.type === 'github-actions'
-        && !(typeof rec.target.repo === 'string' && /^[^/\s]+\/[^/\s]+$/.test(rec.target.repo))) rec.configError = true;
+        && !(typeof rec.target.repo === 'string' && github.REPO_PATTERN.test(rec.target.repo))) rec.configError = true;
       seen.add(rec.id);
       /* A changed news-item selection resets the feed's rows
          (design §16 supplement): the rows on the board were produced
@@ -279,18 +295,31 @@ class FeedEngine {
      troubleshooting section for that case). */
   proxyConfig() {
     const httpCfg = vscode.workspace.getConfiguration('http');
-    let proxy = httpCfg.get('proxy', '') || '';
+    /* Feeds are read from user (global) settings only, so a cloned
+       workspace cannot choose where a feed's token is sent; the
+       proxy is part of that route, so it follows the same rule —
+       inspect() globalValue for every http.* value. Above all, a
+       workspace-sourced proxyStrictSSL: false must never switch
+       off TLS verification on the CONNECT tunnel. The process
+       environment fallback stays: it is the user's own shell,
+       not the workspace. */
+    const globalOf = (key) => {
+      const info = httpCfg.inspect(key);
+      return info ? info.globalValue : undefined;
+    };
+    let proxy = globalOf('proxy') || '';
+    if (typeof proxy !== 'string') proxy = '';
     if (!proxy) {
       proxy = process.env.HTTPS_PROXY || process.env.https_proxy ||
         process.env.HTTP_PROXY || process.env.http_proxy || '';
     }
-    const fromVsCode = httpCfg.get('noProxy', []) || [];
+    const fromVsCode = globalOf('noProxy') || [];
     const envList = (process.env.NO_PROXY || process.env.no_proxy || '').split(/[,\s]+/);
     return {
       proxy,
       noProxy: [...(Array.isArray(fromVsCode) ? fromVsCode : []), ...envList.filter(Boolean)],
-      authorization: httpCfg.get('proxyAuthorization', null) || null,
-      strictSSL: httpCfg.get('proxyStrictSSL', true) !== false,
+      authorization: globalOf('proxyAuthorization') || null,
+      strictSSL: globalOf('proxyStrictSSL') !== false,
     };
   }
 
@@ -746,7 +775,7 @@ class BoardProvider {
     const jsFile = led ? 'led.js' : stock ? 'stock.js' : 'board.js';
     const css = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', cssFile));
     const js = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', jsFile));
-    const nonce = String(Date.now()) + Math.floor(Math.random() * 1e9);
+    const nonce = makeNonce();
     const autoScript = mode === 'auto'
       ? `<script nonce="${nonce}">window.__SB_AUTO = true;</script>\n` : '';
     const cfg = vscode.workspace.getConfiguration(CONFIG_NS);
@@ -904,10 +933,7 @@ let setupPanel = null;
 let setupEditFeed = null;
 
 function setupNonce() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let out = '';
-  for (let i = 0; i < 24; i++) out += chars[Math.floor(Math.random() * chars.length)];
-  return out;
+  return makeNonce();
 }
 
 function setupHtml(webview, context, editFeed) {
@@ -1147,20 +1173,23 @@ async function handleSetupMessageInner(panel, engine, tokens, msg) {
     }
     if (msg.type === 'loadProjects') {
       const base = wizard.normalizeBaseUrl(msg.base);
+      if (!/^https?:\/\//.test(base)) throw new Error(JA ? 'URL が不正です' : 'Invalid URL');
       const items = bamboo.parseProjects(await wizardFetchJson(engine, bamboo.projectsUrl(base), await setupAuthHeadersFor(engine, 'bamboo-rest', msg)));
       post({ type: 'projects', items });
       return;
     }
     if (msg.type === 'loadPlans') {
       const base = wizard.normalizeBaseUrl(msg.base);
+      if (!/^https?:\/\//.test(base)) throw new Error(JA ? 'URL が不正です' : 'Invalid URL');
       const items = bamboo.parseProjectPlans(await wizardFetchJson(engine, bamboo.projectUrl(base, msg.project), await setupAuthHeadersFor(engine, 'bamboo-rest', msg)));
       post({ type: 'plans', items });
       return;
     }
     if (msg.type === 'loadWorkflows') {
       const base = wizard.normalizeBaseUrl(msg.base);
+      if (!/^https?:\/\//.test(base)) throw new Error(JA ? 'URL が不正です' : 'Invalid URL');
       const repo = wizard.normalizeRepoInput(msg.repo);
-      if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) {
+      if (!github.REPO_PATTERN.test(repo)) {
         throw new Error(JA ? 'リポジトリは owner/name の形式で入力してください' : 'Enter the repository as owner/name');
       }
       const h = await setupAuthHeadersFor(engine, 'github-actions', msg);
@@ -1186,7 +1215,7 @@ async function handleSetupMessageInner(panel, engine, tokens, msg) {
         idBase = 'feed-' + wizard.slugify(defaultName);
       } else if (d.type === 'github-actions') {
         const repo = wizard.normalizeRepoInput(d.target && d.target.repo);
-        if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) throw new Error(JA ? 'リポジトリは owner/name の形式で入力してください' : 'Enter the repository as owner/name');
+        if (!github.REPO_PATTERN.test(repo)) throw new Error(JA ? 'リポジトリは owner/name の形式で入力してください' : 'Enter the repository as owner/name');
         target = { repo, branches: ['mainline', 'include', 'only'].includes(d.target.branches) ? d.target.branches : 'mainline' };
         if (Array.isArray(d.target.workflows) && d.target.workflows.length) target.workflows = d.target.workflows;
         defaultName = repo;

@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { runsUrl, parseRuns, buildRows, collect } = require('../src/github');
+const { repoUrl, workflowsUrl, runsUrl, parseRuns, buildRows, collect, REPO_PATTERN } = require('../src/github');
 
 const LABELS = {
   running: 'running',
@@ -29,6 +29,21 @@ const REL = { id: 2, name: 'release' };
 
 test('urls target the repo runs endpoint', () => {
   assert.equal(runsUrl('https://api.github.com/', 'o/r', 30), 'https://api.github.com/repos/o/r/actions/runs?per_page=30');
+});
+
+test('repo URL builders percent-encode each segment', () => {
+  assert.equal(repoUrl('https://api.github.com/', 'o/r'), 'https://api.github.com/repos/o/r');
+  // A stray ?, # or space in the value must stay data, never URL syntax.
+  assert.equal(repoUrl('https://api.github.com', 'ow ner/re?x#y'), 'https://api.github.com/repos/ow%20ner/re%3Fx%23y');
+  assert.equal(workflowsUrl('https://api.github.com', 'o/r'), 'https://api.github.com/repos/o/r/actions/workflows?per_page=100');
+  assert.equal(runsUrl('https://api.github.com', 'o/r%2f..', 30), 'https://api.github.com/repos/o/r%252f../actions/runs?per_page=30');
+});
+
+test('REPO_PATTERN accepts GitHub names and rejects URL-shaped input', () => {
+  for (const ok of ['owner/name', 'a.b-c_d/E.F', 'o/r']) assert.ok(REPO_PATTERN.test(ok), ok);
+  for (const bad of ['owner', 'owner/', '/name', 'o/r/x', 'owner/re po', 'owner/re?x', 'owner/re#x', 'owner/re%2f..', '']) {
+    assert.equal(REPO_PATTERN.test(bad), false, JSON.stringify(bad));
+  }
 });
 
 test('parseRuns normalises the workflow_runs list', () => {

@@ -189,3 +189,24 @@ test('a proxy 407 is its own symptom, and credentials pass', { timeout: 20000 },
     { proxy: `http://u:p@127.0.0.1:${s.aPort}`, noProxy: [], strictSSL: false }));
   assert.equal(ok.status, 200);
 });
+
+test('fetchOnce refuses non-http(s) URLs at entry', async () => {
+  // The network layer itself enforces the allowlist: a data:/file:
+  // URL must be refused here, not reinterpreted as an https fetch.
+  await assert.rejects(fetchOnce('file:///etc/passwd', {}, [], 0, DEADLINE(), null), /protocol refused/);
+  await assert.rejects(fetchOnce('data:text/plain,hello', {}, [], 0, DEADLINE(), null), /protocol refused/);
+  await assert.rejects(fetchOnce('ftp://example.com/feed', {}, [], 0, DEADLINE(), null), /protocol refused/);
+});
+
+test('fetchOnce refuses a redirect to a non-http(s) location', { timeout: 20000 }, async () => {
+  const origin = http.createServer((req, res) => {
+    res.writeHead(302, { Location: 'file:///etc/passwd' });
+    res.end();
+  });
+  const oPort = await listen(origin);
+  try {
+    await assert.rejects(
+      fetchOnce(`http://127.0.0.1:${oPort}/feed`, {}, [], 5, DEADLINE(), null),
+      /redirect to unsupported protocol/);
+  } finally { origin.closeAllConnections(); origin.close(); }
+});

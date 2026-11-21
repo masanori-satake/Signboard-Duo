@@ -185,4 +185,22 @@ test('concurrent saves of the same feed are serialized: a failed first save must
   assert.equal(cfg.posted.filter((m) => m.type === 'saved').length, 1);
 });
 
+test('setup load handlers refuse a non-http(s) base URL before any fetch', async () => {
+  // Same scheme validation as the save path: a file:/gopher: base
+  // must be rejected up front, with the form told why — the engine
+  // stub would throw if a fetch were attempted.
+  const { tokens, cfg } = await setup();
+  const panel = cfg.panel;
+  const engine = {
+    refreshAll: async () => {},
+    proxyConfig: () => { throw new Error('fetch attempted'); },
+  };
+  await handleSetupMessage(panel, engine, tokens, { type: 'loadProjects', base: 'file:///etc/passwd' });
+  await handleSetupMessage(panel, engine, tokens, { type: 'loadPlans', base: 'file:///etc/passwd', project: 'X' });
+  await handleSetupMessage(panel, engine, tokens, { type: 'loadWorkflows', base: 'gopher://example.com', repo: 'o/r' });
+  const errors = cfg.posted.filter((m) => m.type === 'error');
+  assert.equal(errors.length, 3);
+  for (const e of errors) assert.match(e.message, /Invalid URL/);
+});
+
 
