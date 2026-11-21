@@ -22,6 +22,12 @@
     "onCommand:signboardDuo.addCiPlatform",
     "onCommand:signboardDuo.editInterests"
   ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true,
+      "description": "Signboard-Duo reads its feeds only from your user settings and never reads workspace files, so it works the same in Restricted Mode."
+    }
+  },
   "categories": [
     "Other"
   ],
@@ -475,5 +481,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.18.8"
+  "version": "1.18.9"
 }

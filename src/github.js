@@ -15,12 +15,23 @@ const HEADERS = { 'X-GitHub-Api-Version': '2022-11-28' };
 
 function baseOf(url) { return String(url || '').replace(/\/+$/, ''); }
 
+/* Repository coordinates are user input that lands inside a URL
+   path: each segment is percent-encoded so a stray ?, # or % in
+   the value can never reshape the request, and the accepted shape
+   is the character set GitHub itself allows in owner/repo names.
+   (The Bamboo adapter encodes the same way; keep the two in step.) */
+const REPO_PATTERN = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+
+function repoPath(repo) {
+  return String(repo || '').split('/').map(encodeURIComponent).join('/');
+}
+
 function repoUrl(base, repo) {
-  return `${baseOf(base)}/repos/${repo}`;
+  return `${baseOf(base)}/repos/${repoPath(repo)}`;
 }
 
 function workflowsUrl(base, repo) {
-  return `${baseOf(base)}/repos/${repo}/actions/workflows?per_page=100`;
+  return `${baseOf(base)}/repos/${repoPath(repo)}/actions/workflows?per_page=100`;
 }
 
 function parseWorkflows(json) {
@@ -32,7 +43,7 @@ function parseWorkflows(json) {
 
 function runsUrl(base, repo, perPage) {
   const n = Math.max(1, Math.min(100, perPage || 30));
-  return `${baseOf(base)}/repos/${repo}/actions/runs?per_page=${n}`;
+  return `${baseOf(base)}/repos/${repoPath(repo)}/actions/runs?per_page=${n}`;
 }
 
 function parseTime(v) {
@@ -165,4 +176,4 @@ async function collect(fetchJson, rec, ctx) {
   return { items, feedTitle: repo };
 }
 
-module.exports = { CAPABILITIES, DEFAULT_INTERESTS, HEADERS, repoUrl, workflowsUrl, parseWorkflows, runsUrl, parseRuns, buildRows, collect };
+module.exports = { CAPABILITIES, DEFAULT_INTERESTS, HEADERS, REPO_PATTERN, repoUrl, workflowsUrl, parseWorkflows, runsUrl, parseRuns, buildRows, collect };

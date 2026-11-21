@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.18.9] - 2026-11-22
+
+### Fixed
+
+- **Security hardening (defence in depth) from a follow-up audit; no behaviour change for typical setups.**
+  - The network layer now enforces an http/https allowlist itself: `fetchOnce` refuses any other protocol at entry and on redirect targets, and the setup form's project / plan / workflow load actions apply the same URL scheme check as the save path.
+  - Proxy settings are read from the user (global) values only, mirroring feed definitions: a workspace can no longer route feed traffic through its own proxy, and a workspace-sourced `http.proxyStrictSSL: false` can no longer disable TLS verification.
+  - A feed that has an auth type configured and an `http:` URL is now shown as a configuration error instead of sending its token over plaintext HTTP. Remove the auth type (or switch the feed to https) to use an http feed.
+  - Webview CSP nonces are generated with `crypto.randomBytes` instead of timestamps and `Math.random`.
+  - GitHub repository coordinates are percent-encoded per segment when adapter URLs are built, and repo validation now accepts only the characters GitHub allows in owner/repo names (shared by the feed check and the setup form).
+  - `package.json` now declares Workspace Trust support explicitly: feeds come only from user settings and the extension never reads workspace files, so it works the same in Restricted Mode.
+
+### 日本語
+
+- **追補監査に基づく多層防御の硬化を行いました。通常の使い方では動作は変わりません。**
+  - ネットワーク層自体が http/https の許可リストを持つようになりました。`fetchOnce` は入口とリダイレクト先の両方でそれ以外のプロトコルを拒否し、セットアップフォームのプロジェクト／プラン／ワークフローの読み込みにも、保存時と同じ URL スキーム検証を追加しました。
+  - プロキシ設定はフィード定義と同じ方針で、ユーザー（global）設定の値だけを読むようになりました。ワークスペースがフィード取得を自前プロキシ経由にしたり、ワークスペース由来の `http.proxyStrictSSL: false` で TLS 検証を無効化したりすることはできなくなります。
+  - 認証方式が設定されたフィードの URL が `http:` の場合、トークンを平文で送る代わりに設定エラーとして表示するようになりました。http のフィードを使う場合は認証方式を外すか、https に切り替えてください。
+  - Webview の CSP nonce を、時刻と `Math.random` ではなく `crypto.randomBytes` で生成するようになりました。
+  - GitHub のリポジトリ指定は、アダプタの URL 組み立て時にセグメントごとにパーセントエンコードし、検証も GitHub が owner/repo 名に許可する文字だけに締めました（フィードの検査とセットアップフォームで共用）。
+  - `package.json` に Workspace Trust の対応を明記しました。フィードはユーザー設定からしか読まず、ワークスペースファイルには一切アクセスしないため、制限モードでも同じように動作します。
+
 ## [1.18.8] - 2026-11-20
 
 ### Fixed

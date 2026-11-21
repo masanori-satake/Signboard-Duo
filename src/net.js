@@ -102,6 +102,14 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
   return new Promise((resolve, reject) => {
     let url;
     try { url = new URL(urlStr); } catch (e) { reject(e); return; }
+    /* Protocol allowlist at the network layer itself: callers
+       validate too, but a non-http(s) URL must never reach the
+       dispatch below, where "not http" would silently be treated
+       as https. */
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      reject(taggedError('http', 'unsupported URL protocol refused: ' + url.protocol));
+      return;
+    }
     const remain = deadline - Date.now();
     if (remain <= 0) { reject(new Error('fetch deadline exceeded')); return; }
     const px = proxyForUrl(urlStr, proxyCfg);
@@ -112,6 +120,13 @@ function fetchOnce(urlStr, headers, credNames, redirectsLeft, deadline, proxyCfg
       if (status >= 300 && status < 400 && res.headers.location && redirectsLeft > 0) {
         res.resume();
         const next = new URL(res.headers.location, url);
+        /* Redirect targets stay inside the same allowlist as the
+           entry URL: a Location pointing at data:, file: or any
+           other scheme is refused, not reinterpreted. */
+        if (next.protocol !== 'http:' && next.protocol !== 'https:') {
+          reject(taggedError('http', 'redirect to unsupported protocol refused: ' + next.protocol));
+          return;
+        }
         /* A downgrade redirect would hand the feed's content to
            whoever can intercept plain HTTP. Credentials are already
            stripped on any origin change; the content itself is
