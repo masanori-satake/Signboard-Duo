@@ -481,5 +481,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.18.9"
+  "version": "1.18.10"
 }

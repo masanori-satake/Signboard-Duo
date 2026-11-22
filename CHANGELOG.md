@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.18.10] - 2026-11-22
+
+### Fixed
+
+- Development-configuration alignment (no behaviour change): `.markdownlint.json` is now excluded from the version-bump check in `scripts/check-version.js` (the same treatment as `.pre-commit-config.yaml`), and the pre-commit hooks fixed formatting in `media/led.css` and several test fixtures.
+
+### 修正 (Fixed)
+
+- 開発用設定の整備（動作に変更なし）。`scripts/check-version.js` の版バンプ判定で `.markdownlint.json` を対象外にした（`.pre-commit-config.yaml` と同じ扱い）。あわせて、`media/led.css` とテスト用フィクスチャ数件の書式を pre-commit フックで整えた。
+
 ## [1.18.9] - 2026-11-22
 
 ### Fixed
