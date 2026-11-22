@@ -26,11 +26,11 @@
 	<link>https://github.blog/</link>
 	<width>32</width>
 	<height>32</height>
-</image> 
+</image>
 <site xmlns="com-wordpress:feed-additions:1">153214340</site>	<item>
 		<title>GitHub availability report: October 2026</title>
 		<link>https://github.blog/news-insights/company-news/github-availability-report-october-2026/</link>
-		
+
 		<dc:creator><![CDATA[Jakub Oleksy]]></dc:creator>
 		<pubDate>Fri, 13 Nov 2026 00:20:16 +0000</pubDate>
 				<category><![CDATA[Company news]]></category>
@@ -586,14 +586,14 @@
 </body></html>
 <p>The post <a href="https://github.blog/news-insights/company-news/github-availability-report-october-2026/">GitHub availability report: October 2026</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">100130</post-id>	</item>
 		<item>
 		<title>Build once, run on any agent: A practical guide to agent skills</title>
 		<link>https://github.blog/ai-and-ml/github-copilot/build-once-run-on-any-agent-a-practical-guide-to-agent-skills/</link>
-		
+
 		<dc:creator><![CDATA[Andrea Griffiths]]></dc:creator>
 		<pubDate>Thu, 12 Nov 2026 22:54:52 +0000</pubDate>
 				<category><![CDATA[AI & ML]]></category>
@@ -769,14 +769,14 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/ai-and-ml/github-copilot/build-once-run-on-any-agent-a-practical-guide-to-agent-skills/">Build once, run on any agent: A practical guide to agent skills</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">100122</post-id>	</item>
 		<item>
 		<title>Git security vulnerabilities announced</title>
 		<link>https://github.blog/open-source/git/git-security-vulnerabilities-announced-7/</link>
-		
+
 		<dc:creator><![CDATA[Elijah Newren]]></dc:creator>
 		<pubDate>Tue, 10 Nov 2026 18:00:00 +0000</pubDate>
 				<category><![CDATA[Git]]></category>
@@ -968,14 +968,14 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/open-source/git/git-security-vulnerabilities-announced-7/">Git security vulnerabilities announced</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">100077</post-id>	</item>
 		<item>
 		<title>Beyond code generation: A developer&#8217;s guide to agentic engineering</title>
 		<link>https://github.blog/ai-and-ml/github-copilot/beyond-code-generation-a-developers-guide-to-agentic-engineering/</link>
-		
+
 		<dc:creator><![CDATA[Nick Liffen]]></dc:creator>
 		<pubDate>Fri, 06 Nov 2026 22:15:59 +0000</pubDate>
 				<category><![CDATA[AI & ML]]></category>
@@ -1169,15 +1169,15 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/ai-and-ml/github-copilot/beyond-code-generation-a-developers-guide-to-agentic-engineering/">Beyond code generation: A developer&#8217;s guide to agentic engineering</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">100047</post-id>		<dc:creator><![CDATA[Philip Holleran]]></dc:creator>
 	</item>
 		<item>
 		<title>Inside GitHub&#8217;s new Git storage architecture</title>
 		<link>https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/</link>
-		
+
 		<dc:creator><![CDATA[Karthik Raman]]></dc:creator>
 		<pubDate>Thu, 05 Nov 2026 20:23:21 +0000</pubDate>
 				<category><![CDATA[Architecture & optimization]]></category>
@@ -1555,15 +1555,15 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/">Inside GitHub&#8217;s new Git storage architecture</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">100002</post-id>		<dc:creator><![CDATA[Brian Celenza]]></dc:creator>
 	</item>
 		<item>
 		<title>Accessibility statements now have a home on GitHub</title>
 		<link>https://github.blog/open-source/maintainers/accessibility-statements-now-have-a-home-on-github/</link>
-		
+
 		<dc:creator><![CDATA[Jan Maarten]]></dc:creator>
 		<pubDate>Thu, 05 Nov 2026 16:00:00 +0000</pubDate>
 				<category><![CDATA[Maintainers]]></category>
@@ -1733,14 +1733,14 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/open-source/maintainers/accessibility-statements-now-have-a-home-on-github/">Accessibility statements now have a home on GitHub</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">99949</post-id>	</item>
 		<item>
 		<title>Arnis turns any place on Earth into a Minecraft world</title>
 		<link>https://github.blog/open-source/maintainers/arnis-turns-any-place-on-earth-into-a-minecraft-world/</link>
-		
+
 		<dc:creator><![CDATA[Alex Perrault]]></dc:creator>
 		<pubDate>Tue, 03 Nov 2026 16:00:00 +0000</pubDate>
 				<category><![CDATA[Maintainers]]></category>
@@ -1917,14 +1917,14 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/open-source/maintainers/arnis-turns-any-place-on-earth-into-a-minecraft-world/">Arnis turns any place on Earth into a Minecraft world</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">99955</post-id>	</item>
 		<item>
 		<title>Game Off 2026: The theme is SHIFT</title>
 		<link>https://github.blog/open-source/gaming/game-off-2026-the-theme-is-shift/</link>
-		
+
 		<dc:creator><![CDATA[Lee Reilly]]></dc:creator>
 		<pubDate>Sun, 01 Nov 2026 21:36:00 +0000</pubDate>
 				<category><![CDATA[Gaming]]></category>
@@ -2348,14 +2348,14 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/open-source/gaming/game-off-2026-the-theme-is-shift/">Game Off 2026: The theme is SHIFT</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">99918</post-id>	</item>
 		<item>
 		<title>GitHub Universe 2026: Evolving every layer of the stack</title>
 		<link>https://github.blog/news-insights/company-news/github-universe-2026-evolving-every-layer-of-the-stack/</link>
-		
+
 		<dc:creator><![CDATA[Jay Parikh]]></dc:creator>
 		<pubDate>Wed, 28 Oct 2026 16:09:28 +0000</pubDate>
 				<category><![CDATA[Company news]]></category>
@@ -2525,14 +2525,14 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/news-insights/company-news/github-universe-2026-evolving-every-layer-of-the-stack/">GitHub Universe 2026: Evolving every layer of the stack</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">99788</post-id>	</item>
 		<item>
 		<title>Octoverse: Commits, pushes, reach new highs in 2026 as developers build with agents</title>
 		<link>https://github.blog/news-insights/octoverse/octoverse-commits-pushes-reach-new-highs-in-2026-as-developers-build-with-agents/</link>
-		
+
 		<dc:creator><![CDATA[GitHub Staff]]></dc:creator>
 		<pubDate>Wed, 28 Oct 2026 16:07:40 +0000</pubDate>
 				<category><![CDATA[News & insights]]></category>
@@ -3039,9 +3039,9 @@ platform:
 </body></html>
 <p>The post <a href="https://github.blog/news-insights/octoverse/octoverse-commits-pushes-reach-new-highs-in-2026-as-developers-build-with-agents/">Octoverse: Commits, pushes, reach new highs in 2026 as developers build with agents</a> appeared first on <a href="https://github.blog">The GitHub Blog</a>.</p>
 ]]></content:encoded>
-					
-		
-		
+
+
+
 		<post-id xmlns="com-wordpress:feed-additions:1">99742</post-id>	</item>
 	</channel>
 </rss>

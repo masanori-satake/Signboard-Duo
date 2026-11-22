@@ -202,5 +202,3 @@ test('setup load handlers refuse a non-http(s) base URL before any fetch', async
   assert.equal(errors.length, 3);
   for (const e of errors) assert.match(e.message, /Invalid URL/);
 });
-
-
