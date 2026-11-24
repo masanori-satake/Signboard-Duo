@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage, interestsChanged } = require('../src/model');
+const { numberPlatforms, mergeFeedRows, selectDisplayRows, platformState, isOutageFailure, nextOutage, interestsChanged } = require('../src/model');
 
 const H = 60 * 60 * 1000;
 
@@ -133,4 +133,15 @@ test('recovery rows carry the recovered flag through merges', () => {
   // Ordinary items do not pick the flag up.
   const plain = mergeFeedRows('f', [{ guid: 'g1', title: 'One', link: '', timeMs: 1000, remark: '' }], null, 2000, {});
   assert.ok(!plain.rows[0].recovered);
+});
+
+test('selectDisplayRows drops hidden recovery rows before the cap', () => {
+  const recovery = { key: 'f:recovered:1', title: 'Feed', timeMs: 9000, recovered: true };
+  const real = { key: 'f:g1', title: 'One', timeMs: 1000 };
+  // maxItems 1 with the recovery row newest: hiding it must not
+  // leave the board empty — the real row takes the slot.
+  assert.deepEqual(selectDisplayRows([recovery, real], 1, false).map((r) => r.key), ['f:g1']);
+  // Shown (the default), the recovery row is simply the newest row.
+  assert.deepEqual(selectDisplayRows([recovery, real], 1, true).map((r) => r.key), ['f:recovered:1']);
+  assert.deepEqual(selectDisplayRows([real, recovery], 4, true).map((r) => r.key), ['f:recovered:1', 'f:g1']);
 });

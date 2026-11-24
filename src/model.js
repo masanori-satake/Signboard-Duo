@@ -101,6 +101,16 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
   return { rows, snapshot: next };
 }
 
+/* Choose the rows a platform shows: newest first, capped at
+   maxItems. Recovery rows are dropped BEFORE the cap when the
+   showRecoveryRows setting is off, so a hidden row never takes a
+   display slot from a real one. */
+function selectDisplayRows(rows, maxItems, showRecovery) {
+  const list = showRecovery ? [...rows] : rows.filter((r) => !r.recovered);
+  list.sort((a, b) => b.timeMs - a.timeMs);
+  return list.slice(0, maxItems || 4);
+}
+
 /* Platform display state: authError and configError dominate; a platform
    with a successful fetch in the past but repeated failures since is
    `stale` (rows remain, shown dimmed) rather than an error. An active
@@ -170,4 +180,4 @@ function interestsChanged(prev, next) {
   return key(prev) !== key(next);
 }
 
-module.exports = { CONFIG, numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage, OUTAGE_THRESHOLD, interestsChanged };
+module.exports = { CONFIG, numberPlatforms, mergeFeedRows, selectDisplayRows, platformState, isOutageFailure, nextOutage, OUTAGE_THRESHOLD, interestsChanged };
