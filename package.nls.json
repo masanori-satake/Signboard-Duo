@@ -45,6 +45,7 @@
   "config.ledGlow.description": "LED glow (blurred copy under the mask).",
   "config.pollMinutes.description": "Feed polling interval in minutes.",
   "config.scrollLongText.description": "Scroll (LED) or flip through (flap) long titles instead of truncating them.",
+  "config.showRecoveryRows.description": "Show a recovery row on the board when a feed that could not be reached answers again.",
   "command.addCiPlatform": "Add Feed",
   "command.editInterests": "Edit Feed",
   "command.startRotation.title": "Start Auto-Rotation",

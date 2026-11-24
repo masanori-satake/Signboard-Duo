@@ -14,8 +14,8 @@ let STATUS_WORDS = {};
 function setLocale(lang) {
   LANG_JA = !lang || lang.toLowerCase().startsWith('ja');
   STATUS_WORDS = LANG_JA
-    ? { arrived: '到着', updated: '更新', failed: '欠航', outage: '不通' }
-    : { arrived: 'ARRIVED', updated: 'UPDATED', failed: 'CANCELLED', outage: 'BLOCKED' };
+    ? { arrived: '到着', updated: '更新', failed: '欠航', outage: '不通', recovered: '復旧' }
+    : { arrived: 'ARRIVED', updated: 'UPDATED', failed: 'CANCELLED', outage: 'BLOCKED', recovered: 'RECOVERED' };
   document.getElementById('colName').textContent = LANG_JA ? '便名' : 'FLIGHT NAME';
   document.getElementById('colTime').textContent = LANG_JA ? '到着時刻' : 'ARRIVAL';
   document.getElementById('colRemark').textContent = LANG_JA ? '備考' : 'REMARKS';

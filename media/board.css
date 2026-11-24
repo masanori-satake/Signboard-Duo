@@ -106,6 +106,7 @@ body {
 .board[data-tier="mini"] .cell.remark-plate { width: 82px; font-size: 13px; letter-spacing: .2em; }
 .cells.remark .cell { color: #cfcfd6; }
 .row.st-arrived .cells.remark .cell { color: var(--green); }
+.row.st-recovered .cells.remark .cell { color: var(--green); }
 .row.st-delayed .cells.remark .cell { color: var(--amber); }
 .row.st-cancelled .cells.remark .cell { color: var(--red); font-weight: 700; }
 .row.st-cancelled .cells.name { opacity: .55; }

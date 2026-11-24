@@ -45,6 +45,7 @@
   "config.ledGlow.description": "LED盤面のグロー（マスクの下のにじんだ複製）。",
   "config.pollMinutes.description": "フィードの取得間隔（分）。",
   "config.scrollLongText.description": "長いタイトルを切り捨てず、LED ではスクロール、フラップでは区切りめくりで表示します。",
+  "config.showRecoveryRows.description": "届かなかったフィードが応答を再開したとき、復旧行を盤面に表示します。",
   "command.addCiPlatform": "フィードを追加",
   "command.editInterests": "フィードを編集",
   "command.startRotation.title": "自動巡回を開始",

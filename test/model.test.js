@@ -116,3 +116,21 @@ test('platformState: auth errors dominate, staleness needs missed polls', () => 
   assert.equal(platformState({ lastOkAt: t0, lastErrorAt: t0 + 1 }, t0 + 3 * poll, poll), 'stale');
   assert.equal(platformState({ lastOkAt: 10 }, 20, poll), 'ok');
 });
+
+test('recovery rows carry the recovered flag through merges', () => {
+  const item = {
+    guid: 'recovered:1000', title: 'Feed', link: '',
+    remark: '復旧しました（約5分間不通でした）', timeMs: 5000, recovered: true,
+  };
+  const first = mergeFeedRows('f', [item], null, 5000, { maxItems: 4, keepHours: 24 });
+  assert.equal(first.rows.length, 1);
+  assert.equal(first.rows[0].recovered, true);
+  // The row ages like any other: a later merge without the item keeps
+  // both the row and its flag until keepHours runs out.
+  const later = mergeFeedRows('f', [], first.snapshot, 6000, { maxItems: 4, keepHours: 24 });
+  assert.equal(later.rows.length, 1);
+  assert.equal(later.rows[0].recovered, true);
+  // Ordinary items do not pick the flag up.
+  const plain = mergeFeedRows('f', [{ guid: 'g1', title: 'One', link: '', timeMs: 1000, remark: '' }], null, 2000, {});
+  assert.ok(!plain.rows[0].recovered);
+});

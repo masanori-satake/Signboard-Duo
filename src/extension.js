@@ -518,6 +518,7 @@ class FeedEngine {
   /* A blocked line that answers again earns one recovery row, worded
      like news and aged like any other row (design §18). */
   addRecoveryRow(rec, recovered, now) {
+    if (!vscode.workspace.getConfiguration(CONFIG_NS).get('showRecoveryRows', true)) return;
     const mins = Math.max(1, Math.round((recovered.downMs || 0) / 60000));
     const h = Math.floor(mins / 60);
     const dur = h >= 1
@@ -529,6 +530,7 @@ class FeedEngine {
       link: '',
       remark: JA ? `復旧しました（${dur}間不通でした）` : `Back online (the line was blocked for ${dur})`,
       timeMs: now,
+      recovered: true,
     };
     const merged = mergeFeedRows(rec.id, [item], rec.snapshot, now, {
       maxItems: rec.maxItems, keepHours: rec.keepHours,
@@ -542,6 +544,7 @@ class FeedEngine {
      feeds carry ciFailed from ciVerdict (feedparse.js), and the
      REST adapters set the same flag in their buildRows. */
   rowStatus(rec, row) {
+    if (row.recovered) return 'recovered';
     if (row.ciFailed) return 'failed';
     if (row.updated) return 'updated';
     if (row.isNew) return 'arrived';
@@ -564,6 +567,7 @@ class FeedEngine {
   platformsPayload() {
     const now = Date.now();
     const poll = this.pollMs();
+    const showRecovery = vscode.workspace.getConfiguration(CONFIG_NS).get('showRecoveryRows', true);
     const list = this.platforms
       .map((p, i) => ({ p, rec: this.feeds[i] }))
       .filter(({ p }) => p.no != null)
@@ -585,7 +589,9 @@ class FeedEngine {
           rotate: rec ? rec.rotate !== false : true,
           downSince: rec && rec.outage && rec.outage.active ? rec.outage.since : null,
           lastOkAt: rec && rec.lastOkAt ? rec.lastOkAt : null,
-          rows: (rec ? rec.rows : []).map((r) => ({
+          rows: (rec ? rec.rows : [])
+            .filter((r) => showRecovery || !r.recovered)
+            .map((r) => ({
             key: r.key, title: r.title, timeMs: r.timeMs,
             status: r.status || 'ontime', remark: r.remark || '',
             url: r.link || '', isNew: !!r.isNew,
