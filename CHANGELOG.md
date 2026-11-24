@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.19.0] - 2026-11-24
+
+### Added
+
+- **Recovery rows are now recognisable on every board, and can be turned off.** A recovery row's title is the feed name alone, and the flap and LED boards never showed its remark ("Back online (…)"), so the row read as a stray copy of the feed name. The flap board now shows RECOVERED on the remark plate, and the LED board shows the same status word and runs the remark through the scrolling title — matching the note the stock board already printed. The new `signboardDuo.showRecoveryRows` setting (default: on) controls whether recovery rows appear at all; turning it off also hides recovery rows already on the board.
+
+### 日本語
+
+- **復旧行がすべての盤面で分かるようになり、表示を切れる設定も追加しました。** 復旧行のタイトルはフィード名だけのため、備考（「復旧しました（約○分間不通でした）」）を表示しないフラップ盤面と LED 盤面では、フィード名だけの行に見えていました。フラップ盤面では備考プレートに「復旧」、LED 盤面では状態欄に「復旧」を出し、スクロールするタイトルにも備考を通すようにしました（株価盤面はもともと備考を表示していました）。新しい設定 `signboardDuo.showRecoveryRows`（既定: オン）で復旧行の表示そのものを切り替えられ、オフにすると盤面に残っている復旧行も隠れます。
+
 ## [1.18.10] - 2026-11-22
 
 ### Fixed

@@ -46,6 +46,7 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
         firstSeenAt: now, lastSeenInFeedAt: now,
         isNew: true, updated: false,
         ciFailed: it.ciFailed != null ? it.ciFailed : null,
+        recovered: it.recovered != null ? it.recovered : null,
         price: it.price != null ? it.price : null,
         change: it.change != null ? it.change : null,
         changePct: it.changePct != null ? it.changePct : null,
@@ -65,6 +66,7 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
         lastSeenInFeedAt: now,
         isNew: false, updated: changed,
         ciFailed: it.ciFailed != null ? it.ciFailed : old.ciFailed,
+        recovered: it.recovered != null ? it.recovered : old.recovered,
         price: it.price != null ? it.price : old.price,
         change: it.change != null ? it.change : old.change,
         changePct: it.changePct != null ? it.changePct : old.changePct,
@@ -97,6 +99,16 @@ function mergeFeedRows(feedId, items, prev, now, opts) {
 
   const rows = [...next.values()].sort((a, b) => b.timeMs - a.timeMs).slice(0, maxItems);
   return { rows, snapshot: next };
+}
+
+/* Choose the rows a platform shows: newest first, capped at
+   maxItems. Recovery rows are dropped BEFORE the cap when the
+   showRecoveryRows setting is off, so a hidden row never takes a
+   display slot from a real one. */
+function selectDisplayRows(rows, maxItems, showRecovery) {
+  const list = showRecovery ? [...rows] : rows.filter((r) => !r.recovered);
+  list.sort((a, b) => b.timeMs - a.timeMs);
+  return list.slice(0, maxItems || 4);
 }
 
 /* Platform display state: authError and configError dominate; a platform
@@ -168,4 +180,4 @@ function interestsChanged(prev, next) {
   return key(prev) !== key(next);
 }
 
-module.exports = { CONFIG, numberPlatforms, mergeFeedRows, platformState, isOutageFailure, nextOutage, OUTAGE_THRESHOLD, interestsChanged };
+module.exports = { CONFIG, numberPlatforms, mergeFeedRows, selectDisplayRows, platformState, isOutageFailure, nextOutage, OUTAGE_THRESHOLD, interestsChanged };

@@ -365,6 +365,11 @@
           "default": true,
           "description": "%config.scrollLongText.description%",
           "type": "boolean"
+        },
+        "signboardDuo.showRecoveryRows": {
+          "default": true,
+          "description": "%config.showRecoveryRows.description%",
+          "type": "boolean"
         }
       },
       "title": "%config.title%"
@@ -481,5 +486,5 @@
     "check-version": "node scripts/check-version.js",
     "check-version-bump": "node scripts/check-version.js --check-bump"
   },
-  "version": "1.18.10"
+  "version": "1.19.0"
 }

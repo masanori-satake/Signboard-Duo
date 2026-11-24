@@ -156,6 +156,7 @@ function announce(text) {
   renderTickerText();
 }
 function statusOf(r) {
+  if (r.status === 'recovered') return [LANG_JA ? '復旧' : 'RECOVERED', 'st-arrived'];
   if (r.status === 'outage') return [LANG_JA ? '不通' : 'BLOCKED', 'st-delay'];
   if (r.status === 'failed') return [LANG_JA ? '運休' : 'CANCELLED', 'st-delay'];
   if (r.status === 'updated') return [LANG_JA ? '更新' : 'UPDATED', 'st-next'];
@@ -218,7 +219,14 @@ function buildRows() {
       }
       row.appendChild(el('span', 'type ' + cls, LANG_JA ? labelJa : labelEn));
       const dest = el('span', 'dest');
-      const destIn = el('span', 'dest-in', String(r.title || '').toUpperCase());
+      /* A recovery row's title is the feed name alone, which says
+         nothing by itself: the remark (back online, with the blocked
+         duration) rides along in the scrolling title so the row
+         explains itself like the stock board's note does. */
+      const titleText = r.status === 'recovered' && r.remark
+        ? `${r.title || ''} — ${r.remark}`
+        : (r.title || '');
+      const destIn = el('span', 'dest-in', String(titleText).toUpperCase());
       dest.appendChild(destIn);
       if (r.status === 'failed') dest.style.color = '#777';
       row.appendChild(dest);

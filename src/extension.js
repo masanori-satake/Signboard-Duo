@@ -11,7 +11,7 @@ const vscode = require('vscode');
 const crypto = require('crypto');
 const { parseFeed, parseQuotes, ciVerdict } = require('./feedparse');
 const { fetchOnce, classifyError, proxyForUrl } = require('./net');
-const { numberPlatforms, mergeFeedRows, platformState, nextOutage, interestsChanged } = require('./model');
+const { numberPlatforms, mergeFeedRows, selectDisplayRows, platformState, nextOutage, interestsChanged } = require('./model');
 const { TokenStore, orphanIds } = require('./tokens');
 const bamboo = require('./bamboo');
 const github = require('./github');
@@ -227,7 +227,7 @@ class FeedEngine {
           ? sv.rows.filter((r) => r && typeof r.key === 'string' && Number.isFinite(r.timeMs) && Number.isFinite(r.firstSeenAt))
           : [];
         rec.snapshot = new Map(rows.map((r) => [r.key, r]));
-        rec.rows = [...rec.snapshot.values()].sort((a, b) => b.timeMs - a.timeMs).slice(0, rec.maxItems);
+        rec.rows = this.displayRows(rec);
       }
       records.push(rec);
     });
@@ -262,6 +262,9 @@ class FeedEngine {
     this.context.subscriptions.push(
       vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration(`${CONFIG_NS}.feeds`)) { this.loadConfig(); this.refreshAll(); }
+        if (e.affectsConfiguration(`${CONFIG_NS}.showRecoveryRows`)) {
+          for (const rec of this.feeds) rec.rows = this.displayRows(rec);
+        }
         if (e.affectsConfiguration(`${CONFIG_NS}.pollMinutes`)) arm();
         if (e.affectsConfiguration('http')) this.refreshAll();
       }),
@@ -426,7 +429,7 @@ class FeedEngine {
         maxItems: rec.maxItems, keepHours: rec.keepHours,
       });
       rec.snapshot = merged.snapshot;
-      rec.rows = merged.rows.map((r) => ({ ...r, status: this.rowStatus(rec, r) }));
+      rec.rows = this.displayRows(rec);
       rec.lastOkAt = now;
       rec.lastError = null;
       this.dirty = true;
@@ -481,7 +484,7 @@ class FeedEngine {
         maxItems: rec.maxItems, keepHours: rec.keepHours,
       });
       rec.snapshot = merged.snapshot;
-      rec.rows = merged.rows.map((r) => ({ ...r, status: this.rowStatus(rec, r) }));
+      rec.rows = this.displayRows(rec);
       rec.lastOkAt = now;
       rec.lastError = null;
       this.dirty = true;
@@ -518,6 +521,7 @@ class FeedEngine {
   /* A blocked line that answers again earns one recovery row, worded
      like news and aged like any other row (design §18). */
   addRecoveryRow(rec, recovered, now) {
+    if (!vscode.workspace.getConfiguration(CONFIG_NS).get('showRecoveryRows', true)) return;
     const mins = Math.max(1, Math.round((recovered.downMs || 0) / 60000));
     const h = Math.floor(mins / 60);
     const dur = h >= 1
@@ -529,12 +533,13 @@ class FeedEngine {
       link: '',
       remark: JA ? `復旧しました（${dur}間不通でした）` : `Back online (the line was blocked for ${dur})`,
       timeMs: now,
+      recovered: true,
     };
     const merged = mergeFeedRows(rec.id, [item], rec.snapshot, now, {
       maxItems: rec.maxItems, keepHours: rec.keepHours,
     });
     rec.snapshot = merged.snapshot;
-    rec.rows = merged.rows.map((r) => ({ ...r, status: this.rowStatus(rec, r) }));
+    rec.rows = this.displayRows(rec);
     this.dirty = true;
   }
 
@@ -542,10 +547,21 @@ class FeedEngine {
      feeds carry ciFailed from ciVerdict (feedparse.js), and the
      REST adapters set the same flag in their buildRows. */
   rowStatus(rec, row) {
+    if (row.recovered) return 'recovered';
     if (row.ciFailed) return 'failed';
     if (row.updated) return 'updated';
     if (row.isNew) return 'arrived';
     return 'ontime';
+  }
+
+  /* The rows the board shows for one feed, rebuilt from the snapshot
+     whenever the underlying rows or the showRecoveryRows setting
+     change: the recovery filter runs before the maxItems cap, so a
+     hidden recovery row never takes a real row's slot. */
+  displayRows(rec) {
+    const showRecovery = vscode.workspace.getConfiguration(CONFIG_NS).get('showRecoveryRows', true);
+    return selectDisplayRows([...rec.snapshot.values()], rec.maxItems, showRecovery)
+      .map((r) => ({ ...r, status: this.rowStatus(rec, r) }));
   }
 
   maybePromptToken(rec) {
